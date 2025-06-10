@@ -127,8 +127,8 @@ export default function AboutPage() {
               <span className="text-gray-900">Ecosystem</span>
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Bridging Sports, Education & Technology through innovative platforms that transform how 
-              individuals connect, learn, and thrive in the digital age.
+              Comprehensive technology ecosystem connecting transportation, logistics, education, and AI-powered solutions 
+              to empower independent contractors and transform business operations since 2019.
             </p>
           </div>
         </div>

@@ -6,12 +6,51 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Loader2, CheckCircle } from "lucide-react";
 
+// Form schemas
+const contractorFormSchema = z.object({
+  firstName: z.string().min(2, "First name must be at least 2 characters"),
+  lastName: z.string().min(2, "Last name must be at least 2 characters"),
+  email: z.string().email("Invalid email address"),
+  phone: z.string().min(10, "Phone number must be at least 10 digits"),
+  requestType: z.string().min(1, "Please select request type"),
+  businessStage: z.string().min(1, "Please select business stage"),
+  currentFleetSize: z.string().optional(),
+  timeline: z.string().min(1, "Please select timeline"),
+  budget: z.string().min(1, "Please select budget"),
+  currentChallenges: z.array(z.string()).min(1, "Please select at least one challenge"),
+  goals: z.array(z.string()).min(1, "Please select at least one goal"),
+  operationalAreas: z.array(z.string()).min(1, "Please select at least one area"),
+  technologyNeeds: z.array(z.string()).min(1, "Please select at least one technology need"),
+  contactPreference: z.string().min(1, "Please select contact preference"),
+  description: z.string().optional(),
+});
 
+const companyFormSchema = z.object({
+  companyName: z.string().min(2, "Company name must be at least 2 characters"),
+  contactPerson: z.string().min(2, "Contact person must be at least 2 characters"),
+  email: z.string().email("Invalid email address"),
+  phone: z.string().min(10, "Phone number must be at least 10 digits"),
+  serviceType: z.string().min(1, "Please select service type"),
+  companySize: z.string().min(1, "Please select company size"),
+  currentFleetSize: z.string().optional(),
+  timeline: z.string().min(1, "Please select timeline"),
+  budget: z.string().min(1, "Please select budget"),
+  currentChallenges: z.array(z.string()).min(1, "Please select at least one challenge"),
+  goals: z.array(z.string()).min(1, "Please select at least one goal"),
+  operationalAreas: z.array(z.string()).min(1, "Please select at least one area"),
+  technologyNeeds: z.array(z.string()).min(1, "Please select at least one technology need"),
+  contactPreference: z.string().min(1, "Please select contact preference"),
+  description: z.string().optional(),
+});
 
 interface ConsultationFormProps {
   type: 'contractor' | 'company';
@@ -24,15 +63,43 @@ export function ConsultationForm({ type, onSuccess }: ConsultationFormProps) {
   
   const schema = type === 'contractor' ? contractorFormSchema : companyFormSchema;
   
+  const defaultValues = type === 'contractor' ? {
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    requestType: "",
+    businessStage: "",
+    currentFleetSize: "",
+    timeline: "",
+    budget: "",
+    currentChallenges: [],
+    goals: [],
+    operationalAreas: [],
+    technologyNeeds: [],
+    contactPreference: "email",
+    description: ""
+  } : {
+    companyName: "",
+    contactPerson: "",
+    email: "",
+    phone: "",
+    serviceType: "",
+    companySize: "",
+    currentFleetSize: "",
+    timeline: "",
+    budget: "",
+    currentChallenges: [],
+    goals: [],
+    operationalAreas: [],
+    technologyNeeds: [],
+    contactPreference: "email",
+    description: ""
+  };
+
   const form = useForm({
     resolver: zodResolver(schema),
-    defaultValues: {
-      contactPreference: "email",
-      currentChallenges: [],
-      goals: [],
-      operationalAreas: [],
-      technologyNeeds: []
-    }
+    defaultValues
   });
 
   const mutation = useMutation({

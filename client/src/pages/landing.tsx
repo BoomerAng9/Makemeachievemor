@@ -42,8 +42,8 @@ export default function LandingPage() {
                 <Truck className="text-white h-5 w-5" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">ACHIEVEMOR</h1>
-                <p className="text-xs text-gray-500">AI-Powered Logistics</p>
+                <h1 className="text-xl font-bold text-gray-900">Choose 2 ACHIEVEMOR</h1>
+                <p className="text-xs text-gray-500">Owner Operator Platform</p>
               </div>
             </div>
             
@@ -133,12 +133,12 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="text-left">
               <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-                Deploy AI-Powered
-                <span className="block text-primary">Logistics Solutions</span>
+                Choose 2 ACHIEVEMOR
+                <span className="block text-primary">Owner Operator Platform</span>
               </h1>
               <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-                Connect with verified independent contractors for on-demand delivery services. 
-                Real-time validation, reliable delivery, and seamless logistics management.
+                Comprehensive onboarding platform for owner operator independent contractors. 
+                Compliance verification, job opportunities, and business growth services.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button 
@@ -146,7 +146,7 @@ export default function LandingPage() {
                   asChild
                   className="bg-primary hover:bg-primary/90 text-lg px-8 py-3"
                 >
-                  <Link href="/register/company">Deploy Now</Link>
+                  <Link href="/register/contractor">Join as Driver</Link>
                 </Button>
                 <Button 
                   size="lg" 
