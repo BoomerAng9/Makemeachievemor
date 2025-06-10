@@ -33,12 +33,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
+      
+      // Ensure contractor profile exists for this user
+      await ensureUserContractorProfile(user);
+      
       res.json(user);
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
     }
   });
+
+  // Helper function to ensure contractor profile exists
+  async function ensureUserContractorProfile(user: any) {
+    if (!user) return;
+    
+    try {
+      const existingContractor = await storage.getContractorByEmail(user.email);
+      
+      if (!existingContractor) {
+        // Create contractor profile using user data
+        await storage.createContractor({
+          firstName: user.firstName || "User",
+          lastName: user.lastName || "Profile",
+          email: user.email || "",
+          phone: "",
+          dateOfBirth: "",
+          street: "",
+          city: "",
+          state: "",
+          zipCode: "",
+          dotNumber: "",
+          mcNumber: "",
+        });
+        console.log(`Created contractor profile for user ${user.id}`);
+      }
+    } catch (error) {
+      console.error("Error ensuring contractor profile:", error);
+    }
+  }
 
   // Contractor routes
   app.post('/api/contractors', async (req, res) => {

@@ -18,14 +18,16 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function DashboardPage() {
   const { contractorId } = useParams();
   const { user } = useAuth();
-  const id = contractorId ? parseInt(contractorId) : (user?.id ? parseInt(user.id) : undefined);
   const [isChatbotOpen, setIsChatbotOpen] = useState(false);
 
-  const { data: contractor, isLoading: contractorLoading } = useContractor(id);
-  const { data: stats, isLoading: statsLoading } = useContractorStats(id);
+  // Use the authenticated user as the contractor profile
+  const contractor = user;
+  const contractorLoading = false;
+  const userId = user?.id;
+  const { data: stats, isLoading: statsLoading } = useContractorStats(parseInt(userId));
   const { data: opportunities, isLoading: opportunitiesLoading } = useAvailableOpportunities();
-  const { data: messages, isLoading: messagesLoading } = useContractorMessages(id);
-  const { data: jobs, isLoading: jobsLoading } = useContractorJobs(id);
+  const { data: messages, isLoading: messagesLoading } = useContractorMessages(parseInt(userId));
+  const { data: jobs, isLoading: jobsLoading } = useContractorJobs(parseInt(userId));
 
   if (contractorLoading) {
     return <DashboardSkeleton />;
@@ -80,17 +82,17 @@ export default function DashboardPage() {
               <div className="flex flex-col md:flex-row md:items-center md:justify-between">
                 <div>
                   <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                    Welcome, {contractor.firstName} {contractor.lastName}
+                    Welcome, {contractor?.firstName || 'User'} {contractor?.lastName || ''}
                   </h2>
                   <div className="flex items-center space-x-4">
                     <Badge 
-                      variant={contractor.verificationStatus === 'verified' ? 'default' : 'secondary'}
-                      className={contractor.verificationStatus === 'verified' ? 'bg-green-100 text-green-800' : ''}
+                      variant={contractor?.verificationStatus === 'verified' ? 'default' : 'secondary'}
+                      className={contractor?.verificationStatus === 'verified' ? 'bg-green-100 text-green-800' : ''}
                     >
-                      {contractor.verificationStatus === 'verified' ? '✓ Verified' : 'Pending Verification'}
+                      {contractor?.verificationStatus === 'verified' ? '✓ Verified' : 'Pending Verification'}
                     </Badge>
                     <span className="text-sm text-gray-500">
-                      Member since {new Date(contractor.createdAt || '').toLocaleDateString()}
+                      Member since {new Date(contractor?.createdAt || Date.now()).toLocaleDateString()}
                     </span>
                   </div>
                 </div>
@@ -146,7 +148,7 @@ export default function DashboardPage() {
                     <OpportunityCard 
                       key={opportunity.id} 
                       opportunity={opportunity} 
-                      contractorId={contractor.id}
+                      contractorId={contractor?.id || userId}
                     />
                   ))}
                 </div>
