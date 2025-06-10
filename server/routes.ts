@@ -5,6 +5,7 @@ import multer from "multer";
 import path from "path";
 import { insertContractorSchema, insertVehicleSchema, insertDocumentSchema, insertOpportunitySchema, insertMessageSchema, insertJobAssignmentSchema } from "@shared/schema";
 import { z } from "zod";
+import { generateChatbotResponse } from "./chatbot";
 
 // Configure multer for file uploads
 const upload = multer({
@@ -275,6 +276,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error fetching contractor stats:', error);
       res.status(500).json({ message: 'Failed to fetch contractor stats' });
+    }
+  });
+
+  // Chatbot route
+  app.post('/api/chatbot', async (req, res) => {
+    try {
+      const { message, context } = req.body;
+      
+      if (!message || typeof message !== 'string') {
+        return res.status(400).json({ message: 'Message is required' });
+      }
+
+      const response = await generateChatbotResponse(message, context);
+      res.json({ response });
+    } catch (error) {
+      console.error('Error in chatbot:', error);
+      res.status(500).json({ 
+        message: 'Chatbot service unavailable',
+        response: "I'm experiencing technical difficulties. Please contact ACHIEVEMOR directly at (912) 742-9459 or delivered@byachievemor.com for assistance."
+      });
     }
   });
 

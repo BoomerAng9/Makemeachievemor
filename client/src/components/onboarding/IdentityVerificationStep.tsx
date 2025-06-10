@@ -1,11 +1,10 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { FileUpload } from "@/components/ui/file-upload";
 import { useUploadDocument } from "@/hooks/useContractor";
 import { useToast } from "@/hooks/use-toast";
-import { IdCard, Shield } from "lucide-react";
+import { IdCard } from "lucide-react";
 
 interface IdentityVerificationStepProps {
   contractorId: number;
@@ -14,7 +13,6 @@ interface IdentityVerificationStepProps {
 
 export function IdentityVerificationStep({ contractorId, onComplete }: IdentityVerificationStepProps) {
   const [licenseFiles, setLicenseFiles] = useState<File[]>([]);
-  const [ssnLast4, setSsnLast4] = useState("");
   const { toast } = useToast();
   const uploadDocument = useUploadDocument(contractorId);
 
@@ -41,7 +39,7 @@ export function IdentityVerificationStep({ contractorId, onComplete }: IdentityV
         description: "Your identity verification documents have been submitted for review.",
       });
 
-      onComplete({ ssnLast4, documentsUploaded: licenseFiles.length });
+      onComplete({ documentsUploaded: licenseFiles.length });
     } catch (error) {
       toast({
         title: "Upload failed",
@@ -62,25 +60,26 @@ export function IdentityVerificationStep({ contractorId, onComplete }: IdentityV
         </div>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="space-y-6">
           {/* Driver's License Upload */}
           <div>
             <h4 className="font-medium text-gray-700 mb-4 flex items-center">
               <IdCard className="h-4 w-4 mr-2" />
-              Driver's License
+              Driver's License Verification
             </h4>
-            <p className="text-sm text-gray-500 mb-4">Upload front and back of license</p>
+            <p className="text-sm text-gray-500 mb-4">Upload clear photos of front and back of your driver's license</p>
             
             <div className="space-y-4">
               <FileUpload
                 onFileSelect={handleLicenseUpload}
                 accept="image/*,.pdf"
-                className="h-32"
+                className="h-40"
               >
                 <div className="flex flex-col items-center">
-                  <IdCard className="h-8 w-8 text-gray-400 mb-2" />
-                  <p className="text-sm font-medium">Upload License</p>
-                  <p className="text-xs text-gray-500">Front and back required</p>
+                  <IdCard className="h-12 w-12 text-gray-400 mb-3" />
+                  <p className="text-sm font-medium">Upload Driver's License</p>
+                  <p className="text-xs text-gray-500">Both front and back required</p>
+                  <p className="text-xs text-gray-400 mt-1">PDF or image format</p>
                 </div>
               </FileUpload>
 
@@ -88,12 +87,19 @@ export function IdentityVerificationStep({ contractorId, onComplete }: IdentityV
                 <div className="space-y-2">
                   <p className="text-sm font-medium">Uploaded Files:</p>
                   {licenseFiles.map((file, index) => (
-                    <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                      <span className="text-sm">{file.name}</span>
+                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center space-x-2">
+                        <IdCard className="h-4 w-4 text-gray-500" />
+                        <span className="text-sm font-medium">{file.name}</span>
+                        <span className="text-xs text-gray-500">
+                          ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                        </span>
+                      </div>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => handleRemoveLicenseFile(index)}
+                        className="text-red-500 hover:text-red-700"
                       >
                         Remove
                       </Button>
@@ -104,23 +110,18 @@ export function IdentityVerificationStep({ contractorId, onComplete }: IdentityV
             </div>
           </div>
 
-          {/* SSN Verification */}
-          <div>
-            <h4 className="font-medium text-gray-700 mb-4 flex items-center">
-              <Shield className="h-4 w-4 mr-2" />
-              SSN Verification
-            </h4>
-            <p className="text-sm text-gray-500 mb-4">Last 4 digits for verification</p>
-            
-            <div className="flex justify-center">
-              <Input
-                type="password"
-                placeholder="****"
-                maxLength={4}
-                value={ssnLast4}
-                onChange={(e) => setSsnLast4(e.target.value.replace(/\D/g, ''))}
-                className="w-24 text-center text-lg"
-              />
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-start space-x-3">
+              <IdCard className="h-5 w-5 text-blue-600 mt-0.5" />
+              <div>
+                <h5 className="font-medium text-blue-900">Identity Verification Requirements</h5>
+                <ul className="text-sm text-blue-700 mt-2 space-y-1">
+                  <li>• Valid commercial driver's license (CDL)</li>
+                  <li>• Clear, readable photos showing all information</li>
+                  <li>• License must not be expired</li>
+                  <li>• Both front and back images required</li>
+                </ul>
+              </div>
             </div>
           </div>
         </div>
@@ -128,7 +129,7 @@ export function IdentityVerificationStep({ contractorId, onComplete }: IdentityV
         <div className="flex justify-end mt-8">
           <Button 
             onClick={handleSubmit}
-            disabled={licenseFiles.length === 0 || ssnLast4.length !== 4 || uploadDocument.isPending}
+            disabled={licenseFiles.length === 0 || uploadDocument.isPending}
             className="bg-accent hover:bg-accent/90"
           >
             {uploadDocument.isPending ? "Uploading..." : "Continue to Vehicle Information"}
