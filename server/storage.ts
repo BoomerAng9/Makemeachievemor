@@ -599,6 +599,103 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return notification;
   }
+
+  // Job state machine operations - implements: open → requested → assigned → picked_up → delivered → paid
+  async requestJob(jobId: string, userId: string): Promise<any> {
+    // Update opportunity status to 'requested' and set lock with 5-minute TTL
+    const lockExpiry = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes from now
+    
+    const [updatedOpportunity] = await db
+      .update(opportunities)
+      .set({
+        status: 'requested',
+        assigned_to: userId,
+        requestedAt: new Date(),
+        lockExpiresAt: lockExpiry,
+        updatedAt: new Date()
+      })
+      .where(eq(opportunities.id, jobId))
+      .returning();
+    
+    return updatedOpportunity;
+  }
+
+  async assignJob(jobId: string, userId: string): Promise<any> {
+    // Admin action: requested → assigned
+    const [updatedOpportunity] = await db
+      .update(opportunities)
+      .set({
+        status: 'assigned',
+        assignedAt: new Date(),
+        lockExpiresAt: null, // Remove lock once assigned
+        updatedAt: new Date()
+      })
+      .where(eq(opportunities.id, jobId))
+      .returning();
+    
+    return updatedOpportunity;
+  }
+
+  async markJobPickedUp(jobId: string, userId: string): Promise<any> {
+    // Driver action: assigned → picked_up
+    const [updatedOpportunity] = await db
+      .update(opportunities)
+      .set({
+        status: 'picked_up',
+        pickedUpAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(eq(opportunities.id, jobId))
+      .returning();
+    
+    return updatedOpportunity;
+  }
+
+  async markJobDelivered(jobId: string, userId: string): Promise<any> {
+    // Driver action: picked_up → delivered
+    const [updatedOpportunity] = await db
+      .update(opportunities)
+      .set({
+        status: 'delivered',
+        deliveredAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(eq(opportunities.id, jobId))
+      .returning();
+    
+    return updatedOpportunity;
+  }
+
+  async markJobPaid(jobId: string, userId: string): Promise<any> {
+    // Admin action: delivered → paid
+    const [updatedOpportunity] = await db
+      .update(opportunities)
+      .set({
+        status: 'paid',
+        paidAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(eq(opportunities.id, jobId))
+      .returning();
+    
+    return updatedOpportunity;
+  }
+
+  async createJobNotification(jobId: string, userId: string, type: string): Promise<any> {
+    // Create notification for admin about job status changes
+    const notificationData = {
+      type: 'job_notification',
+      title: `Job ${type.replace('_', ' ')}`,
+      message: `Job ${jobId} has been ${type.replace('_', ' ')} by user ${userId}`,
+      userId: 'admin', // Send to admin
+      isRead: false,
+      createdAt: new Date()
+    };
+    
+    // For now, just log the notification - can be enhanced with actual notification system
+    console.log('Job Notification:', notificationData);
+    return notificationData;
+  }
 }
 
 export const storage = new DatabaseStorage();
