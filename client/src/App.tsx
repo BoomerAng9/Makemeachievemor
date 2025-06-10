@@ -12,6 +12,7 @@ import DashboardPage from "@/pages/dashboard";
 import DriverChecklistPage from "@/pages/driver-checklist";
 import GloveboxPage from "@/pages/glovebox";
 import DriverLocationPage from "@/pages/driver-location";
+import AdminDashboard from "@/pages/admin/AdminDashboard";
 import SitemapPage from "@/pages/sitemap";
 import RegisterContractorPage from "@/pages/register-contractor";
 import RegisterCompanyPage from "@/pages/register-company";
@@ -40,6 +41,7 @@ function Router() {
           <Route path="/driver-checklist" component={DriverChecklistPage} />
           <Route path="/glovebox" component={GloveboxPage} />
           <Route path="/driver-location" component={DriverLocationPage} />
+          <Route path="/admin" component={AdminDashboard} />
           <Route path="/onboarding" component={OnboardingPage} />
         </>
       )}

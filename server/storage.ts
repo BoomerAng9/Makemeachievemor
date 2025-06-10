@@ -2,6 +2,8 @@ import {
   contractors, 
   vehicles, 
   documents, 
+  documentShares,
+  driverLocations,
   opportunities, 
   messages, 
   jobAssignments,
@@ -14,6 +16,8 @@ import {
   backgroundCheckAlerts,
   backgroundCheckAuditLog,
   driverChecklistProgress,
+  userRegistrationNotifications,
+  adminActivityLog,
   type Contractor, 
   type InsertContractor,
   type Vehicle,
@@ -116,6 +120,15 @@ export interface IStorage {
   upsertDriverLocation(data: InsertDriverLocation): Promise<DriverLocation>;
   getDriverLocation(userId: string): Promise<DriverLocation | undefined>;
   getNearbyDrivers(latitude: number, longitude: number, radiusMiles: number): Promise<DriverLocation[]>;
+  
+  // Admin operations
+  getAdminStats(): Promise<any>;
+  getAllUsers(search?: string, status?: string): Promise<User[]>;
+  updateUserRole(userId: string, role: string): Promise<User>;
+  performUserAction(userId: string, action: string, reason?: string, adminUserId?: string): Promise<any>;
+  logAdminActivity(data: any): Promise<any>;
+  getAdminActivityLog(): Promise<any[]>;
+  createRegistrationNotification(data: any): Promise<any>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -465,6 +478,118 @@ export class DatabaseStorage implements IStorage {
 
   private toRadians(degrees: number): number {
     return degrees * (Math.PI / 180);
+  }
+
+  // Admin operations
+  async getAdminStats(): Promise<any> {
+    const totalUsers = await db.select({ count: sql<number>`count(*)` }).from(users);
+    const activeUsers = await db.select({ count: sql<number>`count(*)` }).from(users).where(eq(users.accountStatus, 'active'));
+    const pendingVerifications = await db.select({ count: sql<number>`count(*)` }).from(users).where(eq(users.verificationStatus, 'pending'));
+    const suspendedUsers = await db.select({ count: sql<number>`count(*)` }).from(users).where(eq(users.accountStatus, 'suspended'));
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const newRegistrationsToday = await db.select({ count: sql<number>`count(*)` }).from(users).where(gte(users.createdAt, today));
+    
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    const newRegistrationsThisWeek = await db.select({ count: sql<number>`count(*)` }).from(users).where(gte(users.createdAt, weekAgo));
+    
+    return {
+      totalUsers: totalUsers[0]?.count || 0,
+      activeUsers: activeUsers[0]?.count || 0,
+      pendingVerifications: pendingVerifications[0]?.count || 0,
+      suspendedUsers: suspendedUsers[0]?.count || 0,
+      newRegistrationsToday: newRegistrationsToday[0]?.count || 0,
+      newRegistrationsThisWeek: newRegistrationsThisWeek[0]?.count || 0,
+    };
+  }
+
+  async getAllUsers(search?: string, status?: string): Promise<User[]> {
+    let query = db.select().from(users);
+    
+    if (status && status !== 'all') {
+      query = query.where(eq(users.accountStatus, status));
+    }
+    
+    if (search) {
+      query = query.where(
+        or(
+          ilike(users.email, `%${search}%`),
+          ilike(users.firstName, `%${search}%`),
+          ilike(users.lastName, `%${search}%`)
+        )
+      );
+    }
+    
+    return await query.orderBy(desc(users.createdAt));
+  }
+
+  async updateUserRole(userId: string, role: string): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ role, updatedAt: new Date() })
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
+  }
+
+  async performUserAction(userId: string, action: string, reason?: string, adminUserId?: string): Promise<any> {
+    let updateData: any = { updatedAt: new Date() };
+    
+    switch (action) {
+      case 'suspend':
+        updateData.accountStatus = 'suspended';
+        break;
+      case 'activate':
+        updateData.accountStatus = 'active';
+        break;
+      case 'verify':
+        updateData.verificationStatus = 'verified';
+        break;
+      case 'ban':
+        updateData.accountStatus = 'banned';
+        break;
+    }
+    
+    const [user] = await db
+      .update(users)
+      .set(updateData)
+      .where(eq(users.id, userId))
+      .returning();
+    
+    return { user, action, reason };
+  }
+
+  async logAdminActivity(data: any): Promise<any> {
+    const [activity] = await db
+      .insert(adminActivityLog)
+      .values({
+        adminUserId: data.adminUserId,
+        targetUserId: data.targetUserId,
+        action: data.action,
+        actionDetails: data.actionDetails,
+        ipAddress: data.ipAddress,
+        userAgent: data.userAgent,
+      })
+      .returning();
+    return activity;
+  }
+
+  async getAdminActivityLog(): Promise<any[]> {
+    return await db
+      .select()
+      .from(adminActivityLog)
+      .orderBy(desc(adminActivityLog.createdAt))
+      .limit(100);
+  }
+
+  async createRegistrationNotification(data: any): Promise<any> {
+    const [notification] = await db
+      .insert(userRegistrationNotifications)
+      .values(data)
+      .returning();
+    return notification;
   }
 }
 
