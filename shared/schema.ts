@@ -78,17 +78,60 @@ export const vehicles = pgTable("vehicles", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Documents table for storing uploaded files
+// Documents table for storing uploaded files (Glovebox system)
 export const documents = pgTable("documents", {
   id: serial("id").primaryKey(),
-  contractorId: integer("contractor_id").notNull().references(() => contractors.id),
-  documentType: text("document_type").notNull(), // drivers_license, insurance, vehicle_registration, dot_certificate, etc.
+  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }), // For user-based storage
+  contractorId: integer("contractor_id").references(() => contractors.id), // For contractor-based storage
+  documentType: text("document_type").notNull(), // insurance, vehicle_registration, dot_certificate, medical_card, etc. (NEVER drivers_license - not stored)
+  documentCategory: text("document_category").notNull(), // compliance, vehicle, business, certification
   fileName: text("file_name").notNull(),
+  originalFileName: text("original_file_name").notNull(),
   filePath: text("file_path").notNull(),
   fileSize: integer("file_size"),
   mimeType: text("mime_type"),
+  expirationDate: timestamp("expiration_date"), // For documents that expire
   verificationStatus: text("verification_status").notNull().default("pending"), // pending, approved, rejected
+  tags: text("tags").array(), // Searchable tags
+  notes: text("notes"), // User notes about the document
+  isShared: boolean("is_shared").notNull().default(false), // Can be shared with companies
+  shareableUntil: timestamp("shareable_until"), // Expiry for sharing access
   uploadedAt: timestamp("uploaded_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Driver locations for load matching
+export const driverLocations = pgTable("driver_locations", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  contractorId: integer("contractor_id").references(() => contractors.id),
+  latitude: decimal("latitude", { precision: 10, scale: 8 }).notNull(),
+  longitude: decimal("longitude", { precision: 11, scale: 8 }).notNull(),
+  address: text("address"),
+  city: text("city"),
+  state: text("state"),
+  zipCode: text("zip_code"),
+  isAvailable: boolean("is_available").notNull().default(true),
+  vehicleType: text("vehicle_type"), // For load matching
+  maxDistance: integer("max_distance").default(100), // Miles willing to travel
+  lastUpdated: timestamp("last_updated").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Document sharing sessions for fast credential sharing
+export const documentShares = pgTable("document_shares", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  shareToken: varchar("share_token").notNull().unique(),
+  documentIds: integer("document_ids").array().notNull(),
+  recipientCompany: text("recipient_company"),
+  recipientEmail: text("recipient_email"),
+  message: text("message"),
+  expiresAt: timestamp("expires_at").notNull(),
+  viewCount: integer("view_count").notNull().default(0),
+  maxViews: integer("max_views").default(5),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Opportunities/Jobs table
@@ -490,6 +533,16 @@ export const insertBackgroundCheckAuditLogSchema = createInsertSchema(background
   createdAt: true,
 });
 
+export const insertDriverLocationSchema = createInsertSchema(driverLocations).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertDocumentShareSchema = createInsertSchema(documentShares).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type UpsertUser = typeof users.$inferInsert;
@@ -531,6 +584,10 @@ export type BackgroundCheckTemplate = typeof backgroundCheckTemplates.$inferSele
 export type InsertBackgroundCheckTemplate = z.infer<typeof insertBackgroundCheckTemplateSchema>;
 export type BackgroundCheckAuditLog = typeof backgroundCheckAuditLog.$inferSelect;
 export type InsertBackgroundCheckAuditLog = z.infer<typeof insertBackgroundCheckAuditLogSchema>;
+export type DriverLocation = typeof driverLocations.$inferSelect;
+export type InsertDriverLocation = z.infer<typeof insertDriverLocationSchema>;
+export type DocumentShare = typeof documentShares.$inferSelect;
+export type InsertDocumentShare = z.infer<typeof insertDocumentShareSchema>;
 
 export type DriverChecklistProgress = typeof driverChecklistProgress.$inferSelect;
 export type InsertDriverChecklistProgress = z.infer<typeof insertDriverChecklistProgressSchema>;

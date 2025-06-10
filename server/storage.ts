@@ -99,6 +99,23 @@ export interface IStorage {
   getDriverChecklistProgress(userId: string): Promise<DriverChecklistProgress | undefined>;
   saveDriverChecklistProgress(data: InsertDriverChecklistProgress): Promise<DriverChecklistProgress>;
   clearDriverChecklistProgress(userId: string): Promise<void>;
+  
+  // Glovebox document operations
+  getUserDocuments(userId: string): Promise<Document[]>;
+  uploadDocument(data: InsertDocument): Promise<Document>;
+  deleteDocument(id: number, userId: string): Promise<void>;
+  updateDocumentNotes(id: number, userId: string, notes: string): Promise<Document | undefined>;
+  
+  // Document sharing operations
+  createDocumentShare(data: InsertDocumentShare): Promise<DocumentShare>;
+  getDocumentShare(shareToken: string): Promise<DocumentShare | undefined>;
+  getActiveDocumentShares(userId: string): Promise<DocumentShare[]>;
+  deactivateDocumentShare(id: number, userId: string): Promise<void>;
+  
+  // Driver location operations
+  upsertDriverLocation(data: InsertDriverLocation): Promise<DriverLocation>;
+  getDriverLocation(userId: string): Promise<DriverLocation | undefined>;
+  getNearbyDrivers(latitude: number, longitude: number, radiusMiles: number): Promise<DriverLocation[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -350,6 +367,104 @@ export class DatabaseStorage implements IStorage {
 
   async clearDriverChecklistProgress(userId: string): Promise<void> {
     await db.delete(driverChecklistProgress).where(eq(driverChecklistProgress.userId, userId));
+  }
+
+  // Glovebox document operations
+  async getUserDocuments(userId: string): Promise<Document[]> {
+    return await db.select().from(documents).where(eq(documents.userId, userId)).orderBy(documents.uploadedAt);
+  }
+
+  async uploadDocument(data: InsertDocument): Promise<Document> {
+    const [document] = await db.insert(documents).values(data).returning();
+    return document;
+  }
+
+  async deleteDocument(id: number, userId: string): Promise<void> {
+    await db.delete(documents).where(and(eq(documents.id, id), eq(documents.userId, userId)));
+  }
+
+  async updateDocumentNotes(id: number, userId: string, notes: string): Promise<Document | undefined> {
+    const [document] = await db.update(documents)
+      .set({ notes, updatedAt: new Date() })
+      .where(and(eq(documents.id, id), eq(documents.userId, userId)))
+      .returning();
+    return document;
+  }
+
+  // Document sharing operations
+  async createDocumentShare(data: InsertDocumentShare): Promise<DocumentShare> {
+    const [share] = await db.insert(documentShares).values(data).returning();
+    return share;
+  }
+
+  async getDocumentShare(shareToken: string): Promise<DocumentShare | undefined> {
+    const [share] = await db.select().from(documentShares).where(eq(documentShares.shareToken, shareToken));
+    return share;
+  }
+
+  async getActiveDocumentShares(userId: string): Promise<DocumentShare[]> {
+    return await db.select().from(documentShares)
+      .where(and(eq(documentShares.userId, userId), eq(documentShares.isActive, true)))
+      .orderBy(documentShares.createdAt);
+  }
+
+  async deactivateDocumentShare(id: number, userId: string): Promise<void> {
+    await db.update(documentShares)
+      .set({ isActive: false })
+      .where(and(eq(documentShares.id, id), eq(documentShares.userId, userId)));
+  }
+
+  // Driver location operations
+  async upsertDriverLocation(data: InsertDriverLocation): Promise<DriverLocation> {
+    const existing = await db.select().from(driverLocations).where(eq(driverLocations.userId, data.userId));
+    
+    if (existing.length > 0) {
+      const [location] = await db.update(driverLocations)
+        .set({ ...data, lastUpdated: new Date() })
+        .where(eq(driverLocations.userId, data.userId))
+        .returning();
+      return location;
+    } else {
+      const [location] = await db.insert(driverLocations).values(data).returning();
+      return location;
+    }
+  }
+
+  async getDriverLocation(userId: string): Promise<DriverLocation | undefined> {
+    const [location] = await db.select().from(driverLocations).where(eq(driverLocations.userId, userId));
+    return location;
+  }
+
+  async getNearbyDrivers(latitude: number, longitude: number, radiusMiles: number): Promise<DriverLocation[]> {
+    // Simple distance calculation using Haversine formula
+    // For production, consider using PostGIS for better performance
+    const locations = await db.select().from(driverLocations).where(eq(driverLocations.isAvailable, true));
+    
+    return locations.filter(location => {
+      const distance = this.calculateDistance(
+        latitude,
+        longitude,
+        parseFloat(location.latitude),
+        parseFloat(location.longitude)
+      );
+      return distance <= radiusMiles;
+    });
+  }
+
+  private calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+    const R = 3959; // Earth's radius in miles
+    const dLat = this.toRadians(lat2 - lat1);
+    const dLon = this.toRadians(lon2 - lon1);
+    const a = 
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(this.toRadians(lat1)) * Math.cos(this.toRadians(lat2)) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  }
+
+  private toRadians(degrees: number): number {
+    return degrees * (Math.PI / 180);
   }
 }
 
