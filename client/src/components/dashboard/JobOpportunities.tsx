@@ -19,9 +19,9 @@ interface Job {
   priority?: string;
   status: string;
   title?: string;
-  description?: string;
-  pickupTime?: string;
-  deliveryTime?: string;
+  description?: string | null;
+  pickupTime?: string | Date | null;
+  deliveryTime?: string | Date | null;
   requirements?: string[];
   requestedAt?: string | Date | null;
   assignedAt?: string | Date | null;
@@ -34,8 +34,11 @@ interface Job {
   opportunityId?: number;
   acceptedAt?: string | Date | null;
   completedAt?: string | Date | null;
-  rating?: number;
-  feedback?: string;
+  rating?: number | null;
+  feedback?: string | null;
+  // Database fields
+  createdAt?: Date | null;
+  updatedAt?: Date | null;
 }
 
 interface JobOpportunitiesProps {
@@ -239,17 +242,17 @@ export function JobOpportunities({ opportunities, activeJobs, isLoading, userId 
 
                     <div className="flex flex-col sm:items-end gap-2">
                       <div className="text-right">
-                        <div className="text-lg font-bold text-green-600">${job.rate.toLocaleString()}</div>
-                        <div className="text-sm text-gray-500">${(job.rate / job.miles).toFixed(2)}/mile</div>
+                        <div className="text-lg font-bold text-green-600">${getRate(job).toLocaleString()}</div>
+                        <div className="text-sm text-gray-500">${(getRate(job) / getMiles(job)).toFixed(2)}/mile</div>
                       </div>
                       
                       {job.status === "open" && (
                         <Button 
-                          onClick={() => handleAcceptJob(job.id)}
-                          disabled={requestingJobs.has(job.id)}
+                          onClick={() => handleAcceptJob(getJobId(job))}
+                          disabled={requestingJobs.has(getJobId(job))}
                           className="bg-primary hover:bg-primary/90 text-white px-6"
                         >
-                          {requestingJobs.has(job.id) ? "Requesting..." : "Accept Job"}
+                          {requestingJobs.has(getJobId(job)) ? "Requesting..." : "Accept Job"}
                         </Button>
                       )}
                       
@@ -296,7 +299,7 @@ export function JobOpportunities({ opportunities, activeJobs, isLoading, userId 
                         </div>
                         <div className="flex items-center gap-1">
                           <DollarSign className="h-4 w-4" />
-                          <span className="font-semibold text-green-600">${job.rate.toLocaleString()}</span>
+                          <span className="font-semibold text-green-600">${getRate(job).toLocaleString()}</span>
                         </div>
                       </div>
 
@@ -320,7 +323,7 @@ export function JobOpportunities({ opportunities, activeJobs, isLoading, userId 
                     <div className="flex flex-col gap-2">
                       {job.status === "assigned" && (
                         <Button 
-                          onClick={() => handleUpdateStatus(job.id, "picked_up")}
+                          onClick={() => handleUpdateStatus(getJobId(job), "picked_up")}
                           disabled={updateJobStatusMutation.isPending}
                           className="bg-purple-600 hover:bg-purple-700 text-white"
                         >
@@ -330,7 +333,7 @@ export function JobOpportunities({ opportunities, activeJobs, isLoading, userId 
                       
                       {job.status === "picked_up" && (
                         <Button 
-                          onClick={() => handleUpdateStatus(job.id, "delivered")}
+                          onClick={() => handleUpdateStatus(getJobId(job), "delivered")}
                           disabled={updateJobStatusMutation.isPending}
                           className="bg-indigo-600 hover:bg-indigo-700 text-white"
                         >
