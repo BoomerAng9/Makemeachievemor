@@ -15,6 +15,13 @@
       "when": 1749582808155,
       "tag": "0001_cooing_clint_barton",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1749590329383,
+      "tag": "0002_hesitant_the_phantom",
+      "breakpoints": true
     }
   ]
 }
