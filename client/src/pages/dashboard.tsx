@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useParams } from "wouter";
+import { useAuth } from "@/hooks/useAuth";
 import { useContractor, useContractorStats, useAvailableOpportunities, useContractorMessages, useContractorJobs } from "@/hooks/useContractor";
 import { StatsGrid } from "@/components/dashboard/StatsGrid";
 import { OpportunityCard } from "@/components/dashboard/OpportunityCard";
@@ -16,7 +17,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function DashboardPage() {
   const { contractorId } = useParams();
-  const id = contractorId ? parseInt(contractorId) : undefined;
+  const { user } = useAuth();
+  const id = contractorId ? parseInt(contractorId) : (user?.id ? parseInt(user.id) : undefined);
   const [isChatbotOpen, setIsChatbotOpen] = useState(false);
 
   const { data: contractor, isLoading: contractorLoading } = useContractor(id);

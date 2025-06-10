@@ -67,10 +67,62 @@ async function upsertUser(
     lastLoginAt: new Date(),
   });
 
+  // Create contractor profile if it doesn't exist
+  await ensureContractorProfile(user);
+
   // Send registration notification to admin
   await sendRegistrationNotification(user);
   
   return user;
+}
+
+async function ensureContractorProfile(user: any) {
+  try {
+    // Check if contractor profile exists
+    const existingContractor = await storage.getContractor(user.id);
+    
+    if (!existingContractor) {
+      // Create contractor profile
+      await storage.createContractor({
+        id: user.id,
+        userId: user.id,
+        email: user.email,
+        firstName: user.firstName || "",
+        lastName: user.lastName || "",
+        phone: "",
+        address: "",
+        city: "",
+        state: "",
+        zipCode: "",
+        dateOfBirth: "",
+        licenseNumber: "",
+        licenseState: "",
+        licenseExpiryDate: null,
+        dotNumber: "",
+        mcNumber: "",
+        insuranceProvider: "",
+        insurancePolicyNumber: "",
+        insuranceExpiryDate: null,
+        emergencyContactName: "",
+        emergencyContactPhone: "",
+        bankName: "",
+        accountNumber: "",
+        routingNumber: "",
+        accountType: "checking",
+        accountHolderName: "",
+        taxId: "",
+        businessType: "individual",
+        yearsOfExperience: 0,
+        preferredRoutes: [],
+        availability: "full_time",
+        maxDistance: 500,
+        profileCompleted: false,
+      });
+    }
+  } catch (error) {
+    console.error("Error ensuring contractor profile:", error);
+    // Don't throw - allow user creation to continue
+  }
 }
 
 async function sendRegistrationNotification(user: any) {

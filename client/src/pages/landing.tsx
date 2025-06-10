@@ -186,7 +186,7 @@ export default function LandingPage() {
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
               Choose Your Path to Success
             </h2>
-            <p className="text-xl text-gray-600">
+            <p className="text-xl text-gray-600 text-center">
               Join our network as a driver or partner with us as a company
             </p>
           </div>
