@@ -5,10 +5,13 @@ A comprehensive onboarding and management platform for Owner Operator Independen
 ## 🚀 Features
 
 ### For Contractors
+- **Authority Setup Checklist** - 30-item comprehensive compliance tracking with user account persistence
 - **Complete Onboarding Wizard** - Step-by-step registration with document verification
 - **Compliance Management** - DOT requirements, MC Authority, and safety certifications
 - **Vehicle Registration** - Insurance verification and vehicle photo documentation
 - **Job Opportunities** - Real-time matching with available freight loads
+- **AI-Powered Dashboard** - Personalized insights and next-step recommendations
+- **Background Check Integration** - Automated screening with multiple provider support
 - **AI Assistant** - 24/7 chatbot with trucking industry expertise
 
 ### For Companies
@@ -22,6 +25,62 @@ A comprehensive onboarding and management platform for Owner Operator Independen
 - **Real-time Updates** - Live notifications and status tracking
 - **Mobile Responsive** - Optimized for desktop and mobile devices
 - **AI-Powered Chatbot** - Expert guidance on DOT regulations and industry best practices
+- **Security Protection** - Screenshot and screen recording prevention on sensitive pages
+- **Progress Persistence** - User account integration with automatic save/resume functionality
+
+## 📋 Authority Setup Checklist
+
+A comprehensive 30-item compliance tracking system organized into 6 essential categories:
+
+### 1. Federal Authority & Registration (5 items)
+- MC Number (Motor Carrier Authority)
+- DOT Number Registration
+- USDOT Registration Completed
+- Interstate Operating Authority
+- Process Agent Designation
+
+### 2. Business Formation & Tax Setup (5 items)
+- Business Entity Formation (LLC/Corp)
+- EIN (Employer Identification Number)
+- State Business Registration
+- Quarterly Tax Setup (Form 2290)
+- Tax Professional/CPA Consultation
+
+### 3. Insurance & Financial Compliance (5 items)
+- General Liability Insurance ($750K-$1M)
+- Cargo Insurance ($100K minimum)
+- BOC-3 Process Agent Filing
+- Surety Bond or Trust Fund ($75K)
+- Workers' Compensation (if employees)
+
+### 4. Vehicle & Equipment Requirements (5 items)
+- Commercial Motor Vehicle (CDL Class)
+- Vehicle Registration & Title
+- IFTA (International Fuel Tax Agreement)
+- IRP (International Registration Plan)
+- DOT Vehicle Inspection & Decals
+
+### 5. Permits & Ongoing Compliance (5 items)
+- State Operating Permits
+- Oversize/Overweight Permits (if needed)
+- Hazmat Permits (if applicable)
+- Drug & Alcohol Testing Program
+- Driver Qualification Files
+
+### 6. Operational Systems & Technology (5 items)
+- ELD (Electronic Logging Device)
+- Load Board Subscriptions
+- Dispatch & Fleet Management Software
+- Accounting & Bookkeeping System
+- Communication Tools & Mobile Apps
+
+### Checklist Features
+- **User Account Integration**: Progress automatically saved to authenticated accounts
+- **Security Measures**: Screenshot and screen recording disabled for compliance protection
+- **Resume Capability**: Pause and continue from any device with account sync
+- **Clear/Restart**: Full progress reset with confirmation prompts
+- **Completion Workflow**: Direct integration with needs analysis form (https://achvmr-forms.paperform.co/) or team contact (delivered@byachievemor.com)
+- **Export Functionality**: Download comprehensive progress reports with user information
 
 ## 🛠 Technology Stack
 

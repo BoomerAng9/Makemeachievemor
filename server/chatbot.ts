@@ -2,9 +2,9 @@ import OpenAI from "openai";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-// Knowledge base from the provided websites
+// Comprehensive knowledge base with latest platform features
 const KNOWLEDGE_BASE = `
-ACHIEVEMOR LLC - Trusted Transportation Partner
+ACHIEVEMOR LLC - Comprehensive Owner Operator Platform
 Location: 275 LONGLEAF CIR, POOLER, GA 31322
 Phone: (912) 742-9459
 Email: delivered@byachievemor.com
@@ -13,10 +13,71 @@ DOT Number: 4398142
 MC #: 1726115
 BOC-3 #: EVILSIZOR PROCESS SERVERS LLC
 
-Services:
-- Reliable Transportation: Commitment to dependable transportation, ensuring cargo safety and on-time delivery
-- Dedicated Customer Support: Professional and responsive support for all customer needs
-- Cost-Effective Solutions: Quality service at competitive prices
+Platform Services:
+- Authority Setup Checklist: Comprehensive 30-item compliance tracking system
+- AI-Powered Dashboard: Personalized insights and next-step recommendations
+- Background Check Integration: Automated screening with multiple provider support
+- User Account Integration: Progress saved with resume capability across devices
+- Security Protection: Screenshot and screen recording prevention on sensitive pages
+- Completion Workflow: Direct integration with needs analysis form and team contact
+
+Authority Setup Checklist - 30 Essential Items:
+
+1. FEDERAL AUTHORITY & REGISTRATION (5 items):
+   - MC Number (Motor Carrier Authority)
+   - DOT Number Registration
+   - USDOT Registration Completed
+   - Interstate Operating Authority
+   - Process Agent Designation
+
+2. BUSINESS FORMATION & TAX SETUP (5 items):
+   - Business Entity Formation (LLC/Corp)
+   - EIN (Employer Identification Number)
+   - State Business Registration
+   - Quarterly Tax Setup (Form 2290)
+   - Tax Professional/CPA Consultation
+
+3. INSURANCE & FINANCIAL COMPLIANCE (5 items):
+   - General Liability Insurance ($750K-$1M)
+   - Cargo Insurance ($100K minimum)
+   - BOC-3 Process Agent Filing
+   - Surety Bond or Trust Fund ($75K)
+   - Workers' Compensation (if employees)
+
+4. VEHICLE & EQUIPMENT REQUIREMENTS (5 items):
+   - Commercial Motor Vehicle (CDL Class)
+   - Vehicle Registration & Title
+   - IFTA (International Fuel Tax Agreement)
+   - IRP (International Registration Plan)
+   - DOT Vehicle Inspection & Decals
+
+5. PERMITS & ONGOING COMPLIANCE (5 items):
+   - State Operating Permits
+   - Oversize/Overweight Permits (if needed)
+   - Hazmat Permits (if applicable)
+   - Drug & Alcohol Testing Program
+   - Driver Qualification Files
+
+6. OPERATIONAL SYSTEMS & TECHNOLOGY (5 items):
+   - ELD (Electronic Logging Device)
+   - Load Board Subscriptions
+   - Dispatch & Fleet Management Software
+   - Accounting & Bookkeeping System
+   - Communication Tools & Mobile Apps
+
+Checklist Features:
+- User Account Integration: Progress automatically saved to authenticated accounts
+- Resume Capability: Pause and continue from any device with account sync
+- Security Measures: Screenshot and screen recording disabled for compliance protection
+- Clear/Restart: Full progress reset with confirmation prompts
+- Completion Workflow: Direct integration with needs analysis form (https://achvmr-forms.paperform.co/) or team contact (delivered@byachievemor.com)
+- Export Functionality: Download comprehensive progress reports with user information
+- Platform Access: Available at /driver-checklist for comprehensive authority setup tracking
+
+Support Resources:
+- Needs Analysis Form: https://achvmr-forms.paperform.co/
+- Team Contact: delivered@byachievemor.com
+- Authority Setup Checklist: /driver-checklist
 
 CARRIERFORGE - Trucking Startups Made Easy
 Website: carrierforge.com
@@ -120,7 +181,7 @@ Getting Started Checklist:
 
 export async function generateChatbotResponse(message: string, context?: string): Promise<string> {
   try {
-    const systemPrompt = `You are an expert AI assistant for ACHIEVEMOR LLC, a transportation company helping Owner Operator Independent Contractors. Your role is to provide helpful, accurate information about:
+    const systemPrompt = `You are an expert AI assistant for ACHIEVEMOR LLC, a comprehensive platform helping Owner Operator Independent Contractors. Your role is to provide helpful, accurate information about:
 
 1. DOT and MC Authority setup and requirements
 2. Trucking regulations and compliance
@@ -129,21 +190,36 @@ export async function generateChatbotResponse(message: string, context?: string)
 5. Insurance requirements
 6. Load finding and freight brokerage
 7. Industry resources and tools
+8. Authority Setup Checklist navigation and features
+9. Platform features including user account integration and progress tracking
 
 Use the following knowledge base to answer questions accurately:
 
 ${KNOWLEDGE_BASE}
 
 Guidelines:
-- Provide specific, actionable advice
-- Reference relevant regulations and requirements
+- Provide specific, actionable advice with step-by-step guidance
+- Reference the Authority Setup Checklist when users ask about compliance requirements
+- Direct users to /driver-checklist for comprehensive authority setup tracking
+- For business setup questions, recommend the needs analysis form at https://achvmr-forms.paperform.co/
+- Reference relevant regulations and requirements with specific details
 - Suggest appropriate resources from the knowledge base
 - Be encouraging but realistic about the trucking industry
 - If asked about ACHIEVEMOR specifically, provide the contact information
 - For complex regulatory questions, recommend consulting with FMCSA or legal professionals
 - Always prioritize safety and legal compliance
+- Guide users to create accounts for progress saving and resume capability
+- Mention security features when discussing sensitive compliance information
 
-Keep responses concise but comprehensive. If you don't have specific information, direct users to the appropriate resources or suggest they contact ACHIEVEMOR directly.
+Special Platform Features to Highlight:
+- Authority Setup Checklist with 30 essential items across 6 categories
+- User account integration for progress persistence across devices
+- Security protection on sensitive pages
+- AI-powered dashboard with personalized insights
+- Background check integration for compliance
+- Direct completion workflow with needs analysis form
+
+Keep responses concise but comprehensive. If you don't have specific information, direct users to the appropriate resources or suggest they contact ACHIEVEMOR directly at delivered@byachievemor.com.
 
 ${context ? `\nAdditional context: ${context}` : ''}`;
 
