@@ -2,7 +2,7 @@ import { pgTable, text, serial, integer, boolean, timestamp, jsonb, varchar, dec
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// Session storage table for future auth implementation
+// Session storage table
 export const sessions = pgTable(
   "sessions",
   {
@@ -12,6 +12,17 @@ export const sessions = pgTable(
   },
   (table) => [index("IDX_session_expire").on(table.expire)],
 );
+
+// User authentication table
+export const users = pgTable("users", {
+  id: varchar("id").primaryKey().notNull(),
+  email: varchar("email").unique(),
+  firstName: varchar("first_name"),
+  lastName: varchar("last_name"),
+  profileImageUrl: varchar("profile_image_url"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
 
 // Contractors table
 export const contractors = pgTable("contractors", {
@@ -75,6 +86,10 @@ export const opportunities = pgTable("opportunities", {
   description: text("description"),
   pickupLocation: text("pickup_location").notNull(),
   deliveryLocation: text("delivery_location").notNull(),
+  pickupLatitude: decimal("pickup_latitude", { precision: 10, scale: 8 }),
+  pickupLongitude: decimal("pickup_longitude", { precision: 11, scale: 8 }),
+  deliveryLatitude: decimal("delivery_latitude", { precision: 10, scale: 8 }),
+  deliveryLongitude: decimal("delivery_longitude", { precision: 11, scale: 8 }),
   distance: decimal("distance", { precision: 8, scale: 2 }),
   weight: integer("weight"), // in pounds
   payment: decimal("payment", { precision: 10, scale: 2 }).notNull(),
@@ -148,7 +163,14 @@ export const insertJobAssignmentSchema = createInsertSchema(jobAssignments).omit
   acceptedAt: true,
 });
 
+export const insertUserSchema = createInsertSchema(users).omit({
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
+export type User = typeof users.$inferSelect;
+export type UpsertUser = typeof users.$inferInsert;
 export type Contractor = typeof contractors.$inferSelect;
 export type InsertContractor = z.infer<typeof insertContractorSchema>;
 export type Vehicle = typeof vehicles.$inferSelect;

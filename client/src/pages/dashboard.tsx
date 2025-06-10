@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { useParams } from "wouter";
 import { useContractor, useContractorStats, useAvailableOpportunities, useContractorMessages, useContractorJobs } from "@/hooks/useContractor";
 import { StatsGrid } from "@/components/dashboard/StatsGrid";
 import { OpportunityCard } from "@/components/dashboard/OpportunityCard";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
+import { Chatbot } from "@/components/ui/chatbot";
 import { Truck, Phone, Mail, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function DashboardPage() {
   const { contractorId } = useParams();
   const id = contractorId ? parseInt(contractorId) : undefined;
+  const [isChatbotOpen, setIsChatbotOpen] = useState(false);
 
   const { data: contractor, isLoading: contractorLoading } = useContractor(id);
   const { data: stats, isLoading: statsLoading } = useContractorStats(id);
@@ -199,6 +202,12 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </main>
+
+      {/* Chatbot */}
+      <Chatbot 
+        isOpen={isChatbotOpen} 
+        onToggle={() => setIsChatbotOpen(!isChatbotOpen)} 
+      />
     </div>
   );
 }
