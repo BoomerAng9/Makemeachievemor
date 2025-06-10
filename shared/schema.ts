@@ -24,6 +24,18 @@ export const users = pgTable("users", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Driver Checklist Progress table
+export const driverChecklistProgress = pgTable("driver_checklist_progress", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  checklistData: jsonb("checklist_data").notNull(),
+  completionPercentage: integer("completion_percentage").notNull().default(0),
+  isCompleted: boolean("is_completed").notNull().default(false),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Contractors table
 export const contractors = pgTable("contractors", {
   id: serial("id").primaryKey(),
@@ -407,6 +419,12 @@ export const insertUserProfileSchema = createInsertSchema(userProfiles).omit({
   updatedAt: true,
 });
 
+export const insertDriverChecklistProgressSchema = createInsertSchema(driverChecklistProgress).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertContractorAvailabilitySchema = createInsertSchema(contractorAvailability).omit({
   id: true,
   lastUpdated: true,
@@ -513,3 +531,6 @@ export type BackgroundCheckTemplate = typeof backgroundCheckTemplates.$inferSele
 export type InsertBackgroundCheckTemplate = z.infer<typeof insertBackgroundCheckTemplateSchema>;
 export type BackgroundCheckAuditLog = typeof backgroundCheckAuditLog.$inferSelect;
 export type InsertBackgroundCheckAuditLog = z.infer<typeof insertBackgroundCheckAuditLogSchema>;
+
+export type DriverChecklistProgress = typeof driverChecklistProgress.$inferSelect;
+export type InsertDriverChecklistProgress = z.infer<typeof insertDriverChecklistProgressSchema>;

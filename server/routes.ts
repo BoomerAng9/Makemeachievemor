@@ -429,6 +429,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Driver checklist progress routes
+  app.get('/api/driver-checklist/progress', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const progress = await storage.getDriverChecklistProgress(userId);
+      res.json(progress || null);
+    } catch (error) {
+      console.error("Error fetching driver checklist progress:", error);
+      res.status(500).json({ message: "Failed to fetch checklist progress" });
+    }
+  });
+
+  app.post('/api/driver-checklist/progress', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { checklistData, completionPercentage, isCompleted } = req.body;
+      
+      const progressData = {
+        userId,
+        checklistData,
+        completionPercentage,
+        isCompleted,
+        completedAt: isCompleted ? new Date() : null,
+      };
+
+      const progress = await storage.saveDriverChecklistProgress(progressData);
+      res.json(progress);
+    } catch (error) {
+      console.error("Error saving driver checklist progress:", error);
+      res.status(500).json({ message: "Failed to save checklist progress" });
+    }
+  });
+
+  app.delete('/api/driver-checklist/progress', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      await storage.clearDriverChecklistProgress(userId);
+      res.json({ message: "Checklist progress cleared successfully" });
+    } catch (error) {
+      console.error("Error clearing driver checklist progress:", error);
+      res.status(500).json({ message: "Failed to clear checklist progress" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

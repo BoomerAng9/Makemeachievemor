@@ -5,6 +5,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useToast } from "@/hooks/use-toast";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/useAuth";
+import { apiRequest } from "@/lib/queryClient";
 import { 
   CheckCircle2, 
   AlertTriangle, 
@@ -14,7 +18,9 @@ import {
   Calendar,
   Download,
   Save,
-  RotateCcw
+  RotateCcw,
+  ExternalLink,
+  Mail
 } from "lucide-react";
 
 interface ChecklistItem {

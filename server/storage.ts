@@ -13,6 +13,7 @@ import {
   backgroundCheckResults,
   backgroundCheckAlerts,
   backgroundCheckAuditLog,
+  driverChecklistProgress,
   type Contractor, 
   type InsertContractor,
   type Vehicle,
@@ -40,7 +41,9 @@ import {
   type BackgroundCheckAlert,
   type InsertBackgroundCheckAlert,
   type BackgroundCheckAuditLog,
-  type InsertBackgroundCheckAuditLog
+  type InsertBackgroundCheckAuditLog,
+  type DriverChecklistProgress,
+  type InsertDriverChecklistProgress
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
@@ -91,6 +94,11 @@ export interface IStorage {
   createBackgroundCheckAlert(data: InsertBackgroundCheckAlert): Promise<BackgroundCheckAlert>;
   getContractorBackgroundCheckAlerts(contractorId: number): Promise<BackgroundCheckAlert[]>;
   createBackgroundCheckAuditLog(data: InsertBackgroundCheckAuditLog): Promise<BackgroundCheckAuditLog>;
+  
+  // Driver checklist progress operations
+  getDriverChecklistProgress(userId: string): Promise<DriverChecklistProgress | undefined>;
+  saveDriverChecklistProgress(data: InsertDriverChecklistProgress): Promise<DriverChecklistProgress>;
+  clearDriverChecklistProgress(userId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -312,6 +320,36 @@ export class DatabaseStorage implements IStorage {
   async createBackgroundCheckAuditLog(data: InsertBackgroundCheckAuditLog): Promise<BackgroundCheckAuditLog> {
     const [log] = await db.insert(backgroundCheckAuditLog).values(data).returning();
     return log;
+  }
+
+  // Driver checklist progress operations
+  async getDriverChecklistProgress(userId: string): Promise<DriverChecklistProgress | undefined> {
+    const [progress] = await db.select().from(driverChecklistProgress)
+      .where(eq(driverChecklistProgress.userId, userId))
+      .orderBy(desc(driverChecklistProgress.updatedAt));
+    return progress;
+  }
+
+  async saveDriverChecklistProgress(data: InsertDriverChecklistProgress): Promise<DriverChecklistProgress> {
+    const [progress] = await db
+      .insert(driverChecklistProgress)
+      .values(data)
+      .onConflictDoUpdate({
+        target: driverChecklistProgress.userId,
+        set: {
+          checklistData: data.checklistData,
+          completionPercentage: data.completionPercentage,
+          isCompleted: data.isCompleted,
+          completedAt: data.completedAt,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return progress;
+  }
+
+  async clearDriverChecklistProgress(userId: string): Promise<void> {
+    await db.delete(driverChecklistProgress).where(eq(driverChecklistProgress.userId, userId));
   }
 }
 
