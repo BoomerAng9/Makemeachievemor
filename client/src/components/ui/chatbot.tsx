@@ -17,9 +17,11 @@ interface Message {
 interface ChatbotProps {
   isOpen: boolean;
   onToggle: () => void;
+  mode?: 'floating' | 'edge' | 'static';
+  position?: 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left';
 }
 
-export function Chatbot({ isOpen, onToggle }: ChatbotProps) {
+export function Chatbot({ isOpen, onToggle, mode = 'floating', position = 'bottom-right' }: ChatbotProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -31,6 +33,7 @@ export function Chatbot({ isOpen, onToggle }: ChatbotProps) {
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
+  const [showBubble, setShowBubble] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -89,11 +92,70 @@ export function Chatbot({ isOpen, onToggle }: ChatbotProps) {
     }
   };
 
+  const getPositionClasses = () => {
+    const base = mode === 'edge' ? 'fixed' : 'fixed';
+    switch (position) {
+      case 'bottom-left':
+        return mode === 'edge' ? `${base} bottom-0 left-0` : `${base} bottom-6 left-6`;
+      case 'top-right':
+        return mode === 'edge' ? `${base} top-0 right-0` : `${base} top-6 right-6`;
+      case 'top-left':
+        return mode === 'edge' ? `${base} top-0 left-0` : `${base} top-6 left-6`;
+      default: // bottom-right
+        return mode === 'edge' ? `${base} bottom-0 right-0` : `${base} bottom-6 right-6`;
+    }
+  };
+
+  const handleBubbleClick = () => {
+    setShowBubble(false);
+    onToggle();
+  };
+
+  if (!isOpen && showBubble && mode !== 'static') {
+    return (
+      <div className={`${getPositionClasses()} z-50`}>
+        {/* Animated Ask Me Bubble */}
+        <div 
+          className="relative cursor-pointer group"
+          onClick={handleBubbleClick}
+        >
+          {/* Pulse animation rings */}
+          <div className="absolute inset-0 animate-ping">
+            <div className="w-20 h-20 rounded-full bg-amber-400/30 border-2 border-amber-400/50"></div>
+          </div>
+          <div className="absolute inset-0 animate-pulse">
+            <div className="w-20 h-20 rounded-full bg-amber-400/20 border border-amber-400/30"></div>
+          </div>
+          
+          {/* Main bubble */}
+          <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-gray-800 via-gray-900 to-black shadow-retina-xl border-3 border-amber-400/40 overflow-hidden group-hover:scale-105 transition-retina">
+            <img 
+              src={chatbotLogo} 
+              alt="ACHIEVEMOR Assistant" 
+              className="w-full h-full object-cover"
+            />
+            
+            {/* Overlay gradient for better text readability */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+          </div>
+          
+          {/* Ask me text bubble */}
+          <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-white shadow-retina-lg rounded-2xl px-4 py-2 border-2 border-amber-400/30 opacity-0 group-hover:opacity-100 transition-all duration-300 whitespace-nowrap">
+            <div className="text-gray-800 font-semibold text-sm">Ask me!</div>
+            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-full">
+              <div className="w-0 h-0 border-l-4 border-r-4 border-t-6 border-transparent border-t-white"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!isOpen) {
     return (
       <Button
         onClick={onToggle}
-        className="fixed bottom-6 right-6 h-16 w-16 rounded-full bg-gradient-to-br from-gray-800 to-gray-900 hover:from-gray-700 hover:to-gray-800 shadow-retina-xl border-2 border-amber-400/20 z-50 p-0 overflow-hidden"
+        className={`${getPositionClasses()} h-16 w-16 rounded-full bg-gradient-to-br from-gray-800 to-gray-900 hover:from-gray-700 hover:to-gray-800 shadow-retina-xl border-2 border-amber-400/20 z-50 p-0 overflow-hidden`}
       >
         <img 
           src={chatbotLogo} 
@@ -105,7 +167,7 @@ export function Chatbot({ isOpen, onToggle }: ChatbotProps) {
   }
 
   return (
-    <Card className={`fixed bottom-6 right-6 w-96 shadow-xl z-50 border-2 border-primary/20 ${isMinimized ? 'h-16' : 'h-[500px]'}`}>
+    <Card className={`${getPositionClasses()} w-96 shadow-retina-xl z-50 border-2 border-amber-400/30 glass ${isMinimized ? 'h-16' : 'h-[500px]'}`}>
       <CardHeader className="pb-3 bg-gradient-to-r from-gray-800 to-gray-900 text-white rounded-t-lg">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">

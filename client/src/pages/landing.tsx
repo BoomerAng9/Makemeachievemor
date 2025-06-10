@@ -1,6 +1,7 @@
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Chatbot } from "@/components/ui/chatbot";
 import { Truck, Shield, Clock, DollarSign, MapPin, CheckCircle, Building2, Users, Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation, Link } from "wouter";
@@ -11,6 +12,7 @@ export default function LandingPage() {
   const { isAuthenticated, isLoading } = useAuth();
   const [, setLocation] = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isChatbotOpen, setIsChatbotOpen] = useState(false);
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
@@ -586,6 +588,14 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
+
+      {/* Edge Function Chatbot */}
+      <Chatbot 
+        isOpen={isChatbotOpen} 
+        onToggle={() => setIsChatbotOpen(!isChatbotOpen)}
+        mode="edge"
+        position="bottom-right"
+      />
     </div>
   );
 }
