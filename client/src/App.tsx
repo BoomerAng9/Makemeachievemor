@@ -10,6 +10,7 @@ import AboutPage from "@/pages/about";
 import OnboardingPage from "@/pages/onboarding";
 import DashboardPage from "@/pages/dashboard";
 import DriverChecklistPage from "@/pages/driver-checklist";
+import SitemapPage from "@/pages/sitemap";
 import RegisterContractorPage from "@/pages/register-contractor";
 import RegisterCompanyPage from "@/pages/register-company";
 
@@ -22,6 +23,7 @@ function Router() {
         <>
           <Route path="/" component={LandingPage} />
           <Route path="/about" component={AboutPage} />
+          <Route path="/sitemap" component={SitemapPage} />
           <Route path="/register/contractor" component={RegisterContractorPage} />
           <Route path="/register/company" component={RegisterCompanyPage} />
           <Route path="/onboarding" component={OnboardingPage} />
@@ -30,6 +32,7 @@ function Router() {
         <>
           <Route path="/" component={DashboardPage} />
           <Route path="/about" component={AboutPage} />
+          <Route path="/sitemap" component={SitemapPage} />
           <Route path="/dashboard/:contractorId" component={DashboardPage} />
           <Route path="/driver-checklist" component={DriverChecklistPage} />
           <Route path="/onboarding" component={OnboardingPage} />

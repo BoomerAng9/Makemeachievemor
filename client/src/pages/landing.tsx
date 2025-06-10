@@ -52,6 +52,9 @@ export default function LandingPage() {
               <Link href="/about" className="text-gray-600 hover:text-primary transition-colors">
                 About
               </Link>
+              <Link href="/driver-checklist" className="text-gray-600 hover:text-primary transition-colors">
+                Authority Checklist
+              </Link>
               <Link href="/register/contractor" className="text-gray-600 hover:text-primary transition-colors">
                 Join as Driver
               </Link>
@@ -94,6 +97,13 @@ export default function LandingPage() {
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   About
+                </Link>
+                <Link 
+                  href="/driver-checklist" 
+                  className="text-gray-600 hover:text-primary transition-colors px-2 py-1"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Authority Checklist
                 </Link>
                 <Link 
                   href="/register/contractor" 
