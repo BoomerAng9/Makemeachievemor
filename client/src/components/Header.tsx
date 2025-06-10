@@ -33,18 +33,31 @@ import {
   Phone,
   LogOut,
   MapPin,
-  Archive
+  Archive,
+  ArrowLeft
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 export function Header() {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { isAuthenticated, user } = useAuth();
 
   const isActive = (path: string) => {
     return location === path || location.startsWith(path + '/');
   };
+
+  const handleBack = () => {
+    window.history.back();
+  };
+
+  const handleHome = () => {
+    setLocation(isAuthenticated ? "/" : "/");
+  };
+
+  const showBackButton = location !== "/" && location !== "";
+  const showHomeButton = location !== "/";
+  const isHomePage = location === "/" || location === "";
 
   const authMenuItems = [
     { href: "/", label: "Dashboard", icon: Home },
@@ -62,6 +75,7 @@ export function Header() {
   const publicMenuItems = [
     { href: "/", label: "Home", icon: Home },
     { href: "/about", label: "About", icon: HelpCircle },
+    { href: "/sitemap", label: "Site Map", icon: MapPin },
     { href: "/register/contractor", label: "For Drivers", icon: Truck },
     { href: "/register/company", label: "For Companies", icon: Building },
   ];
@@ -71,6 +85,35 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between px-4">
+        {/* Navigation Controls */}
+        <div className="flex items-center space-x-3">
+          {/* Back Button */}
+          {showBackButton && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleBack}
+              className="flex items-center gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span className="hidden sm:inline">Back</span>
+            </Button>
+          )}
+          
+          {/* Home Button */}
+          {showHomeButton && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleHome}
+              className="flex items-center gap-2"
+            >
+              <Home className="h-4 w-4" />
+              <span className="hidden sm:inline">Home</span>
+            </Button>
+          )}
+        </div>
+
         {/* Logo */}
         <Link href="/">
           <div className="flex items-center space-x-2">
@@ -224,6 +267,35 @@ export function Header() {
                 </SheetHeader>
                 
                 <div className="mt-6 space-y-2">
+                  {/* Navigation Controls for Mobile */}
+                  {showBackButton && (
+                    <Button
+                      variant="ghost"
+                      onClick={() => {
+                        handleBack();
+                        setMobileMenuOpen(false);
+                      }}
+                      className="w-full justify-start gap-3 h-12"
+                    >
+                      <ArrowLeft className="h-4 w-4" />
+                      Back
+                    </Button>
+                  )}
+                  
+                  {showHomeButton && (
+                    <Button
+                      variant="ghost"
+                      onClick={() => {
+                        handleHome();
+                        setMobileMenuOpen(false);
+                      }}
+                      className="w-full justify-start gap-3 h-12"
+                    >
+                      <Home className="h-4 w-4" />
+                      Home
+                    </Button>
+                  )}
+
                   {menuItems.map((item) => {
                     const Icon = item.icon;
                     return (
