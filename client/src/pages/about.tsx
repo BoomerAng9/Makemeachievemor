@@ -324,23 +324,15 @@ export default function AboutPage() {
         <div className="max-w-4xl mx-auto px-4 text-center">
           <h2 className="text-4xl font-bold mb-8">Our Mission</h2>
           <p className="text-xl leading-relaxed mb-8">
-            At ACHIEVEMOR, we're pioneering the convergence of sports, education, and technology. 
-            Our integrated ecosystem transforms how individuals connect, learn, and thrive, creating 
+            At ACHIEVEMOR, we're pioneering the convergence of transportation, logistics, education, and technology. 
+            Our integrated ecosystem transforms how independent contractors connect, learn, and thrive, creating 
             limitless opportunities through innovative platforms and AI-powered solutions.
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
-            <div>
-              <div className="text-3xl font-bold text-orange-400 mb-2">2025</div>
-              <div className="text-sm text-gray-300">Founded & Established</div>
+          <div className="text-center mt-12">
+            <div className="inline-flex items-center justify-center">
+              <div className="text-3xl font-bold text-orange-400 mb-2">Est. 2019</div>
             </div>
-            <div>
-              <div className="text-3xl font-bold text-blue-400 mb-2">4+</div>
-              <div className="text-sm text-gray-300">Active Platforms</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-purple-400 mb-2">100+</div>
-              <div className="text-sm text-gray-300">Community Members</div>
-            </div>
+            <div className="text-sm text-gray-300">Pioneering Technology Solutions</div>
           </div>
         </div>
       </section>
