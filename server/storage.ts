@@ -78,6 +78,14 @@ export interface IStorage {
   // Job operations
   getContractorJobs(contractorId: number): Promise<JobAssignment[]>;
   
+  // Job state machine operations
+  requestJob(jobId: string, userId: string): Promise<any>;
+  assignJob(jobId: string, userId: string): Promise<any>;
+  markJobPickedUp(jobId: string, userId: string): Promise<any>;
+  markJobDelivered(jobId: string, userId: string): Promise<any>;
+  markJobPaid(jobId: string, userId: string): Promise<any>;
+  createJobNotification(jobId: string, userId: string, type: string): Promise<any>;
+  
   // Message operations
   getContractorMessages(contractorId: number): Promise<Message[]>;
   createMessage(data: InsertMessage): Promise<Message>;

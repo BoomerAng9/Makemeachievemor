@@ -22,7 +22,7 @@ interface Job {
   description?: string | null;
   pickupTime?: string | Date | null;
   deliveryTime?: string | Date | null;
-  requirements?: string[];
+  requirements?: string[] | unknown;
   requestedAt?: string | Date | null;
   assignedAt?: string | Date | null;
   pickedUpAt?: string | Date | null;
@@ -194,8 +194,8 @@ export function JobOpportunities({ opportunities, activeJobs, isLoading, userId 
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <h3 className="font-semibold text-lg">{job.title}</h3>
-                        <Badge className={getPriorityColor(job.priority)}>
+                        <h3 className="font-semibold text-lg">{getJobTitle(job)}</h3>
+                        <Badge className={getPriorityColor(job.priority || "standard")}>
                           {job.priority === "express" ? "⚡ Express" : "Standard"}
                         </Badge>
                         <Badge className={getStatusColor(job.status)}>
@@ -222,15 +222,7 @@ export function JobOpportunities({ opportunities, activeJobs, isLoading, userId 
                         <p className="text-gray-600 text-sm mb-2">{job.description}</p>
                       )}
 
-                      {job.requirements && job.requirements.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mb-2">
-                          {job.requirements.map((req, index) => (
-                            <Badge key={index} variant="outline" className="text-xs">
-                              {req}
-                            </Badge>
-                          ))}
-                        </div>
-                      )}
+
 
                       {job.pickupTime && (
                         <div className="flex items-center gap-1 text-xs text-gray-500">
@@ -286,7 +278,7 @@ export function JobOpportunities({ opportunities, activeJobs, isLoading, userId 
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <h3 className="font-semibold text-lg">{job.title}</h3>
+                        <h3 className="font-semibold text-lg">{getJobTitle(job)}</h3>
                         <Badge className={getStatusColor(job.status)}>
                           {job.status.charAt(0).toUpperCase() + job.status.slice(1).replace("_", " ")}
                         </Badge>
