@@ -376,6 +376,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // AI Insights routes
+  app.get("/api/insights/contractor/:id", isAuthenticated, async (req, res) => {
+    try {
+      const contractorId = parseInt(req.params.id);
+      const { aiInsightsService } = await import("./aiInsightsService");
+      
+      const insights = await aiInsightsService.generateContractorInsights(contractorId);
+      res.json(insights);
+    } catch (error) {
+      console.error("Error generating AI insights:", error);
+      res.status(500).json({ message: "Failed to generate insights" });
+    }
+  });
+
+  app.get("/api/insights/quick-actions/:id", isAuthenticated, async (req, res) => {
+    try {
+      const contractorId = parseInt(req.params.id);
+      const { aiInsightsService } = await import("./aiInsightsService");
+      
+      const quickActions = await aiInsightsService.getQuickActions(contractorId);
+      res.json(quickActions);
+    } catch (error) {
+      console.error("Error getting quick actions:", error);
+      res.status(500).json({ message: "Failed to get quick actions" });
+    }
+  });
+
+  app.get("/api/insights/performance/:id", isAuthenticated, async (req, res) => {
+    try {
+      const contractorId = parseInt(req.params.id);
+      const { aiInsightsService } = await import("./aiInsightsService");
+      
+      const performance = await aiInsightsService.getPerformanceTrends(contractorId);
+      res.json(performance);
+    } catch (error) {
+      console.error("Error getting performance trends:", error);
+      res.status(500).json({ message: "Failed to get performance trends" });
+    }
+  });
+
+  app.get("/api/insights/risks/:id", isAuthenticated, async (req, res) => {
+    try {
+      const contractorId = parseInt(req.params.id);
+      const { aiInsightsService } = await import("./aiInsightsService");
+      
+      const risks = await aiInsightsService.getRiskAlerts(contractorId);
+      res.json(risks);
+    } catch (error) {
+      console.error("Error getting risk alerts:", error);
+      res.status(500).json({ message: "Failed to get risk alerts" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

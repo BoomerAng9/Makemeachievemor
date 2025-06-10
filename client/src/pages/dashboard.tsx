@@ -6,6 +6,7 @@ import { OpportunityCard } from "@/components/dashboard/OpportunityCard";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { ConsultationButton } from "@/components/business/ConsultationButton";
 import { BackgroundCheckDashboard } from "@/components/background-check/BackgroundCheckDashboard";
+import { PersonalizedWidgets } from "@/components/dashboard/PersonalizedWidgets";
 import { Chatbot } from "@/components/ui/chatbot";
 import { Truck, Phone, Mail, MapPin, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -169,6 +170,13 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         </div>
+
+        {/* AI-Powered Personalized Widgets */}
+        {id && (
+          <div className="space-y-4 sm:space-y-6">
+            <PersonalizedWidgets contractorId={id} />
+          </div>
+        )}
 
         {/* Background Check Section */}
         {id && (
