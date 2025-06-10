@@ -24,6 +24,7 @@ function Router() {
           <Route path="/" component={LandingPage} />
           <Route path="/about" component={AboutPage} />
           <Route path="/sitemap" component={SitemapPage} />
+          <Route path="/driver-checklist" component={DriverChecklistPage} />
           <Route path="/register/contractor" component={RegisterContractorPage} />
           <Route path="/register/company" component={RegisterCompanyPage} />
           <Route path="/onboarding" component={OnboardingPage} />
