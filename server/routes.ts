@@ -315,6 +315,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Background check routes
+  app.post("/api/background-check/submit", isAuthenticated, async (req, res) => {
+    try {
+      const { contractorId, checkType, personalInfo } = req.body;
+      const userId = req.user?.claims?.sub;
+      
+      const { backgroundCheckService } = await import("./backgroundCheckService");
+      const request = await backgroundCheckService.submitBackgroundCheck(
+        contractorId,
+        checkType,
+        personalInfo,
+        1, // Default provider ID (mock)
+        userId
+      );
+      
+      res.json(request);
+    } catch (error) {
+      console.error("Background check submission error:", error);
+      res.status(500).json({ message: "Failed to submit background check" });
+    }
+  });
+
+  app.get("/api/background-check/contractor/:id", isAuthenticated, async (req, res) => {
+    try {
+      const contractorId = parseInt(req.params.id);
+      const results = await storage.getContractorBackgroundCheckResults(contractorId);
+      const alerts = await storage.getContractorBackgroundCheckAlerts(contractorId);
+      
+      res.json({ results, alerts });
+    } catch (error) {
+      console.error("Error fetching background check data:", error);
+      res.status(500).json({ message: "Failed to fetch background check data" });
+    }
+  });
+
+  app.post("/api/background-check/webhook/:providerId", async (req, res) => {
+    try {
+      const providerId = parseInt(req.params.providerId);
+      const { backgroundCheckService } = await import("./backgroundCheckService");
+      
+      await backgroundCheckService.processWebhook(providerId, req.body);
+      res.status(200).json({ message: "Webhook processed" });
+    } catch (error) {
+      console.error("Webhook processing error:", error);
+      res.status(500).json({ message: "Webhook processing failed" });
+    }
+  });
+
+  app.get("/api/background-check/status/:requestId", isAuthenticated, async (req, res) => {
+    try {
+      const requestId = parseInt(req.params.requestId);
+      const { backgroundCheckService } = await import("./backgroundCheckService");
+      
+      await backgroundCheckService.checkStatus(requestId);
+      res.json({ message: "Status updated" });
+    } catch (error) {
+      console.error("Status check error:", error);
+      res.status(500).json({ message: "Failed to check status" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

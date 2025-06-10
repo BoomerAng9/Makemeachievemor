@@ -5,6 +5,7 @@ import { StatsGrid } from "@/components/dashboard/StatsGrid";
 import { OpportunityCard } from "@/components/dashboard/OpportunityCard";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { ConsultationButton } from "@/components/business/ConsultationButton";
+import { BackgroundCheckDashboard } from "@/components/background-check/BackgroundCheckDashboard";
 import { Chatbot } from "@/components/ui/chatbot";
 import { Truck, Phone, Mail, MapPin, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -168,6 +169,13 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Background Check Section */}
+        {id && (
+          <div className="space-y-6">
+            <BackgroundCheckDashboard contractorId={id} />
+          </div>
+        )}
 
         {/* Contact Information Footer */}
         <Card className="bg-gray-900 text-white">
