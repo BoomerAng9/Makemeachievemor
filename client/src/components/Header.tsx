@@ -31,7 +31,9 @@ import {
   CheckSquare,
   Shield,
   Phone,
-  LogOut
+  LogOut,
+  MapPin,
+  Archive
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -47,6 +49,8 @@ export function Header() {
   const authMenuItems = [
     { href: "/", label: "Dashboard", icon: Home },
     { href: "/driver-checklist", label: "Authority Checklist", icon: CheckSquare, isNew: true },
+    { href: "/glovebox", label: "Glovebox", icon: Archive, isNew: true },
+    { href: "/driver-location", label: "Driver Location", icon: MapPin, isNew: true },
     { href: "/opportunities", label: "Find Jobs", icon: Truck },
     { href: "/documents", label: "Documents", icon: FileText },
   ];
