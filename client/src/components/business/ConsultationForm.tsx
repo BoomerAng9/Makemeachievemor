@@ -1,9 +1,5 @@
 import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -15,38 +11,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, CheckCircle } from "lucide-react";
 
-const contractorFormSchema = z.object({
-  requestType: z.string().min(1, "Please select a service type"),
-  businessStage: z.string().min(1, "Please select your business stage"),
-  description: z.string().min(20, "Please provide at least 20 characters"),
-  currentChallenges: z.array(z.string()).min(1, "Please select at least one challenge"),
-  goals: z.array(z.string()).min(1, "Please select at least one goal"),
-  timeline: z.string().min(1, "Please select a timeline"),
-  budget: z.string().min(1, "Please select a budget range"),
-  contactPreference: z.string().default("email"),
-  firstName: z.string().min(2, "First name is required"),
-  lastName: z.string().min(2, "Last name is required"),
-  email: z.string().email("Please enter a valid email"),
-  phone: z.string().min(10, "Please enter a valid phone number"),
-  company: z.string().optional()
-});
 
-const companyFormSchema = z.object({
-  serviceType: z.string().min(1, "Please select a service type"),
-  companyName: z.string().min(2, "Company name is required"),
-  contactPerson: z.string().min(2, "Contact person is required"),
-  email: z.string().email("Please enter a valid email"),
-  phone: z.string().min(10, "Please enter a valid phone number"),
-  companySize: z.string().min(1, "Please select company size"),
-  currentFleetSize: z.string().optional(),
-  description: z.string().min(20, "Please provide at least 20 characters"),
-  currentChallenges: z.array(z.string()).min(1, "Please select at least one challenge"),
-  goals: z.array(z.string()).min(1, "Please select at least one goal"),
-  timeline: z.string().min(1, "Please select a timeline"),
-  budget: z.string().min(1, "Please select a budget range"),
-  operationalAreas: z.array(z.string()).min(1, "Please select at least one area"),
-  technologyNeeds: z.array(z.string()).optional()
-});
 
 interface ConsultationFormProps {
   type: 'contractor' | 'company';
@@ -75,7 +40,7 @@ export function ConsultationForm({ type, onSuccess }: ConsultationFormProps) {
       const endpoint = type === 'contractor' 
         ? '/api/consultation/contractor'
         : '/api/consultation/company';
-      return apiRequest(endpoint, { method: 'POST', body: data });
+      return apiRequest(endpoint, 'POST', data);
     },
     onSuccess: () => {
       toast({
@@ -144,12 +109,12 @@ export function ConsultationForm({ type, onSuccess }: ConsultationFormProps) {
   const challenges = type === 'contractor' ? contractorChallenges : companyChallenges;
   const goals = type === 'contractor' ? contractorGoals : companyGoals;
 
-  const handleArrayFieldChange = (fieldName: string, value: string, checked: boolean) => {
-    const currentValues = form.getValues(fieldName as any) || [];
+  const handleArrayFieldChange = (fieldName: keyof typeof form.formState.defaultValues, value: string, checked: boolean) => {
+    const currentValues = (form.getValues(fieldName) as string[]) || [];
     if (checked) {
-      form.setValue(fieldName as any, [...currentValues, value]);
+      form.setValue(fieldName, [...currentValues, value] as any);
     } else {
-      form.setValue(fieldName as any, currentValues.filter((item: string) => item !== value));
+      form.setValue(fieldName, currentValues.filter((item: string) => item !== value) as any);
     }
   };
 

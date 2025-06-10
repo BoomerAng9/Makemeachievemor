@@ -4,8 +4,9 @@ import { useContractor, useContractorStats, useAvailableOpportunities, useContra
 import { StatsGrid } from "@/components/dashboard/StatsGrid";
 import { OpportunityCard } from "@/components/dashboard/OpportunityCard";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
+import { ConsultationButton } from "@/components/business/ConsultationButton";
 import { Chatbot } from "@/components/ui/chatbot";
-import { Truck, Phone, Mail, MapPin } from "lucide-react";
+import { Truck, Phone, Mail, MapPin, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

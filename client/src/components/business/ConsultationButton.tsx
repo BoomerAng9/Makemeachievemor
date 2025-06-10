@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Building2, Users, Rocket, TrendingUp, Zap, Shield, HeadphonesIcon, CheckCircle } from "lucide-react";
-import { ConsultationForm } from "./ConsultationForm";
+import { ConsultationForm } from "./SimpleConsultationForm";
 
 interface ConsultationButtonProps {
   type: 'contractor' | 'company';
