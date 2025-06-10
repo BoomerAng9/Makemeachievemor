@@ -20,6 +20,13 @@ export const users = pgTable("users", {
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
+  accountStatus: varchar("account_status").notNull().default("active"), // active, pending_verification, suspended, banned
+  verificationStatus: varchar("verification_status").notNull().default("unverified"), // unverified, pending, verified
+  role: varchar("role").notNull().default("user"), // user, admin, super_admin
+  subscriptionStatus: varchar("subscription_status").notNull().default("free"), // free, basic, premium, enterprise
+  subscriptionExpiresAt: timestamp("subscription_expires_at"),
+  lastLoginAt: timestamp("last_login_at"),
+  registrationSource: varchar("registration_source").default("web"), // web, mobile, referral
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -385,6 +392,32 @@ export const backgroundCheckAlerts = pgTable("background_check_alerts", {
   resolvedBy: varchar("resolved_by"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// User registration notifications to admin
+export const userRegistrationNotifications = pgTable("user_registration_notifications", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  notificationSent: boolean("notification_sent").default(false),
+  sentAt: timestamp("sent_at"),
+  adminNotified: boolean("admin_notified").default(false),
+  requiresApproval: boolean("requires_approval").default(false),
+  approvedBy: varchar("approved_by"),
+  approvedAt: timestamp("approved_at"),
+  rejectionReason: text("rejection_reason"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Admin activity log
+export const adminActivityLog = pgTable("admin_activity_log", {
+  id: serial("id").primaryKey(),
+  adminUserId: varchar("admin_user_id").notNull().references(() => users.id),
+  targetUserId: varchar("target_user_id").references(() => users.id),
+  action: varchar("action").notNull(), // user_approved, user_suspended, settings_changed, etc.
+  actionDetails: jsonb("action_details"),
+  ipAddress: varchar("ip_address"),
+  userAgent: text("user_agent"),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 export const backgroundCheckTemplates = pgTable("background_check_templates", {

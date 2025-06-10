@@ -690,6 +690,105 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin middleware to check admin role
+  const isAdmin = async (req: any, res: any, next: any) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      if (!user || (user.role !== "admin" && user.role !== "super_admin")) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      req.adminUser = user;
+      next();
+    } catch (error) {
+      res.status(500).json({ message: "Failed to verify admin access" });
+    }
+  };
+
+  // Admin API routes
+  app.get('/api/admin/stats', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const stats = await storage.getAdminStats();
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching admin stats:", error);
+      res.status(500).json({ message: "Failed to fetch admin statistics" });
+    }
+  });
+
+  app.get('/api/admin/users', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { search, status } = req.query;
+      const users = await storage.getAllUsers(search as string, status as string);
+      res.json(users);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
+  app.post('/api/admin/users/:userId/action', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const { userId } = req.params;
+      const { action, reason } = req.body;
+      const adminUserId = req.adminUser.id;
+
+      // Log admin action
+      await storage.logAdminActivity({
+        adminUserId,
+        targetUserId: userId,
+        action,
+        actionDetails: { reason, timestamp: new Date() },
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent'),
+      });
+
+      // Perform user action
+      const result = await storage.performUserAction(userId, action, reason, adminUserId);
+      res.json(result);
+    } catch (error) {
+      console.error("Error performing user action:", error);
+      res.status(500).json({ message: "Failed to perform user action" });
+    }
+  });
+
+  app.get('/api/admin/activity', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const activityLog = await storage.getAdminActivityLog();
+      res.json(activityLog);
+    } catch (error) {
+      console.error("Error fetching activity log:", error);
+      res.status(500).json({ message: "Failed to fetch activity log" });
+    }
+  });
+
+  // Master admin setup route (for creating the first admin)
+  app.post('/api/admin/setup-master', async (req, res) => {
+    try {
+      const { masterKey, userId } = req.body;
+      
+      // This should be a secure setup process - for demo, we'll use a simple check
+      if (masterKey !== "ACHIEVEMOR_MASTER_SETUP_2024") {
+        return res.status(403).json({ message: "Invalid master key" });
+      }
+
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Upgrade user to super_admin
+      await storage.updateUserRole(userId, "super_admin");
+      
+      res.json({ message: "Master admin setup completed" });
+    } catch (error) {
+      console.error("Error setting up master admin:", error);
+      res.status(500).json({ message: "Failed to setup master admin" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

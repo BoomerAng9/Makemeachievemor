@@ -48,11 +48,15 @@ export function Header() {
 
   const authMenuItems = [
     { href: "/", label: "Dashboard", icon: Home },
-    { href: "/driver-checklist", label: "Authority Checklist", icon: CheckSquare, isNew: true },
-    { href: "/glovebox", label: "Glovebox", icon: Archive, isNew: true },
-    { href: "/driver-location", label: "Driver Location", icon: MapPin, isNew: true },
+    { href: "/driver-checklist", label: "Authority Checklist", icon: CheckSquare },
+    { href: "/glovebox", label: "Glovebox", icon: Archive },
+    { href: "/driver-location", label: "Driver Location", icon: MapPin },
     { href: "/opportunities", label: "Find Jobs", icon: Truck },
     { href: "/documents", label: "Documents", icon: FileText },
+  ];
+
+  const adminMenuItems = [
+    { href: "/admin", label: "Admin Panel", icon: Shield },
   ];
 
   const publicMenuItems = [

@@ -56,13 +56,56 @@ function updateUserSession(
 async function upsertUser(
   claims: any,
 ) {
-  await storage.upsertUser({
+  const user = await storage.upsertUser({
     id: claims["sub"],
     email: claims["email"],
     firstName: claims["first_name"],
     lastName: claims["last_name"],
     profileImageUrl: claims["profile_image_url"],
+    accountStatus: "active", // No waiting period - immediate access
+    verificationStatus: "unverified",
+    lastLoginAt: new Date(),
   });
+
+  // Send registration notification to admin
+  await sendRegistrationNotification(user);
+  
+  return user;
+}
+
+async function sendRegistrationNotification(user: any) {
+  try {
+    // Create notification record
+    await storage.createRegistrationNotification({
+      userId: user.id,
+      notificationSent: false,
+      adminNotified: false,
+      requiresApproval: false, // Auto-approve for immediate access
+    });
+
+    // Send email to contactus@achievemor.io
+    const emailContent = `
+      New User Registration - ACHIEVEMOR Platform
+      
+      User Details:
+      - Name: ${user.firstName} ${user.lastName}
+      - Email: ${user.email}
+      - User ID: ${user.id}
+      - Registration Date: ${new Date().toLocaleString()}
+      - Account Status: Active (Auto-approved)
+      
+      The user has been granted immediate access to the platform dashboard.
+      Verification will begin when they upload documents.
+      
+      Please review this registration in the Admin Panel: /admin
+    `;
+
+    // Note: Email sending will be implemented when SENDGRID_API_KEY is provided
+    console.log("Registration notification queued for:", user.email);
+    
+  } catch (error) {
+    console.error("Failed to send registration notification:", error);
+  }
 }
 
 export async function setupAuth(app: Express) {
