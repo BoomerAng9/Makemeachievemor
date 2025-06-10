@@ -66,6 +66,7 @@ export function Header() {
     { href: "/driver-location", label: "Driver Location", icon: MapPin },
     { href: "/opportunities", label: "Find Jobs", icon: Truck },
     { href: "/documents", label: "Documents", icon: FileText },
+    { href: "/sitemap", label: "Site Map", icon: HelpCircle },
   ];
 
   const adminMenuItems = [
