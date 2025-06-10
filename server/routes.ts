@@ -49,25 +49,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!user) return;
     
     try {
-      const existingContractor = await storage.getContractorByEmail(user.email);
-      
-      if (!existingContractor) {
-        // Create contractor profile using user data
-        await storage.createContractor({
-          firstName: user.firstName || "User",
-          lastName: user.lastName || "Profile",
-          email: user.email || "",
-          phone: "",
-          dateOfBirth: "",
-          street: "",
-          city: "",
-          state: "",
-          zipCode: "",
-          dotNumber: "",
-          mcNumber: "",
-        });
-        console.log(`Created contractor profile for user ${user.id}`);
-      }
+      // Users work directly with their user profiles - no separate contractor table needed
+      console.log(`User profile ready for ${user.id}`);
     } catch (error) {
       console.error("Error ensuring contractor profile:", error);
     }

@@ -212,16 +212,16 @@ export default function DashboardPage() {
         </div>
 
         {/* AI-Powered Personalized Widgets */}
-        {id && (
+        {userId && (
           <div className="space-y-4 sm:space-y-6">
-            <PersonalizedWidgets contractorId={id} />
+            <PersonalizedWidgets contractorId={parseInt(userId)} />
           </div>
         )}
 
         {/* Background Check Section */}
-        {id && (
+        {userId && (
           <div className="space-y-4 sm:space-y-6">
-            <BackgroundCheckDashboard contractorId={id} />
+            <BackgroundCheckDashboard contractorId={parseInt(userId)} />
           </div>
         )}
 
