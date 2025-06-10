@@ -5,6 +5,7 @@ import {
   opportunities, 
   messages, 
   jobAssignments,
+  users,
   type Contractor, 
   type InsertContractor,
   type Vehicle,
@@ -16,12 +17,18 @@ import {
   type Message,
   type InsertMessage,
   type JobAssignment,
-  type InsertJobAssignment
+  type InsertJobAssignment,
+  type User,
+  type UpsertUser
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
 
 export interface IStorage {
+  // User operations (for authentication)
+  getUser(id: string): Promise<User | undefined>;
+  upsertUser(user: UpsertUser): Promise<User>;
+  
   // Contractor operations
   getContractor(id: number): Promise<Contractor | undefined>;
   createContractor(data: InsertContractor): Promise<Contractor>;
@@ -52,6 +59,27 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
+  // User operations (for authentication)
+  async getUser(id: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+
+  async upsertUser(userData: UpsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(userData)
+      .onConflictDoUpdate({
+        target: users.id,
+        set: {
+          ...userData,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return user;
+  }
+
   // Contractor operations
   async getContractor(id: number): Promise<Contractor | undefined> {
     const [contractor] = await db.select().from(contractors).where(eq(contractors.id, id));
