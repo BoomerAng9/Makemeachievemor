@@ -6,6 +6,8 @@ import {
   messages, 
   jobAssignments,
   users,
+  consultationRequests,
+  companyConsultationRequests,
   type Contractor, 
   type InsertContractor,
   type Vehicle,
@@ -19,7 +21,11 @@ import {
   type JobAssignment,
   type InsertJobAssignment,
   type User,
-  type UpsertUser
+  type UpsertUser,
+  type ConsultationRequest,
+  type InsertConsultationRequest,
+  type CompanyConsultationRequest,
+  type InsertCompanyConsultationRequest
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";

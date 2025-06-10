@@ -195,8 +195,15 @@ export default function DashboardPage() {
                     Pooler, GA 31322
                   </span>
                 </div>
-                <div className="text-sm text-gray-300">
-                  Est. 2025 • byachievemor.com
+                <div className="flex items-center space-x-4">
+                  <ConsultationButton 
+                    type="contractor" 
+                    variant="outline" 
+                    size="sm"
+                  />
+                  <div className="text-sm text-gray-300">
+                    Est. 2019 • byachievemor.com
+                  </div>
                 </div>
               </div>
             </div>

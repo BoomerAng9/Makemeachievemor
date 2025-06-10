@@ -11,13 +11,13 @@ export default function AboutPage() {
   const [isChatbotOpen, setIsChatbotOpen] = useState(false);
   const ecosystemPlatforms = [
     {
-      name: "DEPLOY",
-      url: "deploy.byachievemor.us",
-      description: "AI-Powered Automation Services & Deployment Platform",
+      name: "Choose 2 ACHIEVEMOR",
+      url: "byachievemor.com",
+      description: "Owner Operator Independent Contractor Management Platform",
       icon: <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-400 via-amber-500 to-yellow-500 flex items-center justify-center">
-        <Zap className="h-6 w-6 text-white" />
+        <Building2 className="h-6 w-6 text-white" />
       </div>,
-      features: ["Automated Deployment", "CI/CD Pipelines", "Infrastructure as Code", "Real-time Monitoring"],
+      features: ["Contractor Onboarding", "Compliance Management", "Job Matching", "Business Growth Services"],
       status: "Active",
       color: "from-orange-400 to-yellow-500"
     },
