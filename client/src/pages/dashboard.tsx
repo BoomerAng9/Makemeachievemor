@@ -171,6 +171,42 @@ export default function DashboardPage() {
           </Card>
         </div>
 
+        {/* Quick Actions Bar */}
+        <div className="mb-8">
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex flex-wrap gap-3 items-center justify-center sm:justify-start">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="flex items-center gap-2 hover:bg-blue-50"
+                >
+                  <Truck className="h-4 w-4" />
+                  Find Routes
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="flex items-center gap-2 hover:bg-green-50"
+                >
+                  <TrendingUp className="h-4 w-4" />
+                  Track Earnings
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="flex items-center gap-2 hover:bg-orange-50"
+                  onClick={() => window.location.href = '/driver-checklist'}
+                >
+                  <FileText className="h-4 w-4" />
+                  Authority Checklist
+                </Button>
+                <ConsultationButton />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
         {/* AI-Powered Personalized Widgets */}
         {id && (
           <div className="space-y-4 sm:space-y-6">

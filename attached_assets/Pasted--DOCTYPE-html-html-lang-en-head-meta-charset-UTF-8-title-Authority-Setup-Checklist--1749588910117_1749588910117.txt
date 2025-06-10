@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Authority Setup Checklist</title>
+  <style>
+      body {
+          font-family: Arial, sans-serif;
+          margin: 0;
+          padding: 0 1rem 4rem;
+          background: #f9f9f9;
+      }
+      h1, h2 {
+          color: #333;
+      }
+      h1 { margin-top: 1.5rem; }
+      table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-bottom: 2rem;
+          background: #fff;
+      }
+      thead tr { background: #eee; }
+      th, td {
+          padding: .6rem .8rem;
+          border: 1px solid #ddd;
+      }
+      tr.section-header td {
+          background: #ddd;
+          font-weight: bold;
+          text-align: left;
+      }
+      .cta {
+          text-align: center;
+          font-size: 1.1rem;
+          font-weight: bold;
+          margin-top: 2rem;
+          padding: 1rem;
+          background: #333;
+          color: #fff;
+      }
+      .cta a {
+          color: #ffd700;
+          text-decoration: none;
+      }
+      @media (max-width: 600px) {
+          table, thead, tbody, th, td, tr { display: block; }
+          thead { display: none; }
+          tr { margin-bottom: 1rem; }
+          td {
+              border: none;
+              position: relative;
+              padding-left: 50%;
+          }
+          td::before {
+              position: absolute;
+              left: .8rem;
+              width: 45%;
+              white-space: nowrap;
+              font-weight: bold;
+          }
+          td:nth-of-type(1)::before { content: "Item"; }
+          td:nth-of-type(2)::before { content: "Do you have?"; }
+          td:nth-of-type(3)::before { content: "Do you need?"; }
+      }
+  </style>
+</head>
+<body>
+
+  <!-- Open‑ended question -->
+  <h1>When establishing your authority, what steps did you take to align legally?</h1>
+
+  <!-- Checklist table -->
+  <table>
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th>Do you&nbsp;have?</th>
+        <th>Do you&nbsp;need?</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <!-- 1. Planning & Business Setup -->
+      <tr class="section-header"><td colspan="3">1. Planning &amp; Business Setup</td></tr>
+      <tr><td>Road‑map chat (goals, lanes, budget)</td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+      <tr><td>Form legal entity (LLC / S‑Corp) &amp; EIN</td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+      <tr><td>Business email, website, carrier packet template</td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+
+      <!-- 2. Federal Authority Package -->
+      <tr class="section-header"><td colspan="3">2. Federal Authority Package</td></tr>
+      <tr><td>USDOT number (MCS‑150)</td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+      <tr><td>Operating authority (OP‑1 / OP‑2)</td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+      <tr><td>BOC‑3 blanket agents</td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+      <tr><td>Public liability insurance on file (BMC‑91/91X)</td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+      <tr><td>Unified Carrier Registration (UCR)</td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+
+      <!-- 3. Taxes & Specialty Permits -->
+      <tr class="section-header"><td colspan="3">3. Taxes &amp; Specialty Permits</td></tr>
+      <tr><td>Heavy Vehicle Use Tax (HVUT 2290)</td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+      <tr><td>IFTA fuel‑tax account &amp; decals</td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+      <tr><td>IRP apportioned plates</td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+      <tr><td>State highway‑use permits (KYU, NY‑HUT, etc.)</td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+      <tr><td>Oversize/overweight &amp; temp trip/fuel permits</td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+
+      <!-- 4. Compliance Readiness -->
+      <tr class="section-header"><td colspan="3">4. Compliance Readiness</td></tr>
+      <tr><td>DOT audit prep checklist</td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+      <tr><td>Driver qualification files</td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+      <tr><td>Drug &amp; Alcohol consortium enrollment</td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+      <tr><td>ELD &amp; HOS setup</td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+      <tr><td>Safety monitoring (CSA scores)</td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+
+      <!-- 5. Ongoing Support & Reminders -->
+      <tr class="section-header"><td colspan="3">5. Ongoing Support &amp; Reminders</td></tr>
+      <tr><td>Biennial MCS‑150 updates</td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+      <tr><td>Annual UCR renewal</td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+      <tr><td>Annual HVUT (2290) renewal</td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+      <tr><td>Quarterly IFTA filings</td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+      <tr><td>24/7 access to compliance coach</td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+
+      <!-- 6. Launching Freight Operations -->
+      <tr class="section-header"><td colspan="3">6. Launching Freight Operations</td></tr>
+      <tr><td>Freight skills mini‑course</td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+      <tr><td>Carrier packet &amp; marketing kit</td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+      <tr><td>Factoring &amp; fuel‑card referrals</td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+      <tr><td>First‑load coaching</td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+
+    </tbody>
+  </table>
+
+  <!-- Call to action -->
+  <div class="cta">
+      If you need any of these, we can help. Let’s get it done right, THIS TIME.
+  </div>
+
+</body>
+</html>

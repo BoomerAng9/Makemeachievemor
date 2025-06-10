@@ -9,6 +9,7 @@ import LandingPage from "@/pages/landing";
 import AboutPage from "@/pages/about";
 import OnboardingPage from "@/pages/onboarding";
 import DashboardPage from "@/pages/dashboard";
+import DriverChecklistPage from "@/pages/driver-checklist";
 import RegisterContractorPage from "@/pages/register-contractor";
 import RegisterCompanyPage from "@/pages/register-company";
 
@@ -30,6 +31,7 @@ function Router() {
           <Route path="/" component={DashboardPage} />
           <Route path="/about" component={AboutPage} />
           <Route path="/dashboard/:contractorId" component={DashboardPage} />
+          <Route path="/driver-checklist" component={DriverChecklistPage} />
           <Route path="/onboarding" component={OnboardingPage} />
         </>
       )}
