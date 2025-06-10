@@ -130,6 +130,141 @@ export const jobAssignments = pgTable("job_assignments", {
   feedback: text("feedback"),
 });
 
+// File storage for secure document management
+export const fileStorage = pgTable("file_storage", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").references(() => users.id),
+  contractorId: integer("contractor_id").references(() => contractors.id),
+  fileName: varchar("file_name", { length: 255 }).notNull(),
+  originalName: varchar("original_name", { length: 255 }).notNull(),
+  fileType: varchar("file_type", { length: 100 }).notNull(),
+  fileSize: integer("file_size").notNull(),
+  filePath: varchar("file_path", { length: 500 }).notNull(),
+  category: varchar("category", { length: 100 }).notNull(), // 'document', 'image', 'avatar', 'certificate'
+  isPublic: boolean("is_public").default(false),
+  encryptionKey: varchar("encryption_key", { length: 255 }),
+  metadata: jsonb("metadata"), // Additional file information
+  uploadedAt: timestamp("uploaded_at").defaultNow(),
+  lastAccessedAt: timestamp("last_accessed_at"),
+  createdAt: timestamp("created_at").defaultNow()
+});
+
+// User profiles and customization
+export const userProfiles = pgTable("user_profiles", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").references(() => users.id),
+  contractorId: integer("contractor_id").references(() => contractors.id),
+  displayName: varchar("display_name", { length: 255 }),
+  bio: text("bio"),
+  website: varchar("website", { length: 255 }),
+  socialLinks: jsonb("social_links"), // {facebook, twitter, linkedin, instagram}
+  profilePictureId: integer("profile_picture_id").references(() => fileStorage.id),
+  bannerImageId: integer("banner_image_id").references(() => fileStorage.id),
+  theme: varchar("theme", { length: 50 }).default("light"), // 'light', 'dark', 'auto'
+  customColors: jsonb("custom_colors"), // Custom theme colors
+  isPublicProfile: boolean("is_public_profile").default(false),
+  showAvailability: boolean("show_availability").default(true),
+  showContactInfo: boolean("show_contact_info").default(false),
+  shareableUrl: varchar("shareable_url", { length: 100 }).unique(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+// Availability and sharing settings
+export const contractorAvailability = pgTable("contractor_availability", {
+  id: serial("id").primaryKey(),
+  contractorId: integer("contractor_id").references(() => contractors.id),
+  isAvailable: boolean("is_available").default(true),
+  availableFrom: timestamp("available_from"),
+  availableUntil: timestamp("available_until"),
+  preferredRoutes: jsonb("preferred_routes"), // Array of route preferences
+  equipmentTypes: text("equipment_types").array(),
+  maxDistance: integer("max_distance"), // Miles
+  minRate: decimal("min_rate", { precision: 10, scale: 2 }),
+  specialServices: text("special_services").array(),
+  notes: text("notes"),
+  lastUpdated: timestamp("last_updated").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow()
+});
+
+// External integrations and connections
+export const externalConnections = pgTable("external_connections", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").references(() => users.id),
+  contractorId: integer("contractor_id").references(() => contractors.id),
+  platform: varchar("platform", { length: 100 }).notNull(), // 'dat', 'truckstop', 'facebook', 'linkedin'
+  connectionType: varchar("connection_type", { length: 50 }).notNull(), // 'load_board', 'social_media', 'company'
+  credentials: jsonb("credentials"), // Encrypted connection details
+  isActive: boolean("is_active").default(true),
+  lastSync: timestamp("last_sync"),
+  settings: jsonb("settings"), // Platform-specific settings
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+// Business consultation requests
+export const consultationRequests = pgTable("consultation_requests", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").references(() => users.id),
+  contractorId: integer("contractor_id").references(() => contractors.id),
+  requestType: varchar("request_type", { length: 100 }).notNull(), // 'business_setup', 'growth', 'automation', 'marketing'
+  businessStage: varchar("business_stage", { length: 100 }), // 'startup', 'established', 'scaling'
+  description: text("description").notNull(),
+  currentChallenges: text("current_challenges").array(),
+  goals: text("goals").array(),
+  timeline: varchar("timeline", { length: 100 }),
+  budget: varchar("budget", { length: 100 }),
+  contactPreference: varchar("contact_preference", { length: 50 }).default("email"),
+  status: varchar("status", { length: 50 }).default("pending"), // 'pending', 'reviewed', 'contacted', 'closed'
+  priority: varchar("priority", { length: 20 }).default("medium"),
+  assignedTo: varchar("assigned_to", { length: 255 }),
+  notes: text("notes"),
+  followUpDate: timestamp("follow_up_date"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+// Company consultation requests
+export const companyConsultationRequests = pgTable("company_consultation_requests", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").references(() => users.id),
+  companyName: varchar("company_name", { length: 255 }).notNull(),
+  contactPerson: varchar("contact_person", { length: 255 }).notNull(),
+  email: varchar("email", { length: 255 }).notNull(),
+  phone: varchar("phone", { length: 50 }),
+  serviceType: varchar("service_type", { length: 100 }).notNull(), // 'dedicated_drivers', 'logistics_management', 'digital_transformation'
+  companySize: varchar("company_size", { length: 100 }),
+  currentFleetSize: integer("current_fleet_size"),
+  description: text("description").notNull(),
+  currentChallenges: text("current_challenges").array(),
+  goals: text("goals").array(),
+  timeline: varchar("timeline", { length: 100 }),
+  budget: varchar("budget", { length: 100 }),
+  operationalAreas: text("operational_areas").array(),
+  technologyNeeds: text("technology_needs").array(),
+  status: varchar("status", { length: 50 }).default("pending"),
+  priority: varchar("priority", { length: 20 }).default("medium"),
+  assignedTo: varchar("assigned_to", { length: 255 }),
+  notes: text("notes"),
+  followUpDate: timestamp("follow_up_date"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+// Social media sharing activities
+export const socialMediaShares = pgTable("social_media_shares", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").references(() => users.id),
+  contractorId: integer("contractor_id").references(() => contractors.id),
+  platform: varchar("platform", { length: 50 }).notNull(), // 'facebook', 'twitter', 'linkedin', 'instagram'
+  contentType: varchar("content_type", { length: 100 }).notNull(), // 'availability', 'profile', 'achievement'
+  contentId: varchar("content_id", { length: 255 }),
+  shareUrl: varchar("share_url", { length: 500 }),
+  engagement: jsonb("engagement"), // likes, shares, comments
+  sharedAt: timestamp("shared_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow()
+});
+
 // Create insert schemas
 export const insertContractorSchema = createInsertSchema(contractors).omit({
   id: true,
@@ -168,6 +303,48 @@ export const insertUserSchema = createInsertSchema(users).omit({
   updatedAt: true,
 });
 
+export const insertFileStorageSchema = createInsertSchema(fileStorage).omit({
+  id: true,
+  uploadedAt: true,
+  createdAt: true,
+});
+
+export const insertUserProfileSchema = createInsertSchema(userProfiles).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertContractorAvailabilitySchema = createInsertSchema(contractorAvailability).omit({
+  id: true,
+  lastUpdated: true,
+  createdAt: true,
+});
+
+export const insertExternalConnectionSchema = createInsertSchema(externalConnections).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertConsultationRequestSchema = createInsertSchema(consultationRequests).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertCompanyConsultationRequestSchema = createInsertSchema(companyConsultationRequests).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertSocialMediaShareSchema = createInsertSchema(socialMediaShares).omit({
+  id: true,
+  sharedAt: true,
+  createdAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type UpsertUser = typeof users.$inferInsert;
@@ -183,3 +360,17 @@ export type Message = typeof messages.$inferSelect;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type JobAssignment = typeof jobAssignments.$inferSelect;
 export type InsertJobAssignment = z.infer<typeof insertJobAssignmentSchema>;
+export type FileStorage = typeof fileStorage.$inferSelect;
+export type InsertFileStorage = z.infer<typeof insertFileStorageSchema>;
+export type UserProfile = typeof userProfiles.$inferSelect;
+export type InsertUserProfile = z.infer<typeof insertUserProfileSchema>;
+export type ContractorAvailability = typeof contractorAvailability.$inferSelect;
+export type InsertContractorAvailability = z.infer<typeof insertContractorAvailabilitySchema>;
+export type ExternalConnection = typeof externalConnections.$inferSelect;
+export type InsertExternalConnection = z.infer<typeof insertExternalConnectionSchema>;
+export type ConsultationRequest = typeof consultationRequests.$inferSelect;
+export type InsertConsultationRequest = z.infer<typeof insertConsultationRequestSchema>;
+export type CompanyConsultationRequest = typeof companyConsultationRequests.$inferSelect;
+export type InsertCompanyConsultationRequest = z.infer<typeof insertCompanyConsultationRequestSchema>;
+export type SocialMediaShare = typeof socialMediaShares.$inferSelect;
+export type InsertSocialMediaShare = z.infer<typeof insertSocialMediaShareSchema>;
