@@ -1,5 +1,5 @@
 import { 
-  BackgroundCheckProvider, 
+  BackgroundCheckProvider as DBBackgroundCheckProvider, 
   BackgroundCheckRequest, 
   BackgroundCheckResult,
   InsertBackgroundCheckRequest,
@@ -9,7 +9,7 @@ import {
 } from "@shared/schema";
 import { storage } from "./storage";
 
-export interface BackgroundCheckProvider {
+export interface BackgroundCheckProviderAPI {
   name: string;
   processCheck(request: BackgroundCheckRequestData): Promise<BackgroundCheckResponse>;
   getStatus(externalId: string): Promise<BackgroundCheckStatus>;

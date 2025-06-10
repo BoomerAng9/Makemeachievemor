@@ -8,6 +8,11 @@ import {
   users,
   consultationRequests,
   companyConsultationRequests,
+  backgroundCheckProviders,
+  backgroundCheckRequests,
+  backgroundCheckResults,
+  backgroundCheckAlerts,
+  backgroundCheckAuditLog,
   type Contractor, 
   type InsertContractor,
   type Vehicle,
@@ -25,7 +30,17 @@ import {
   type ConsultationRequest,
   type InsertConsultationRequest,
   type CompanyConsultationRequest,
-  type InsertCompanyConsultationRequest
+  type InsertCompanyConsultationRequest,
+  type BackgroundCheckProvider,
+  type InsertBackgroundCheckProvider,
+  type BackgroundCheckRequest,
+  type InsertBackgroundCheckRequest,
+  type BackgroundCheckResult,
+  type InsertBackgroundCheckResult,
+  type BackgroundCheckAlert,
+  type InsertBackgroundCheckAlert,
+  type BackgroundCheckAuditLog,
+  type InsertBackgroundCheckAuditLog
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
@@ -62,6 +77,20 @@ export interface IStorage {
   
   // Stats operations
   getContractorStats(contractorId: number): Promise<any>;
+  
+  // Background check operations
+  getBackgroundCheckProvider(id: number): Promise<BackgroundCheckProvider | undefined>;
+  createBackgroundCheckProvider(data: InsertBackgroundCheckProvider): Promise<BackgroundCheckProvider>;
+  createBackgroundCheckRequest(data: InsertBackgroundCheckRequest): Promise<BackgroundCheckRequest>;
+  getBackgroundCheckRequest(id: number): Promise<BackgroundCheckRequest | undefined>;
+  getBackgroundCheckRequestByExternalId(externalId: string): Promise<BackgroundCheckRequest | undefined>;
+  updateBackgroundCheckRequest(id: number, data: Partial<InsertBackgroundCheckRequest>): Promise<BackgroundCheckRequest | undefined>;
+  createBackgroundCheckResult(data: InsertBackgroundCheckResult): Promise<BackgroundCheckResult>;
+  getContractorBackgroundCheckResults(contractorId: number): Promise<BackgroundCheckResult[]>;
+  getExpiringBackgroundCheckResults(daysFromNow: number): Promise<BackgroundCheckResult[]>;
+  createBackgroundCheckAlert(data: InsertBackgroundCheckAlert): Promise<BackgroundCheckAlert>;
+  getContractorBackgroundCheckAlerts(contractorId: number): Promise<BackgroundCheckAlert[]>;
+  createBackgroundCheckAuditLog(data: InsertBackgroundCheckAuditLog): Promise<BackgroundCheckAuditLog>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -208,6 +237,81 @@ export class DatabaseStorage implements IStorage {
       monthlyEarnings,
       rating: completedJobs.length > 0 ? '4.8' : 'N/A'
     };
+  }
+
+  // Background check operations
+  async getBackgroundCheckProvider(id: number): Promise<BackgroundCheckProvider | undefined> {
+    const [provider] = await db.select().from(backgroundCheckProviders).where(eq(backgroundCheckProviders.id, id));
+    return provider || undefined;
+  }
+
+  async createBackgroundCheckProvider(data: InsertBackgroundCheckProvider): Promise<BackgroundCheckProvider> {
+    const [provider] = await db.insert(backgroundCheckProviders).values(data).returning();
+    return provider;
+  }
+
+  async createBackgroundCheckRequest(data: InsertBackgroundCheckRequest): Promise<BackgroundCheckRequest> {
+    const [request] = await db.insert(backgroundCheckRequests).values(data).returning();
+    return request;
+  }
+
+  async getBackgroundCheckRequest(id: number): Promise<BackgroundCheckRequest | undefined> {
+    const [request] = await db.select().from(backgroundCheckRequests).where(eq(backgroundCheckRequests.id, id));
+    return request || undefined;
+  }
+
+  async getBackgroundCheckRequestByExternalId(externalId: string): Promise<BackgroundCheckRequest | undefined> {
+    const [request] = await db.select().from(backgroundCheckRequests).where(eq(backgroundCheckRequests.externalRequestId, externalId));
+    return request || undefined;
+  }
+
+  async updateBackgroundCheckRequest(id: number, data: Partial<InsertBackgroundCheckRequest>): Promise<BackgroundCheckRequest | undefined> {
+    const [request] = await db.update(backgroundCheckRequests)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(backgroundCheckRequests.id, id))
+      .returning();
+    return request || undefined;
+  }
+
+  async createBackgroundCheckResult(data: InsertBackgroundCheckResult): Promise<BackgroundCheckResult> {
+    const [result] = await db.insert(backgroundCheckResults).values(data).returning();
+    return result;
+  }
+
+  async getContractorBackgroundCheckResults(contractorId: number): Promise<BackgroundCheckResult[]> {
+    return await db.select().from(backgroundCheckResults)
+      .where(eq(backgroundCheckResults.contractorId, contractorId))
+      .orderBy(desc(backgroundCheckResults.createdAt));
+  }
+
+  async getExpiringBackgroundCheckResults(daysFromNow: number): Promise<BackgroundCheckResult[]> {
+    const futureDate = new Date();
+    futureDate.setDate(futureDate.getDate() + daysFromNow);
+    
+    return await db.select().from(backgroundCheckResults)
+      .where(and(
+        eq(backgroundCheckResults.isValid, true)
+      ))
+      .orderBy(backgroundCheckResults.expiryDate);
+  }
+
+  async createBackgroundCheckAlert(data: InsertBackgroundCheckAlert): Promise<BackgroundCheckAlert> {
+    const [alert] = await db.insert(backgroundCheckAlerts).values(data).returning();
+    return alert;
+  }
+
+  async getContractorBackgroundCheckAlerts(contractorId: number): Promise<BackgroundCheckAlert[]> {
+    return await db.select().from(backgroundCheckAlerts)
+      .where(and(
+        eq(backgroundCheckAlerts.contractorId, contractorId),
+        eq(backgroundCheckAlerts.isResolved, false)
+      ))
+      .orderBy(desc(backgroundCheckAlerts.createdAt));
+  }
+
+  async createBackgroundCheckAuditLog(data: InsertBackgroundCheckAuditLog): Promise<BackgroundCheckAuditLog> {
+    const [log] = await db.insert(backgroundCheckAuditLog).values(data).returning();
+    return log;
   }
 }
 
