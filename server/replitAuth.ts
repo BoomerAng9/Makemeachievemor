@@ -83,25 +83,15 @@ async function sendRegistrationNotification(user: any) {
       requiresApproval: false, // Auto-approve for immediate access
     });
 
-    // Send email to contactus@achievemor.io
-    const emailContent = `
-      New User Registration - ACHIEVEMOR Platform
-      
-      User Details:
-      - Name: ${user.firstName} ${user.lastName}
-      - Email: ${user.email}
-      - User ID: ${user.id}
-      - Registration Date: ${new Date().toLocaleString()}
-      - Account Status: Active (Auto-approved)
-      
-      The user has been granted immediate access to the platform dashboard.
-      Verification will begin when they upload documents.
-      
-      Please review this registration in the Admin Panel: /admin
-    `;
-
-    // Note: Email sending will be implemented when SENDGRID_API_KEY is provided
-    console.log("Registration notification queued for:", user.email);
+    // Send email notification to admin
+    const { emailService } = await import("./emailService");
+    const emailSent = await emailService.sendRegistrationNotification(user);
+    
+    if (emailSent) {
+      console.log("Registration notification sent to admin for:", user.email);
+    } else {
+      console.log("Registration notification logged (SendGrid not configured) for:", user.email);
+    }
     
   } catch (error) {
     console.error("Failed to send registration notification:", error);
