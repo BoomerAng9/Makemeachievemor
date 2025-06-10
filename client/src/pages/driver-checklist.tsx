@@ -396,49 +396,60 @@ export default function DriverChecklistPage() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="p-3 bg-blue-100 rounded-full">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
+            <div className="p-3 bg-blue-100 rounded-full flex-shrink-0">
               <FileText className="h-8 w-8 text-blue-600" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900">Authority Setup Checklist</h1>
+            <div className="text-center sm:text-left">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight">
+                Authority Setup Checklist
+              </h1>
+              <p className="text-base sm:text-lg text-gray-600 mt-2 leading-relaxed max-w-3xl">
+                Track your progress through the essential steps to establish your trucking authority and launch your freight operations.
+              </p>
+            </div>
           </div>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Track your progress through the essential steps to establish your trucking authority and launch your freight operations.
-          </p>
           
           {!isAuthenticated && (
-            <Alert className="mt-4 max-w-2xl mx-auto">
-              <AlertTriangle className="h-4 w-4" />
-              <AlertDescription>
-                You're using the checklist as a guest. <a href="/api/login" className="font-medium text-blue-600 hover:underline">Log in</a> to save your progress to your account and resume later.
+            <Alert className="mt-6 max-w-3xl mx-auto">
+              <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+              <AlertDescription className="text-left">
+                <span className="block sm:inline">You're using the checklist as a guest.</span>{" "}
+                <a href="/api/login" className="font-medium text-blue-600 hover:underline underline-offset-2">
+                  Log in
+                </a>{" "}
+                <span className="block sm:inline">to save your progress to your account and resume later.</span>
               </AlertDescription>
             </Alert>
           )}
         </div>
 
         {/* Security and Controls */}
-        <div className="flex justify-between items-center mb-6">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-8 p-4 bg-white rounded-lg border border-gray-200">
+          <div className="flex items-center gap-3">
             <Button
               variant="outline"
               size="sm"
               onClick={() => setIsSecurityModeEnabled(!isSecurityModeEnabled)}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 text-xs"
             >
-              {isSecurityModeEnabled ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              {isSecurityModeEnabled ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
               {isSecurityModeEnabled ? 'Disable Security' : 'Enable Security'}
             </Button>
+            <span className="text-xs text-gray-500 hidden sm:block">
+              Security mode prevents screenshots and copying
+            </span>
           </div>
           
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button
               variant="outline"
               size="sm"
               onClick={handleSaveProgress}
               disabled={saveProgressMutation.isPending}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 text-xs"
             >
-              <Save className="h-4 w-4" />
+              <Save className="h-3 w-3" />
               {saveProgressMutation.isPending ? 'Saving...' : 'Save Progress'}
             </Button>
             <Button
@@ -446,19 +457,19 @@ export default function DriverChecklistPage() {
               size="sm"
               onClick={handleClearProgress}
               disabled={clearProgressMutation.isPending}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 text-xs text-red-600 hover:text-red-700"
             >
-              <RotateCcw className="h-4 w-4" />
-              Clear Progress
+              <RotateCcw className="h-3 w-3" />
+              Clear & Restart
             </Button>
             <Button
               variant="outline"
               size="sm"
               onClick={exportProgress}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 text-xs"
             >
-              <Download className="h-4 w-4" />
-              Export
+              <Download className="h-3 w-3" />
+              Export Data
             </Button>
           </div>
         </div>
@@ -500,20 +511,27 @@ export default function DriverChecklistPage() {
         {/* Open-ended Question */}
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle className="text-lg">Reflection Question</CardTitle>
+            <CardTitle className="text-lg text-gray-900 leading-relaxed">
+              Reflection Question
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <p className="font-medium text-gray-900">
-                When establishing your authority, what steps did you take to align legally?
-              </p>
+              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <p className="font-medium text-gray-900 leading-relaxed text-sm sm:text-base">
+                  When establishing your authority, what steps did you take to align legally with federal and state requirements?
+                </p>
+              </div>
               <textarea
                 value={openQuestion}
                 onChange={(e) => setOpenQuestion(e.target.value)}
-                placeholder="Share your experience, challenges, and lessons learned..."
-                className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                rows={4}
+                placeholder="Share your experience, challenges faced, lessons learned, and specific steps you took to ensure compliance..."
+                className="w-full p-4 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm leading-relaxed"
+                rows={5}
               />
+              <p className="text-xs text-gray-500 leading-relaxed">
+                This reflection helps us understand your journey and provide personalized guidance for your next steps.
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -527,9 +545,11 @@ export default function DriverChecklistPage() {
             return (
               <Card key={section.id}>
                 <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">{section.title}</CardTitle>
-                    <div className="flex gap-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <CardTitle className="text-lg text-gray-900 leading-relaxed">
+                      {section.title}
+                    </CardTitle>
+                    <div className="flex gap-2 flex-shrink-0">
                       <Badge variant="secondary" className="text-xs">
                         {sectionCompleted}/{section.items.length} complete
                       </Badge>
@@ -544,28 +564,36 @@ export default function DriverChecklistPage() {
                 <CardContent>
                   <div className="space-y-3">
                     {section.items.map((item) => (
-                      <div key={item.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                        <span className="text-sm font-medium text-gray-900 flex-1">
-                          {item.title}
-                        </span>
-                        <div className="flex gap-4">
-                          <label className="flex items-center gap-2 cursor-pointer">
+                      <div key={item.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border border-gray-200 rounded-lg bg-white hover:bg-gray-50 transition-colors">
+                        <div className="flex-1 mb-3 sm:mb-0 sm:pr-4">
+                          <span className="text-sm font-medium text-gray-900 leading-relaxed block">
+                            {item.title}
+                          </span>
+                        </div>
+                        <div className="flex gap-6 flex-shrink-0">
+                          <label className="flex items-center gap-2 cursor-pointer group">
                             <Checkbox
                               checked={item.have}
                               onCheckedChange={(checked) => 
                                 updateItem(section.id, item.id, 'have', checked === true)
                               }
+                              className="group-hover:border-green-500"
                             />
-                            <span className="text-xs text-green-600 font-medium">Have</span>
+                            <span className="text-xs text-green-600 font-medium group-hover:text-green-700">
+                              I Have This
+                            </span>
                           </label>
-                          <label className="flex items-center gap-2 cursor-pointer">
+                          <label className="flex items-center gap-2 cursor-pointer group">
                             <Checkbox
                               checked={item.need}
                               onCheckedChange={(checked) => 
                                 updateItem(section.id, item.id, 'need', checked === true)
                               }
+                              className="group-hover:border-orange-500"
                             />
-                            <span className="text-xs text-orange-600 font-medium">Need Help</span>
+                            <span className="text-xs text-orange-600 font-medium group-hover:text-orange-700">
+                              Need Help
+                            </span>
                           </label>
                         </div>
                       </div>
@@ -579,24 +607,28 @@ export default function DriverChecklistPage() {
 
         {/* Completion Modal */}
         <Dialog open={showCompletionModal} onOpenChange={setShowCompletionModal}>
-          <DialogContent>
+          <DialogContent className="max-w-md sm:max-w-lg">
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <CheckCircle2 className="h-6 w-6 text-green-600" />
-                Congratulations! Checklist Complete
+              <DialogTitle className="flex items-center gap-3 text-left">
+                <CheckCircle2 className="h-6 w-6 text-green-600 flex-shrink-0" />
+                <span className="leading-tight">
+                  Congratulations! Checklist Complete
+                </span>
               </DialogTitle>
-              <DialogDescription>
+              <DialogDescription className="text-left leading-relaxed pt-2">
                 You've completed all items in the Authority Setup Checklist. You're ready to take the next steps in establishing your trucking business.
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4">
-              <p className="text-sm text-gray-600">
-                Now that you've completed the checklist, our team can help you with personalized guidance for your trucking business setup.
-              </p>
-              <div className="flex gap-3">
+            <div className="space-y-6 pt-4">
+              <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                <p className="text-sm text-gray-700 leading-relaxed">
+                  Now that you've completed the checklist, our team can provide personalized guidance and support for your trucking business setup and growth strategy.
+                </p>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3">
                 <Button 
                   onClick={() => handleContactSupport('form')}
-                  className="flex items-center gap-2"
+                  className="flex items-center justify-center gap-2 flex-1"
                 >
                   <ExternalLink className="h-4 w-4" />
                   Complete Needs Analysis
@@ -604,12 +636,15 @@ export default function DriverChecklistPage() {
                 <Button 
                   variant="outline"
                   onClick={() => handleContactSupport('email')}
-                  className="flex items-center gap-2"
+                  className="flex items-center justify-center gap-2 flex-1"
                 >
                   <Mail className="h-4 w-4" />
                   Email Our Team
                 </Button>
               </div>
+              <p className="text-xs text-gray-500 text-center leading-relaxed">
+                Choose the option that works best for you. We're here to help you succeed.
+              </p>
             </div>
           </DialogContent>
         </Dialog>
