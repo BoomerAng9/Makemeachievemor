@@ -172,7 +172,7 @@ export default function DashboardPage() {
 
         {/* Background Check Section */}
         {id && (
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             <BackgroundCheckDashboard contractorId={id} />
           </div>
         )}

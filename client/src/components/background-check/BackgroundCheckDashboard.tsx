@@ -391,26 +391,26 @@ export function BackgroundCheckDashboard({ contractorId }: BackgroundCheckDashbo
 
       {/* Background Check Results */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+            <FileText className="h-4 w-4 sm:h-5 sm:w-5" />
             Background Check History
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-sm">
             View all completed and pending background checks
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-4 sm:p-6">
           {results.length === 0 ? (
             <div className="text-center py-8">
-              <FileText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No background checks yet</h3>
-              <p className="text-gray-600 mb-4">
+              <FileText className="h-10 w-10 sm:h-12 sm:w-12 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">No background checks yet</h3>
+              <p className="text-sm sm:text-base text-gray-600 mb-4 px-4">
                 Submit your first background check to get started with compliance verification
               </p>
               <Button
                 onClick={() => setIsSubmitDialogOpen(true)}
-                className="gap-2"
+                className="gap-2 min-h-[44px] touch-manipulation"
               >
                 <FileText className="h-4 w-4" />
                 Submit Background Check
@@ -420,34 +420,40 @@ export function BackgroundCheckDashboard({ contractorId }: BackgroundCheckDashbo
             <div className="space-y-4">
               {results.map((result) => (
                 <Card key={result.id} className="border-l-4 border-l-primary">
-                  <CardContent className="pt-4">
-                    <div className="flex justify-between items-start">
-                      <div className="flex items-start gap-3">
-                        {getCheckTypeIcon(result.checkType)}
-                        <div>
-                          <h4 className="font-medium capitalize">
+                  <CardContent className="pt-4 p-4">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+                      <div className="flex items-start gap-3 flex-1 min-w-0">
+                        <div className="shrink-0">
+                          {getCheckTypeIcon(result.checkType)}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <h4 className="font-medium capitalize text-sm sm:text-base break-words">
                             {result.checkType.replace('_', ' ')} Check
                           </h4>
-                          <div className="flex items-center gap-2 mt-1">
+                          <div className="flex flex-wrap items-center gap-2 mt-2">
                             {getStatusIcon(result.status)}
                             {getStatusBadge(result.status)}
                             {getStatusBadge(result.overallResult, 'result')}
                           </div>
                           {result.score && (
-                            <div className="text-sm text-gray-600 mt-1">
+                            <div className="text-xs sm:text-sm text-gray-600 mt-2">
                               Score: {result.score}/100
                             </div>
                           )}
                         </div>
                       </div>
-                      <div className="text-right text-sm text-gray-600">
-                        <div className="flex items-center gap-1">
+                      <div className="text-xs sm:text-sm text-gray-600 shrink-0 sm:text-right">
+                        <div className="flex items-center gap-1 mb-1">
                           <Calendar className="h-3 w-3" />
-                          Verified: {format(new Date(result.verificationDate), 'MMM dd, yyyy')}
+                          <span className="sm:hidden">Verified:</span>
+                          <span className="hidden sm:inline">Verified:</span>
+                          {format(new Date(result.verificationDate), 'MMM dd, yyyy')}
                         </div>
-                        <div className="flex items-center gap-1 mt-1">
+                        <div className="flex items-center gap-1">
                           <Clock className="h-3 w-3" />
-                          Expires: {format(new Date(result.expiryDate), 'MMM dd, yyyy')}
+                          <span className="sm:hidden">Expires:</span>
+                          <span className="hidden sm:inline">Expires:</span>
+                          {format(new Date(result.expiryDate), 'MMM dd, yyyy')}
                         </div>
                       </div>
                     </div>
