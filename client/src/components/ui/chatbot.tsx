@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { MessageCircle, Send, X, Minimize2, Maximize2 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
+import chatbotLogo from "@assets/A385DF30-D8BA-4BD2-9DDD-64AB75963E24_1749584458232.png";
 
 interface Message {
   id: string;
@@ -92,19 +93,27 @@ export function Chatbot({ isOpen, onToggle }: ChatbotProps) {
     return (
       <Button
         onClick={onToggle}
-        className="fixed bottom-6 right-6 h-14 w-14 rounded-full bg-primary hover:bg-primary/90 shadow-lg z-50"
+        className="fixed bottom-6 right-6 h-16 w-16 rounded-full bg-gradient-to-br from-gray-800 to-gray-900 hover:from-gray-700 hover:to-gray-800 shadow-retina-xl border-2 border-amber-400/20 z-50 p-0 overflow-hidden"
       >
-        <MessageCircle className="h-6 w-6 text-white" />
+        <img 
+          src={chatbotLogo} 
+          alt="ACHIEVEMOR Assistant" 
+          className="h-12 w-12 object-cover rounded-full"
+        />
       </Button>
     );
   }
 
   return (
     <Card className={`fixed bottom-6 right-6 w-96 shadow-xl z-50 border-2 border-primary/20 ${isMinimized ? 'h-16' : 'h-[500px]'}`}>
-      <CardHeader className="pb-3 bg-primary text-white rounded-t-lg">
+      <CardHeader className="pb-3 bg-gradient-to-r from-gray-800 to-gray-900 text-white rounded-t-lg">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <MessageCircle className="h-5 w-5" />
+          <div className="flex items-center space-x-3">
+            <img 
+              src={chatbotLogo} 
+              alt="ACHIEVEMOR Assistant" 
+              className="h-8 w-8 object-cover rounded-full border-2 border-amber-400/30"
+            />
             <CardTitle className="text-lg">ACHIEVEMOR Assistant</CardTitle>
           </div>
           <div className="flex items-center space-x-1">
