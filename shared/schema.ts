@@ -265,6 +265,98 @@ export const socialMediaShares = pgTable("social_media_shares", {
   createdAt: timestamp("created_at").defaultNow()
 });
 
+// Background check integration tables
+export const backgroundCheckProviders = pgTable("background_check_providers", {
+  id: serial("id").primaryKey(),
+  name: varchar("name").notNull(),
+  apiEndpoint: varchar("api_endpoint"),
+  isActive: boolean("is_active").default(true),
+  supportedChecks: jsonb("supported_checks"), // Array of check types supported
+  averageProcessingTime: integer("average_processing_time"), // Minutes
+  costPerCheck: decimal("cost_per_check"),
+  configuration: jsonb("configuration"), // Provider-specific config
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const backgroundCheckRequests = pgTable("background_check_requests", {
+  id: serial("id").primaryKey(),
+  contractorId: integer("contractor_id").references(() => contractors.id),
+  providerId: integer("provider_id").references(() => backgroundCheckProviders.id),
+  requestType: varchar("request_type").notNull(), // 'mvr', 'criminal', 'employment', 'drug_test', 'full'
+  status: varchar("status").notNull(), // 'pending', 'in_progress', 'completed', 'failed', 'cancelled'
+  externalRequestId: varchar("external_request_id"), // Provider's request ID
+  requestData: jsonb("request_data"), // Data sent to provider
+  priority: varchar("priority").default('standard'), // 'urgent', 'standard', 'low'
+  estimatedCompletion: timestamp("estimated_completion"),
+  actualCompletion: timestamp("actual_completion"),
+  cost: decimal("cost"),
+  requestedBy: varchar("requested_by"), // User ID who initiated
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const backgroundCheckResults = pgTable("background_check_results", {
+  id: serial("id").primaryKey(),
+  requestId: integer("request_id").references(() => backgroundCheckRequests.id),
+  contractorId: integer("contractor_id").references(() => contractors.id),
+  checkType: varchar("check_type").notNull(),
+  status: varchar("status").notNull(), // 'clear', 'flagged', 'failed', 'inconclusive'
+  overallResult: varchar("overall_result").notNull(), // 'pass', 'fail', 'review_required'
+  score: integer("score"), // Numerical score if applicable
+  findings: jsonb("findings"), // Detailed findings from the check
+  documents: jsonb("documents"), // Associated document URLs/IDs
+  verificationDate: timestamp("verification_date"),
+  expiryDate: timestamp("expiry_date"),
+  reviewNotes: text("review_notes"),
+  reviewedBy: varchar("reviewed_by"), // User ID who reviewed
+  isValid: boolean("is_valid").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const backgroundCheckAlerts = pgTable("background_check_alerts", {
+  id: serial("id").primaryKey(),
+  contractorId: integer("contractor_id").references(() => contractors.id),
+  resultId: integer("result_id").references(() => backgroundCheckResults.id),
+  alertType: varchar("alert_type").notNull(), // 'expiring', 'failed', 'review_required', 'renewal_needed'
+  severity: varchar("severity").notNull(), // 'low', 'medium', 'high', 'critical'
+  title: varchar("title").notNull(),
+  message: text("message").notNull(),
+  actionRequired: text("action_required"),
+  dueDate: timestamp("due_date"),
+  isResolved: boolean("is_resolved").default(false),
+  resolvedAt: timestamp("resolved_at"),
+  resolvedBy: varchar("resolved_by"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const backgroundCheckTemplates = pgTable("background_check_templates", {
+  id: serial("id").primaryKey(),
+  name: varchar("name").notNull(),
+  description: text("description"),
+  checkTypes: jsonb("check_types").notNull(), // Array of check types to include
+  isDefault: boolean("is_default").default(false),
+  isActive: boolean("is_active").default(true),
+  requirements: jsonb("requirements"), // Specific requirements for each check type
+  automatedTriggers: jsonb("automated_triggers"), // When to automatically run
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const backgroundCheckAuditLog = pgTable("background_check_audit_log", {
+  id: serial("id").primaryKey(),
+  contractorId: integer("contractor_id").references(() => contractors.id),
+  requestId: integer("request_id").references(() => backgroundCheckRequests.id),
+  action: varchar("action").notNull(), // 'requested', 'completed', 'reviewed', 'approved', 'rejected'
+  performedBy: varchar("performed_by").notNull(), // User ID
+  details: jsonb("details"), // Additional action details
+  ipAddress: varchar("ip_address"),
+  userAgent: text("user_agent"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Create insert schemas
 export const insertContractorSchema = createInsertSchema(contractors).omit({
   id: true,
@@ -345,6 +437,41 @@ export const insertSocialMediaShareSchema = createInsertSchema(socialMediaShares
   createdAt: true,
 });
 
+export const insertBackgroundCheckProviderSchema = createInsertSchema(backgroundCheckProviders).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertBackgroundCheckRequestSchema = createInsertSchema(backgroundCheckRequests).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertBackgroundCheckResultSchema = createInsertSchema(backgroundCheckResults).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertBackgroundCheckAlertSchema = createInsertSchema(backgroundCheckAlerts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertBackgroundCheckTemplateSchema = createInsertSchema(backgroundCheckTemplates).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertBackgroundCheckAuditLogSchema = createInsertSchema(backgroundCheckAuditLog).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type UpsertUser = typeof users.$inferInsert;
@@ -374,3 +501,15 @@ export type CompanyConsultationRequest = typeof companyConsultationRequests.$inf
 export type InsertCompanyConsultationRequest = z.infer<typeof insertCompanyConsultationRequestSchema>;
 export type SocialMediaShare = typeof socialMediaShares.$inferSelect;
 export type InsertSocialMediaShare = z.infer<typeof insertSocialMediaShareSchema>;
+export type BackgroundCheckProvider = typeof backgroundCheckProviders.$inferSelect;
+export type InsertBackgroundCheckProvider = z.infer<typeof insertBackgroundCheckProviderSchema>;
+export type BackgroundCheckRequest = typeof backgroundCheckRequests.$inferSelect;
+export type InsertBackgroundCheckRequest = z.infer<typeof insertBackgroundCheckRequestSchema>;
+export type BackgroundCheckResult = typeof backgroundCheckResults.$inferSelect;
+export type InsertBackgroundCheckResult = z.infer<typeof insertBackgroundCheckResultSchema>;
+export type BackgroundCheckAlert = typeof backgroundCheckAlerts.$inferSelect;
+export type InsertBackgroundCheckAlert = z.infer<typeof insertBackgroundCheckAlertSchema>;
+export type BackgroundCheckTemplate = typeof backgroundCheckTemplates.$inferSelect;
+export type InsertBackgroundCheckTemplate = z.infer<typeof insertBackgroundCheckTemplateSchema>;
+export type BackgroundCheckAuditLog = typeof backgroundCheckAuditLog.$inferSelect;
+export type InsertBackgroundCheckAuditLog = z.infer<typeof insertBackgroundCheckAuditLogSchema>;
