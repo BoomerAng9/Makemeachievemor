@@ -469,8 +469,36 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Final CTA Section */}
+      <section className="bg-primary text-white py-16">
+        <div className="max-w-4xl mx-auto px-4 text-center">
+          <h2 className="text-3xl font-bold mb-4">Ready to Get Started?</h2>
+          <p className="text-xl mb-8 opacity-90">
+            Join thousands of successful partnerships on our platform
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button 
+              size="lg" 
+              variant="secondary"
+              asChild
+              className="text-lg px-8 py-3"
+            >
+              <Link href="/register/contractor">Join as Driver</Link>
+            </Button>
+            <Button 
+              size="lg" 
+              variant="outline"
+              asChild
+              className="text-lg px-8 py-3 border-white text-white hover:bg-white hover:text-primary"
+            >
+              <Link href="/register/company">Partner Company</Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
+      <footer className="bg-gray-900 text-white py-12 relative">
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
@@ -481,7 +509,7 @@ export default function LandingPage() {
                 <span className="text-xl font-bold">ACHIEVEMOR LLC</span>
               </div>
               <p className="text-gray-400 mb-4">
-                Trusted transportation partner serving the Southeast since 2025.
+                AI-powered logistics solutions connecting businesses with verified independent contractors.
               </p>
               <div className="space-y-2 text-sm">
                 <p>DOT #4398142 | MC #1726115</p>
@@ -501,19 +529,39 @@ export default function LandingPage() {
             </div>
             
             <div>
-              <h4 className="font-semibold mb-4">Resources</h4>
-              <div className="space-y-2 text-gray-400">
-                <p>DOT Compliance Guide</p>
-                <p>MC Authority Setup</p>
-                <p>Insurance Requirements</p>
-                <p>Load Board Access</p>
-                <p>Driver Support Portal</p>
+              <h4 className="font-semibold mb-4">Quick Links</h4>
+              <div className="space-y-2">
+                <Link href="/register/contractor" className="block text-gray-400 hover:text-white transition-colors">
+                  Driver Registration
+                </Link>
+                <Link href="/register/company" className="block text-gray-400 hover:text-white transition-colors">
+                  Company Partnership
+                </Link>
+                <Link href="/api/login" className="block text-gray-400 hover:text-white transition-colors">
+                  Sign In
+                </Link>
+                <a href="tel:912-742-9459" className="block text-gray-400 hover:text-white transition-colors">
+                  Contact Support
+                </a>
               </div>
             </div>
           </div>
           
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
             <p>&copy; 2025 ACHIEVEMOR LLC. All rights reserved.</p>
+          </div>
+        </div>
+
+        {/* Sitemap in bottom right */}
+        <div className="absolute bottom-4 right-4">
+          <div className="bg-gray-800 rounded-lg p-3 text-xs">
+            <h5 className="font-semibold text-white mb-2">Site Map</h5>
+            <div className="space-y-1 text-gray-400">
+              <Link href="/" className="block hover:text-white transition-colors">Home</Link>
+              <Link href="/register/contractor" className="block hover:text-white transition-colors">Driver Sign-up</Link>
+              <Link href="/register/company" className="block hover:text-white transition-colors">Company Sign-up</Link>
+              <Link href="/api/login" className="block hover:text-white transition-colors">Login</Link>
+            </div>
           </div>
         </div>
       </footer>
