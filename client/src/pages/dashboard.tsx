@@ -3,7 +3,7 @@ import { useParams } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { useContractor, useContractorStats, useAvailableOpportunities, useContractorMessages, useContractorJobs } from "@/hooks/useContractor";
 import { StatsGrid } from "@/components/dashboard/StatsGrid";
-import { OpportunityCard } from "@/components/dashboard/OpportunityCard";
+import { JobOpportunities } from "@/components/dashboard/JobOpportunities";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { ConsultationButton } from "@/components/business/ConsultationButton";
 import { BackgroundCheckDashboard } from "@/components/background-check/BackgroundCheckDashboard";
@@ -75,21 +75,30 @@ export default function DashboardPage() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 py-8">
-        {/* Dashboard Header */}
+        {/* Dashboard Header - Following outlined structure */}
         <div className="mb-8">
           <Card>
             <CardContent className="p-6">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between">
                 <div>
                   <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                    Welcome, {contractor?.firstName || 'User'} {contractor?.lastName || ''}
+                    Welcome, {contractor?.name || contractor?.firstName + ' ' + contractor?.lastName || 'Driver'}
                   </h2>
                   <div className="flex items-center space-x-4">
                     <Badge 
-                      variant={contractor?.verificationStatus === 'verified' ? 'default' : 'secondary'}
-                      className={contractor?.verificationStatus === 'verified' ? 'bg-green-100 text-green-800' : ''}
+                      variant={contractor?.status === 'active' ? 'default' : 'secondary'}
+                      className={
+                        contractor?.status === 'active' ? 'bg-green-100 text-green-800' : 
+                        contractor?.status === 'pending_verification' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-red-100 text-red-800'
+                      }
                     >
-                      {contractor?.verificationStatus === 'verified' ? '✓ Verified' : 'Pending Verification'}
+                      {contractor?.status === 'active' ? '✓ Active' : 
+                       contractor?.status === 'pending_verification' ? 'Pending Verification' : 
+                       'Suspended'}
+                    </Badge>
+                    <Badge variant="outline">
+                      {contractor?.role?.charAt(0).toUpperCase() + contractor?.role?.slice(1) || 'Driver'}
                     </Badge>
                     <span className="text-sm text-gray-500">
                       Member since {new Date(contractor?.createdAt || Date.now()).toLocaleDateString()}

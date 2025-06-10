@@ -1,0 +1,85 @@
+Below is a lean, step‑by‑step outline you can use for wiring the CHOOSE 2 ACHIEVEMOR MVP. It covers data objects, status changes, and the visible UI cues a driver or company will see.
+
+1. Core Objects
+
+// Users
+{
+  "id": "user‑123",
+  "role": "driver | company | admin",
+  "name": "Jarrett R.",
+  "status": "pending‑verification | active | suspended",
+  "profile": { "avatar": "...", "brand_color": "#28A4..." }
+}
+
+// Jobs (Loads)
+{
+  "id": "job‑789",
+  "posted_by": "company‑456",
+  "assigned_to": "driver‑123 | null",
+  "origin": "Pooler, GA",
+  "destination": "Jacksonville, FL",
+  "miles": 140.2,
+  "rate": 320.0,
+  "priority": "standard | express",
+  "status": "open | requested | assigned | picked_up | delivered | paid"
+}
+
+
+⸻
+
+2. State Machine (If‑Then Flow)
+
+Current State	Trigger / Actor	Next State	System Actions
+open	Driver taps Accept Job	requested	• Lock record for 5 min to stop double‑booking• Notify admin “Driver X requested Job Y”
+requested	Admin hits Verify & Assign	assigned	• Check driver docs (insurance_valid == true, etc.)• Attach driver ID to job• Send pickup details to driver• Notify company “Load booked”
+requested	Admin hits Decline	open	• Remove driver ID• Message driver with reason (“Insurance expired”)
+assigned	Driver taps Picked Up	picked_up	• Timestamp pickup• Open chat thread for real‑time updates
+picked_up	Driver taps Delivered	delivered	• Timestamp delivery• Trigger earnings calc
+delivered	Admin hits Mark Paid	paid	• Add amount to driver’s Weekly / Monthly totals• Notify driver & company with receipt
+
+(All notifications can be email + SMS via Resend/Twilio webhooks to keep it light.)
+
+⸻
+
+3. Page Layout (Driver Dashboard)
+	1.	Header – “Welcome, {driverName}” + quick status (Pending Verification / Active).
+	2.	Stats Row – Jobs Completed • Rating • Earnings This Week / Month.
+	3.	Available Jobs – Filter bar ➜ card list (origin→dest, miles, rate, priority, “Accept Job”).
+	4.	Active Jobs – Timeline view with big Picked Up / Delivered buttons.
+	5.	Glove Box – Drag‑and‑drop doc area + progress bar (e.g., 87 % Compliance).
+	6.	AI Insights – Three cards (Renew Insurance, Submit MVR, Route Training), each with time to finish + benefit tag.
+	7.	Performance charts – On‑Time %, Satisfaction, Route Efficiency.
+	8.	Quick Links – Find Routes • Track Earnings • Authority Checklist • Grow My Business.
+	9.	Message Center – last 5 system or admin notes.
+
+Allow avatar/photo + brand‑color picker in Settings so drivers can theme their dashboard.
+
+⸻
+
+4. Company Dashboard Differences
+	•	Post a Load modal (origin, destination, miles, rate, required docs, priority).
+	•	Load List shows status chips: Open • Driver Requested • Assigned • Delivered.
+	•	Billing Tab for invoices & payment history.
+
+⸻
+
+5. Lightweight Tech Notes for Replit Build
+
+Concern	Simple Fix
+DB	Replit DB tables users, jobs, documents.
+Concurrency	Use a 5‑minute TTL “lock” key when job enters requested.
+Auth	JWT cookies, one table sessions.
+File Uploads	Store to Cloudflare R2 or Supabase Storage; keep only URLs in DB.
+Notifications	Resend email API + Twilio SMS; webhooks fire on state changes.
+UI	Svelte or React‑lite (Preact) + DaisyUI for quick theming.
+
+
+⸻
+
+6. Quick Evaluation & Tweaks
+	1.	Progress Feedback – Add a mini progress bar next to each doc line so drivers see exactly what’s left.
+	2.	Single CTA – On every job card only one bright Accept button; other info in a dropdown to avoid clutter.
+	3.	Real‑time Updates – Use Pusher or Ably (free tier) so status flips without page refresh.
+	4.	Mobile‑First – Card stack layout; large tap targets for on‑the‑road use.
+	5.	Social Share – Add “Share badge” link once a driver hits milestones (e.g., 100 Jobs Completed). Generates a pre‑filled LinkedIn/Twitter post.
+

@@ -13,20 +13,19 @@ export const sessions = pgTable(
   (table) => [index("IDX_session_expire").on(table.expire)],
 );
 
-// User authentication table
+// User authentication table - following outlined structure
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().notNull(),
   email: varchar("email").unique(),
-  firstName: varchar("first_name"),
-  lastName: varchar("last_name"),
+  name: varchar("name").notNull(), // Combined name field as per outline
+  role: varchar("role").notNull().default("driver"), // driver | company | admin
+  status: varchar("status").notNull().default("pending_verification"), // pending_verification | active | suspended
+  profile: jsonb("profile"), // { avatar, brand_color }
+  firstName: varchar("first_name"), // Keep for backward compatibility
+  lastName: varchar("last_name"), // Keep for backward compatibility
   profileImageUrl: varchar("profile_image_url"),
-  accountStatus: varchar("account_status").notNull().default("active"), // active, pending_verification, suspended, banned
-  verificationStatus: varchar("verification_status").notNull().default("unverified"), // unverified, pending, verified
-  role: varchar("role").notNull().default("user"), // user, admin, super_admin
-  subscriptionStatus: varchar("subscription_status").notNull().default("free"), // free, basic, premium, enterprise
-  subscriptionExpiresAt: timestamp("subscription_expires_at"),
   lastLoginAt: timestamp("last_login_at"),
-  registrationSource: varchar("registration_source").default("web"), // web, mobile, referral
+  registrationSource: varchar("registration_source").default("web"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -141,27 +140,38 @@ export const documentShares = pgTable("document_shares", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Opportunities/Jobs table
+// Jobs/Loads table - following outlined structure and state machine
 export const opportunities = pgTable("opportunities", {
-  id: serial("id").primaryKey(),
+  id: varchar("id").primaryKey().notNull(), // job-789 format
+  posted_by: varchar("posted_by").notNull(), // company-456 format (user ID)
+  assigned_to: varchar("assigned_to"), // driver-123 format (user ID) | null
+  origin: text("origin").notNull(), // "Pooler, GA"
+  destination: text("destination").notNull(), // "Jacksonville, FL"
+  miles: decimal("miles", { precision: 8, scale: 1 }).notNull(), // 140.2
+  rate: decimal("rate", { precision: 10, scale: 2 }).notNull(), // 320.0
+  priority: varchar("priority").notNull().default("standard"), // standard | express
+  status: varchar("status").notNull().default("open"), // open | requested | assigned | picked_up | delivered | paid
+  
+  // Additional fields for functionality
   title: text("title").notNull(),
   description: text("description"),
-  pickupLocation: text("pickup_location").notNull(),
-  deliveryLocation: text("delivery_location").notNull(),
   pickupLatitude: decimal("pickup_latitude", { precision: 10, scale: 8 }),
   pickupLongitude: decimal("pickup_longitude", { precision: 11, scale: 8 }),
   deliveryLatitude: decimal("delivery_latitude", { precision: 10, scale: 8 }),
   deliveryLongitude: decimal("delivery_longitude", { precision: 11, scale: 8 }),
-  distance: decimal("distance", { precision: 8, scale: 2 }),
   weight: integer("weight"), // in pounds
-  payment: decimal("payment", { precision: 10, scale: 2 }).notNull(),
   pickupTime: timestamp("pickup_time"),
   deliveryTime: timestamp("delivery_time"),
-  jobType: text("job_type").notNull().default("standard"), // express, standard
-  category: text("category").notNull().default("commercial"), // commercial, residential
-  status: text("status").notNull().default("available"), // available, assigned, completed, cancelled
-  assignedContractorId: integer("assigned_contractor_id").references(() => contractors.id),
   requirements: jsonb("requirements"), // array of requirements like CDL, DOT, etc.
+  
+  // State machine tracking
+  requestedAt: timestamp("requested_at"), // When driver requested
+  assignedAt: timestamp("assigned_at"), // When admin assigned
+  pickedUpAt: timestamp("picked_up_at"), // When driver marked picked up
+  deliveredAt: timestamp("delivered_at"), // When driver marked delivered
+  paidAt: timestamp("paid_at"), // When admin marked paid
+  lockExpiresAt: timestamp("lock_expires_at"), // 5-minute TTL lock
+  
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
