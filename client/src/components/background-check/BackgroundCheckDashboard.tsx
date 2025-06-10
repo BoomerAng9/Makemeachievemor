@@ -224,40 +224,40 @@ export function BackgroundCheckDashboard({ contractorId }: BackgroundCheckDashbo
             Monitor your background check status and compliance requirements
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-primary mb-2">{overallScore}%</div>
-              <div className="text-sm text-gray-600">Overall Score</div>
-              <Progress value={overallScore} className="mt-2" />
+        <CardContent className="p-4 sm:p-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+            <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg">
+              <div className="text-2xl sm:text-3xl font-bold text-primary mb-2">{overallScore}%</div>
+              <div className="text-xs sm:text-sm text-gray-600">Overall Score</div>
+              <Progress value={overallScore} className="mt-2 h-2" />
             </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-green-600 mb-2">
+            <div className="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-lg">
+              <div className="text-2xl sm:text-3xl font-bold text-green-600 mb-2">
                 {results.filter(r => r.overallResult === 'pass').length}
               </div>
-              <div className="text-sm text-gray-600">Passed Checks</div>
+              <div className="text-xs sm:text-sm text-gray-600">Passed Checks</div>
             </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-red-600 mb-2">{alerts.length}</div>
-              <div className="text-sm text-gray-600">Active Alerts</div>
+            <div className="text-center p-4 bg-gradient-to-br from-red-50 to-red-100 rounded-lg">
+              <div className="text-2xl sm:text-3xl font-bold text-red-600 mb-2">{alerts.length}</div>
+              <div className="text-xs sm:text-sm text-gray-600">Active Alerts</div>
             </div>
           </div>
 
-          <Separator className="my-4" />
+          <Separator className="my-4 sm:my-6" />
 
-          <div className="flex justify-between items-center">
-            <div>
-              <h4 className="font-medium">Quick Actions</h4>
-              <p className="text-sm text-gray-600">Submit new background checks or view detailed reports</p>
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+            <div className="flex-1">
+              <h4 className="font-medium text-sm sm:text-base">Quick Actions</h4>
+              <p className="text-xs sm:text-sm text-gray-600">Submit new background checks or view detailed reports</p>
             </div>
             <Dialog open={isSubmitDialogOpen} onOpenChange={setIsSubmitDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="gap-2">
+                <Button className="gap-2 w-full sm:w-auto min-h-[44px] text-sm touch-manipulation">
                   <FileText className="h-4 w-4" />
                   Submit New Check
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-2xl">
+              <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Submit Background Check</DialogTitle>
                   <DialogDescription>
@@ -265,11 +265,11 @@ export function BackgroundCheckDashboard({ contractorId }: BackgroundCheckDashbo
                   </DialogDescription>
                 </DialogHeader>
                 
-                <div className="space-y-4">
+                <div className="space-y-4 p-1">
                   <div>
-                    <Label htmlFor="checkType">Check Type</Label>
+                    <Label htmlFor="checkType" className="text-sm font-medium">Check Type</Label>
                     <Select value={checkType} onValueChange={setCheckType}>
-                      <SelectTrigger>
+                      <SelectTrigger className="min-h-[44px] mt-1 touch-manipulation">
                         <SelectValue placeholder="Select check type" />
                       </SelectTrigger>
                       <SelectContent>
@@ -282,39 +282,43 @@ export function BackgroundCheckDashboard({ contractorId }: BackgroundCheckDashbo
                     </Select>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="firstName">First Name</Label>
+                      <Label htmlFor="firstName" className="text-sm font-medium">First Name</Label>
                       <Input
                         id="firstName"
+                        className="min-h-[44px] mt-1 touch-manipulation"
                         value={personalInfo.firstName}
                         onChange={(e) => setPersonalInfo(prev => ({ ...prev, firstName: e.target.value }))}
                       />
                     </div>
                     <div>
-                      <Label htmlFor="lastName">Last Name</Label>
+                      <Label htmlFor="lastName" className="text-sm font-medium">Last Name</Label>
                       <Input
                         id="lastName"
+                        className="min-h-[44px] mt-1 touch-manipulation"
                         value={personalInfo.lastName}
                         onChange={(e) => setPersonalInfo(prev => ({ ...prev, lastName: e.target.value }))}
                       />
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="dateOfBirth">Date of Birth</Label>
+                      <Label htmlFor="dateOfBirth" className="text-sm font-medium">Date of Birth</Label>
                       <Input
                         id="dateOfBirth"
                         type="date"
+                        className="min-h-[44px] mt-1 touch-manipulation"
                         value={personalInfo.dateOfBirth}
                         onChange={(e) => setPersonalInfo(prev => ({ ...prev, dateOfBirth: e.target.value }))}
                       />
                     </div>
                     <div>
-                      <Label htmlFor="ssn">SSN (Last 4 digits)</Label>
+                      <Label htmlFor="ssn" className="text-sm font-medium">SSN (Last 4 digits)</Label>
                       <Input
                         id="ssn"
+                        className="min-h-[44px] mt-1 touch-manipulation"
                         value={personalInfo.ssn}
                         onChange={(e) => setPersonalInfo(prev => ({ ...prev, ssn: e.target.value }))}
                         placeholder="####"
@@ -323,14 +327,16 @@ export function BackgroundCheckDashboard({ contractorId }: BackgroundCheckDashbo
                     </div>
                   </div>
 
-                  <div className="flex justify-end gap-2">
+                  <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4">
                     <Button
                       variant="outline"
+                      className="min-h-[44px] w-full sm:w-auto touch-manipulation"
                       onClick={() => setIsSubmitDialogOpen(false)}
                     >
                       Cancel
                     </Button>
                     <Button
+                      className="min-h-[44px] w-full sm:w-auto touch-manipulation"
                       onClick={handleSubmitBackgroundCheck}
                       disabled={submitBackgroundCheckMutation.isPending}
                     >
