@@ -266,4 +266,93 @@
   .focus\:ring-achievemor-teal:focus {
     --tw-ring-color: var(--achievemor-teal);
   }
+
+  /* Mobile and tablet optimizations */
+  @media (max-width: 768px) {
+    html {
+      font-size: 16px; /* Prevent iOS zoom on input focus */
+    }
+    
+    * {
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    body {
+      -webkit-text-size-adjust: 100%;
+      touch-action: manipulation;
+      overscroll-behavior: contain;
+    }
+    
+    /* Ensure form inputs are accessible on mobile */
+    input, textarea, select, button {
+      font-size: 16px !important; /* Prevent iOS zoom */
+      min-height: 44px; /* Apple recommended touch target */
+    }
+    
+    /* Improve button touch targets */
+    button, [role="button"], a {
+      min-height: 44px;
+      min-width: 44px;
+      touch-action: manipulation;
+    }
+    
+    /* Optimize dialog/modal for mobile */
+    [role="dialog"] {
+      max-height: 90vh;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    
+    /* Better focus states for touch devices */
+    :focus-visible {
+      outline: 2px solid hsl(var(--ring));
+      outline-offset: 2px;
+    }
+    
+    /* Ensure text is readable on small screens */
+    p, span, div {
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+  }
+
+  /* Touch-specific optimizations */
+  .touch-manipulation {
+    touch-action: manipulation;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* Enhance form usability on touch devices */
+  @media (pointer: coarse) {
+    input, textarea, select {
+      padding: 12px 16px;
+    }
+    
+    button {
+      padding: 12px 20px;
+    }
+    
+    /* Larger checkbox and radio buttons */
+    input[type="checkbox"], input[type="radio"] {
+      min-width: 20px;
+      min-height: 20px;
+    }
+  }
+
+  /* Tablet-specific optimizations */
+  @media (min-width: 769px) and (max-width: 1024px) {
+    .tablet-responsive {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+    }
+    
+    /* Optimize card layouts for tablet */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+  }
 }
