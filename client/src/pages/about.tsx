@@ -362,7 +362,7 @@ export default function AboutPage() {
             <div className="flex flex-col md:flex-row justify-center items-center space-y-4 md:space-y-0 md:space-x-8 text-gray-600">
               <div className="flex items-center space-x-2">
                 <Building2 className="h-4 w-4" />
-                <span>275 Longleaf Cir, Pooler, GA 31322</span>
+                <span>Pooler, GA 31322</span>
               </div>
               <div className="flex items-center space-x-2">
                 <span>(912) 742-9459</span>
@@ -370,6 +370,14 @@ export default function AboutPage() {
               <div className="flex items-center space-x-2">
                 <span>delivered@byachievemor.com</span>
               </div>
+              <a 
+                href="https://achvmr-forms.paperform.co/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center space-x-2 text-primary hover:text-primary/80 transition-colors"
+              >
+                <span>→ Needs Assessment</span>
+              </a>
             </div>
           </div>
         </div>

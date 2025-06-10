@@ -522,15 +522,22 @@ export default function LandingPage() {
                 AI-powered logistics solutions connecting businesses with verified independent contractors.
               </p>
               <div className="space-y-2 text-sm">
-                <p>DOT #4398142 | MC #1726115</p>
+                <p>MC #1726115 | DOT #4398142</p>
                 <p>Licensed, Bonded & Insured</p>
+                <a 
+                  href="https://achvmr-forms.paperform.co/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="block text-primary hover:text-primary/80 transition-colors"
+                >
+                  → Business Needs Assessment
+                </a>
               </div>
             </div>
             
             <div>
               <h4 className="font-semibold mb-4">Contact Information</h4>
               <div className="space-y-2 text-gray-400">
-                <p>275 Longleaf Cir</p>
                 <p>Pooler, GA 31322</p>
                 <p>Phone: (912) 742-9459</p>
                 <p>Email: delivered@byachievemor.com</p>
