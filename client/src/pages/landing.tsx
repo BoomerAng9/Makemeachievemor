@@ -47,6 +47,9 @@ export default function LandingPage() {
             
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center space-x-6">
+              <Link href="/about" className="text-gray-600 hover:text-primary transition-colors">
+                About
+              </Link>
               <Link href="/register/contractor" className="text-gray-600 hover:text-primary transition-colors">
                 Join as Driver
               </Link>
@@ -83,6 +86,13 @@ export default function LandingPage() {
           {isMobileMenuOpen && (
             <div className="md:hidden border-t border-gray-200 py-4">
               <div className="flex flex-col space-y-3">
+                <Link 
+                  href="/about" 
+                  className="text-gray-600 hover:text-primary transition-colors px-2 py-1"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  About
+                </Link>
                 <Link 
                   href="/register/contractor" 
                   className="text-gray-600 hover:text-primary transition-colors px-2 py-1"
@@ -531,6 +541,9 @@ export default function LandingPage() {
             <div>
               <h4 className="font-semibold mb-4">Quick Links</h4>
               <div className="space-y-2">
+                <Link href="/about" className="block text-gray-400 hover:text-white transition-colors">
+                  About Ecosystem
+                </Link>
                 <Link href="/register/contractor" className="block text-gray-400 hover:text-white transition-colors">
                   Driver Registration
                 </Link>
@@ -558,6 +571,7 @@ export default function LandingPage() {
             <h5 className="font-semibold text-white mb-2">Site Map</h5>
             <div className="space-y-1 text-gray-400">
               <Link href="/" className="block hover:text-white transition-colors">Home</Link>
+              <Link href="/about" className="block hover:text-white transition-colors">About</Link>
               <Link href="/register/contractor" className="block hover:text-white transition-colors">Driver Sign-up</Link>
               <Link href="/register/company" className="block hover:text-white transition-colors">Company Sign-up</Link>
               <Link href="/api/login" className="block hover:text-white transition-colors">Login</Link>
