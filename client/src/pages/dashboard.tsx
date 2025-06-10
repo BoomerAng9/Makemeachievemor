@@ -132,42 +132,18 @@ export default function DashboardPage() {
           activeJobsCount={jobs?.filter(job => job.status === 'in_progress').length || 0}
         />
 
+        {/* Job Opportunities with State Machine Flow */}
+        <div className="mb-8">
+          <JobOpportunities
+            opportunities={opportunities || []}
+            activeJobs={jobs || []}
+            isLoading={opportunitiesLoading || jobsLoading}
+            userId={userId}
+          />
+        </div>
+
         {/* Main Dashboard Content */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          {/* Available Opportunities */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Available Opportunities</CardTitle>
-                <Button variant="ghost" size="sm">
-                  Filter
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {opportunitiesLoading ? (
-                <div className="space-y-4">
-                  {[1, 2, 3].map((i) => (
-                    <Skeleton key={i} className="h-32 w-full" />
-                  ))}
-                </div>
-              ) : opportunities && opportunities.length > 0 ? (
-                <div className="space-y-4">
-                  {opportunities.slice(0, 3).map((opportunity) => (
-                    <OpportunityCard 
-                      key={opportunity.id} 
-                      opportunity={opportunity} 
-                      contractorId={contractor?.id || userId}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <p className="text-gray-500">No opportunities available at the moment.</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
 
           {/* Recent Activity and Messages */}
           <Card>

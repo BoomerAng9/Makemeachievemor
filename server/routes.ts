@@ -226,7 +226,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Job assignment routes
+  // Job state machine routes - implements: open → requested → assigned → picked_up → delivered → paid
+  app.post('/api/jobs/:jobId/accept', async (req, res) => {
+    try {
+      const jobId = req.params.jobId;
+      const { userId } = req.body;
+
+      if (!jobId || !userId) {
+        return res.status(400).json({ message: 'Invalid job ID or user ID' });
+      }
+
+      // State transition: open → requested
+      // Implements 5-minute TTL lock to prevent double-booking
+      const result = await storage.requestJob(jobId, userId);
+      
+      // Notify admin about the request
+      await storage.createJobNotification(jobId, userId, 'job_requested');
+      
+      res.json(result);
+    } catch (error) {
+      console.error('Error requesting job:', error);
+      res.status(500).json({ message: 'Failed to request job' });
+    }
+  });
+
+  app.patch('/api/jobs/:jobId/status', async (req, res) => {
+    try {
+      const jobId = req.params.jobId;
+      const { status, userId } = req.body;
+
+      if (!jobId || !status || !userId) {
+        return res.status(400).json({ message: 'Invalid parameters' });
+      }
+
+      let result;
+      
+      switch (status) {
+        case 'assigned':
+          // Admin action: requested → assigned
+          result = await storage.assignJob(jobId, userId);
+          break;
+        case 'picked_up':
+          // Driver action: assigned → picked_up
+          result = await storage.markJobPickedUp(jobId, userId);
+          break;
+        case 'delivered':
+          // Driver action: picked_up → delivered
+          result = await storage.markJobDelivered(jobId, userId);
+          break;
+        case 'paid':
+          // Admin action: delivered → paid
+          result = await storage.markJobPaid(jobId, userId);
+          break;
+        default:
+          return res.status(400).json({ message: 'Invalid status transition' });
+      }
+
+      res.json(result);
+    } catch (error) {
+      console.error('Error updating job status:', error);
+      res.status(500).json({ message: 'Failed to update job status' });
+    }
+  });
+
+  // Legacy opportunity route for backward compatibility
   app.post('/api/opportunities/:opportunityId/accept', async (req, res) => {
     try {
       const opportunityId = parseInt(req.params.opportunityId);

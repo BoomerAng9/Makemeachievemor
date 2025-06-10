@@ -9,26 +9,33 @@ import { useToast } from "@/hooks/use-toast";
 import { MapPin, Clock, DollarSign, Truck, Star } from "lucide-react";
 
 interface Job {
-  id: string;
-  posted_by: string;
-  assigned_to: string | null;
-  origin: string;
-  destination: string;
-  miles: number;
-  rate: number;
-  priority: "standard" | "express";
-  status: "open" | "requested" | "assigned" | "picked_up" | "delivered" | "paid";
-  title: string;
+  id: string | number;
+  posted_by?: string;
+  assigned_to?: string | null;
+  origin?: string;
+  destination?: string;
+  miles?: string | number;
+  rate?: string | number;
+  priority?: string;
+  status: string;
+  title?: string;
   description?: string;
   pickupTime?: string;
   deliveryTime?: string;
   requirements?: string[];
-  requestedAt?: string;
-  assignedAt?: string;
-  pickedUpAt?: string;
-  deliveredAt?: string;
-  paidAt?: string;
-  lockExpiresAt?: string;
+  requestedAt?: string | Date | null;
+  assignedAt?: string | Date | null;
+  pickedUpAt?: string | Date | null;
+  deliveredAt?: string | Date | null;
+  paidAt?: string | Date | null;
+  lockExpiresAt?: string | Date | null;
+  // Legacy fields for compatibility
+  contractorId?: number;
+  opportunityId?: number;
+  acceptedAt?: string | Date | null;
+  completedAt?: string | Date | null;
+  rating?: number;
+  feedback?: string;
 }
 
 interface JobOpportunitiesProps {
@@ -46,10 +53,7 @@ export function JobOpportunities({ opportunities, activeJobs, isLoading, userId 
   // Accept Job mutation - implements state machine: open -> requested
   const acceptJobMutation = useMutation({
     mutationFn: async (jobId: string) => {
-      return await apiRequest(`/api/jobs/${jobId}/accept`, {
-        method: "POST",
-        body: JSON.stringify({ userId })
-      });
+      return await apiRequest(`/api/jobs/${jobId}/accept`, "POST", { userId });
     },
     onMutate: (jobId) => {
       setRequestingJobs(prev => new Set(prev).add(jobId));
@@ -81,10 +85,7 @@ export function JobOpportunities({ opportunities, activeJobs, isLoading, userId 
   // Update Job Status mutation - implements state machine: assigned -> picked_up -> delivered
   const updateJobStatusMutation = useMutation({
     mutationFn: async ({ jobId, status }: { jobId: string; status: string }) => {
-      return await apiRequest(`/api/jobs/${jobId}/status`, {
-        method: "PATCH",
-        body: JSON.stringify({ status, userId })
-      });
+      return await apiRequest(`/api/jobs/${jobId}/status`, "PATCH", { status, userId });
     },
     onSuccess: (_, { status }) => {
       const statusMessages = {
@@ -128,6 +129,27 @@ export function JobOpportunities({ opportunities, activeJobs, isLoading, userId 
 
   const getPriorityColor = (priority: string) => {
     return priority === "express" ? "bg-red-100 text-red-800" : "bg-blue-100 text-blue-800";
+  };
+
+  // Utility functions to handle data conversion
+  const getMiles = (job: Job): number => {
+    if (typeof job.miles === 'number') return job.miles;
+    if (typeof job.miles === 'string') return parseFloat(job.miles) || 0;
+    return 0;
+  };
+
+  const getRate = (job: Job): number => {
+    if (typeof job.rate === 'number') return job.rate;
+    if (typeof job.rate === 'string') return parseFloat(job.rate) || 0;
+    return 0;
+  };
+
+  const getJobTitle = (job: Job): string => {
+    return job.title || `${job.origin || 'Origin'} to ${job.destination || 'Destination'}`;
+  };
+
+  const getJobId = (job: Job): string => {
+    return job.id?.toString() || '';
   };
 
   if (isLoading) {
@@ -185,11 +207,11 @@ export function JobOpportunities({ opportunities, activeJobs, isLoading, userId 
                         </div>
                         <div className="flex items-center gap-1">
                           <Truck className="h-4 w-4" />
-                          <span>{job.miles} miles</span>
+                          <span>{getMiles(job)} miles</span>
                         </div>
                         <div className="flex items-center gap-1">
                           <DollarSign className="h-4 w-4" />
-                          <span className="font-semibold text-green-600">${job.rate.toLocaleString()}</span>
+                          <span className="font-semibold text-green-600">${getRate(job).toLocaleString()}</span>
                         </div>
                       </div>
 
