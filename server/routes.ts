@@ -473,6 +473,223 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Glovebox document storage routes
+  app.get('/api/glovebox/documents', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const documents = await storage.getUserDocuments(userId);
+      res.json(documents);
+    } catch (error) {
+      console.error("Error fetching user documents:", error);
+      res.status(500).json({ message: "Failed to fetch documents" });
+    }
+  });
+
+  app.post('/api/glovebox/upload', isAuthenticated, upload.single('file'), async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const file = req.file;
+      
+      if (!file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+
+      // Security check: Never allow driver license storage
+      const documentType = req.body.documentType?.toLowerCase();
+      if (documentType === 'drivers_license' || documentType === 'driver_license') {
+        return res.status(400).json({ 
+          message: "Driver licenses cannot be stored for security compliance" 
+        });
+      }
+
+      const documentData = {
+        userId,
+        documentType: req.body.documentType,
+        documentCategory: req.body.documentCategory,
+        fileName: file.filename,
+        originalFileName: file.originalname,
+        filePath: file.path,
+        fileSize: file.size,
+        mimeType: file.mimetype,
+        expirationDate: req.body.expirationDate ? new Date(req.body.expirationDate) : null,
+        tags: req.body.tags ? req.body.tags.split(',').map((tag: string) => tag.trim()) : [],
+        notes: req.body.notes,
+        isShared: false,
+      };
+
+      const document = await storage.uploadDocument(documentData);
+      res.json(document);
+    } catch (error) {
+      console.error("Error uploading document:", error);
+      res.status(500).json({ message: "Failed to upload document" });
+    }
+  });
+
+  app.delete('/api/glovebox/documents/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const documentId = parseInt(req.params.id);
+      
+      await storage.deleteDocument(documentId, userId);
+      res.json({ message: "Document deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting document:", error);
+      res.status(500).json({ message: "Failed to delete document" });
+    }
+  });
+
+  app.post('/api/glovebox/share', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { documentIds, recipientCompany, recipientEmail, message, expiresIn, maxViews } = req.body;
+
+      // Generate unique share token
+      const shareToken = Math.random().toString(36).substr(2, 16) + Date.now().toString(36);
+      const expiresAt = new Date();
+      expiresAt.setHours(expiresAt.getHours() + (expiresIn || 24));
+
+      const shareData = {
+        userId,
+        shareToken,
+        documentIds,
+        recipientCompany,
+        recipientEmail,
+        message,
+        expiresAt,
+        maxViews: maxViews || 5,
+        isActive: true,
+      };
+
+      const share = await storage.createDocumentShare(shareData);
+      res.json({ 
+        ...share, 
+        shareUrl: `${req.protocol}://${req.get('host')}/api/glovebox/shared/${shareToken}`
+      });
+    } catch (error) {
+      console.error("Error creating document share:", error);
+      res.status(500).json({ message: "Failed to create document share" });
+    }
+  });
+
+  app.get('/api/glovebox/shares', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const shares = await storage.getActiveDocumentShares(userId);
+      res.json(shares);
+    } catch (error) {
+      console.error("Error fetching document shares:", error);
+      res.status(500).json({ message: "Failed to fetch document shares" });
+    }
+  });
+
+  // Google Maps location services routes
+  app.get('/api/location/driver', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const location = await storage.getDriverLocation(userId);
+      res.json(location);
+    } catch (error) {
+      console.error("Error fetching driver location:", error);
+      res.status(500).json({ message: "Failed to fetch driver location" });
+    }
+  });
+
+  app.post('/api/location/update', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { address, vehicleType, maxDistance, isAvailable } = req.body;
+
+      const { mapsService } = await import("./mapsService");
+      const location = await mapsService.updateDriverLocation(
+        userId, 
+        address, 
+        vehicleType, 
+        maxDistance
+      );
+
+      if (location) {
+        // Update availability status
+        const updatedLocation = await storage.upsertDriverLocation({
+          ...location,
+          isAvailable: isAvailable !== undefined ? isAvailable : true,
+        });
+        res.json(updatedLocation);
+      } else {
+        res.status(400).json({ message: "Unable to geocode the provided address" });
+      }
+    } catch (error) {
+      console.error("Error updating driver location:", error);
+      res.status(500).json({ message: "Failed to update driver location" });
+    }
+  });
+
+  app.get('/api/location/nearby-loads', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const maxDistance = parseInt(req.query.maxDistance as string) || 100;
+
+      const { mapsService } = await import("./mapsService");
+      const nearbyLoads = await mapsService.findNearbyLoads(userId, maxDistance);
+      res.json(nearbyLoads);
+    } catch (error) {
+      console.error("Error fetching nearby loads:", error);
+      res.status(500).json({ message: "Failed to fetch nearby loads" });
+    }
+  });
+
+  app.get('/api/location/reverse-geocode', async (req, res) => {
+    try {
+      const lat = parseFloat(req.query.lat as string);
+      const lng = parseFloat(req.query.lng as string);
+
+      if (!lat || !lng) {
+        return res.status(400).json({ message: "Latitude and longitude are required" });
+      }
+
+      const { mapsService } = await import("./mapsService");
+      const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+      
+      if (!apiKey) {
+        return res.status(500).json({ message: "Google Maps API key not configured" });
+      }
+
+      const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`;
+      const response = await fetch(url);
+      const data = await response.json();
+
+      if (data.status === "OK" && data.results.length > 0) {
+        res.json({ address: data.results[0].formatted_address });
+      } else {
+        res.status(400).json({ message: "Unable to reverse geocode coordinates" });
+      }
+    } catch (error) {
+      console.error("Error reverse geocoding:", error);
+      res.status(500).json({ message: "Failed to reverse geocode" });
+    }
+  });
+
+  app.post('/api/location/calculate-route', isAuthenticated, async (req: any, res) => {
+    try {
+      const { stops } = req.body;
+
+      if (!stops || stops.length < 2) {
+        return res.status(400).json({ message: "At least 2 stops are required" });
+      }
+
+      const { mapsService } = await import("./mapsService");
+      const route = await mapsService.getOptimalRoute(stops);
+      
+      if (route) {
+        res.json(route);
+      } else {
+        res.status(400).json({ message: "Unable to calculate optimal route" });
+      }
+    } catch (error) {
+      console.error("Error calculating route:", error);
+      res.status(500).json({ message: "Failed to calculate route" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
