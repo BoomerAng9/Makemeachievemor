@@ -128,7 +128,7 @@ export function Chatbot({ isOpen, onToggle, mode = 'floating', position = 'botto
           </div>
           
           {/* Main bubble */}
-          <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-gray-800 via-gray-900 to-black shadow-retina-xl border-3 border-amber-400/40 overflow-hidden group-hover:scale-105 transition-retina">
+          <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-gray-800 via-gray-900 to-black shadow-retina-xl border-3 border-amber-400/40 overflow-hidden group-hover:scale-105 transition-retina chatbot-bubble">
             <img 
               src={chatbotLogo} 
               alt="ACHIEVEMOR Assistant" 
