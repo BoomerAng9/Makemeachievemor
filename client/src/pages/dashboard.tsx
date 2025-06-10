@@ -8,7 +8,7 @@ import { ConsultationButton } from "@/components/business/ConsultationButton";
 import { BackgroundCheckDashboard } from "@/components/background-check/BackgroundCheckDashboard";
 import { PersonalizedWidgets } from "@/components/dashboard/PersonalizedWidgets";
 import { Chatbot } from "@/components/ui/chatbot";
-import { Truck, Phone, Mail, MapPin, TrendingUp } from "lucide-react";
+import { Truck, Phone, Mail, MapPin, TrendingUp, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -201,7 +201,7 @@ export default function DashboardPage() {
                   <FileText className="h-4 w-4" />
                   Authority Checklist
                 </Button>
-                <ConsultationButton />
+                <ConsultationButton type="contractor" />
               </div>
             </CardContent>
           </Card>
