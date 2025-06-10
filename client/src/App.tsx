@@ -14,6 +14,7 @@ import GloveboxPage from "@/pages/glovebox";
 import DriverLocationPage from "@/pages/driver-location";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import MasterSetup from "@/pages/admin/MasterSetup";
+import AdminAccess from "@/pages/AdminAccess";
 import SitemapPage from "@/pages/sitemap";
 import RegisterContractorPage from "@/pages/register-contractor";
 import RegisterCompanyPage from "@/pages/register-company";
@@ -31,6 +32,8 @@ function Router() {
           <Route path="/driver-checklist" component={DriverChecklistPage} />
           <Route path="/register/contractor" component={RegisterContractorPage} />
           <Route path="/register/company" component={RegisterCompanyPage} />
+          <Route path="/admin/setup" component={MasterSetup} />
+          <Route path="/admin-access" component={AdminAccess} />
           <Route path="/onboarding" component={OnboardingPage} />
         </>
       ) : (

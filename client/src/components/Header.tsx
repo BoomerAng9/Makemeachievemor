@@ -185,6 +185,19 @@ export function Header() {
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
+                  <Link href="/admin/setup" className="flex items-center gap-2 w-full text-blue-600">
+                    <Shield className="h-4 w-4" />
+                    Admin Setup
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/admin" className="flex items-center gap-2 w-full text-blue-600">
+                    <Shield className="h-4 w-4" />
+                    Admin Panel
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
                   <a href="/api/logout" className="flex items-center gap-2 w-full">
                     <LogOut className="h-4 w-4" />
                     Sign Out
