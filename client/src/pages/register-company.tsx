@@ -477,11 +477,11 @@ export default function RegisterCompanyPage() {
       {/* Main Content */}
       <main className="max-w-4xl mx-auto px-4 py-8">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6 leading-tight">
             Partner with ACHIEVEMOR
           </h1>
-          <p className="text-xl text-gray-600">
-            Access our verified driver network for your delivery needs
+          <p className="text-lg md:text-xl text-gray-600 leading-relaxed max-w-3xl mx-auto">
+            Access our verified driver network for your delivery needs and scale your logistics operations
           </p>
         </div>
 

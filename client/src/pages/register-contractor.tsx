@@ -400,11 +400,11 @@ export default function RegisterContractorPage() {
       {/* Main Content */}
       <main className="max-w-4xl mx-auto px-4 py-8">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6 leading-tight">
             Join as an Independent Contractor
           </h1>
-          <p className="text-xl text-gray-600">
-            Start your journey with ACHIEVEMOR's verified driver network
+          <p className="text-lg md:text-xl text-gray-600 leading-relaxed max-w-3xl mx-auto">
+            Start your journey with ACHIEVEMOR's verified driver network and access premium freight opportunities
           </p>
         </div>
 
