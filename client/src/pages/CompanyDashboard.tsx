@@ -188,7 +188,7 @@ export default function CompanyDashboard() {
                   <div className="flex items-center space-x-3">
                     <Truck className="h-8 w-8 text-purple-500" />
                     <div>
-                      <p className="text-sm font-medium text-gray-600">Available Drivers</p>
+                      <p className="text-sm font-medium text-gray-600">Available Contractors</p>
                       <p className="text-2xl font-bold">{stats?.availableDrivers || 0}</p>
                     </div>
                   </div>

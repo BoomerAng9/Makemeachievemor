@@ -82,7 +82,7 @@ export default function DashboardPage() {
               <div className="flex flex-col md:flex-row md:items-center md:justify-between">
                 <div>
                   <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                    Welcome, {contractor?.name || contractor?.firstName + ' ' + contractor?.lastName || 'Driver'}
+                    Welcome, {contractor?.name || contractor?.firstName + ' ' + contractor?.lastName || 'Contractor'}
                   </h2>
                   <div className="flex items-center space-x-4">
                     <Badge 
@@ -98,7 +98,7 @@ export default function DashboardPage() {
                        'Suspended'}
                     </Badge>
                     <Badge variant="outline">
-                      {contractor?.role?.charAt(0).toUpperCase() + contractor?.role?.slice(1) || 'Driver'}
+                      {contractor?.role?.charAt(0).toUpperCase() + contractor?.role?.slice(1) || 'Contractor'}
                     </Badge>
                     <span className="text-sm text-gray-500">
                       Member since {new Date(contractor?.createdAt || Date.now()).toLocaleDateString()}
@@ -185,7 +185,7 @@ export default function DashboardPage() {
                   variant="outline" 
                   size="sm"
                   className="flex items-center gap-2 hover:bg-orange-50"
-                  onClick={() => window.location.href = '/driver-checklist'}
+                  onClick={() => window.location.href = '/contractor-checklist'}
                 >
                   <FileText className="h-4 w-4" />
                   Authority Checklist
