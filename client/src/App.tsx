@@ -23,6 +23,8 @@ import PricingPage from "@/pages/Pricing";
 import CheckoutPage from "@/pages/Checkout";
 import AccountSettingsPage from "@/pages/AccountSettings";
 import CompanyDashboard from "@/pages/CompanyDashboard";
+import AdminPanel from "@/pages/admin/AdminPanel";
+import GlobalSettings from "@/pages/admin/GlobalSettings";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -57,7 +59,9 @@ function Router() {
           <Route path="/driver-checklist" component={DriverChecklistPage} />
           <Route path="/glovebox" component={GloveboxPage} />
           <Route path="/driver-location" component={DriverLocationPage} />
-          <Route path="/admin" component={AdminDashboard} />
+          <Route path="/admin" component={AdminPanel} />
+          <Route path="/admin/dashboard" component={AdminDashboard} />
+          <Route path="/admin/settings" component={GlobalSettings} />
           <Route path="/admin/setup" component={MasterSetup} />
           <Route path="/onboarding" component={OnboardingPage} />
         </>

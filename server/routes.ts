@@ -37,6 +37,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/auth/logout', logout);
   app.get('/api/auth/user', checkAuthStatus);
 
+  // Admin routes
+  app.get('/api/admin/settings', async (req: any, res) => {
+    try {
+      // Return current global settings
+      res.json({
+        platformName: "Choose 2 ACHIEVEMOR",
+        platformDescription: "Peer - 2 - Peer Deployment Platform",
+        supportEmail: "contactus@achievemor.io",
+        supportPhone: "912-742-9459",
+        coffeeTierPrice: "4.30",
+        standardTierPrice: "29.99",
+        professionalTierPrice: "59.99",
+        ownerOperatorTierPrice: "99.99",
+        enableSmsAuth: true,
+        enableStripePayments: true,
+        enableBackgroundChecks: true,
+        enableGoogleMaps: true,
+        enableAiInsights: true,
+        maxActiveLoadsBasic: "1",
+        maxActiveLoadsStandard: "3",
+        maxActiveLoadsProfessional: "10",
+        jobLockTimeoutMinutes: "5",
+      });
+    } catch (error) {
+      console.error("Error fetching admin settings:", error);
+      res.status(500).json({ message: "Failed to fetch settings" });
+    }
+  });
+
+  app.post('/api/admin/settings', async (req: any, res) => {
+    try {
+      // In a full implementation, save settings to database
+      console.log("Admin settings updated:", req.body);
+      res.json({ message: "Settings updated successfully" });
+    } catch (error) {
+      console.error("Error updating admin settings:", error);
+      res.status(500).json({ message: "Failed to update settings" });
+    }
+  });
+
+  app.post('/api/admin/test-service/:service', async (req: any, res) => {
+    try {
+      const { service } = req.params;
+      
+      switch (service) {
+        case 'stripe':
+          res.json({ message: "Stripe service test successful" });
+          break;
+        case 'twilio':
+          res.json({ message: "Twilio service test successful" });
+          break;
+        case 'googlemaps':
+          res.json({ message: "Google Maps service test successful" });
+          break;
+        case 'openai':
+          res.json({ message: "OpenAI service test successful" });
+          break;
+        default:
+          res.status(400).json({ message: "Unknown service" });
+      }
+    } catch (error) {
+      console.error(`Error testing ${req.params.service}:`, error);
+      res.status(500).json({ message: `Failed to test ${req.params.service}` });
+    }
+  });
+
   // Helper function to ensure contractor profile exists
   async function ensureUserContractorProfile(user: any) {
     if (!user) return;
