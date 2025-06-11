@@ -142,13 +142,13 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 py-16">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="text-left">
-              <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
                 Choose 2 ACHIEVEMOR
                 <span className="block text-primary">Owner Operator Platform</span>
               </h1>
-              <p className="text-xl text-gray-600 mb-8 leading-relaxed">
+              <p className="text-lg md:text-xl text-gray-600 mb-8 leading-relaxed max-w-2xl">
                 Comprehensive onboarding platform for owner operator independent contractors. 
-                Compliance verification, job opportunities, and business growth services.
+                Streamlined compliance verification, verified job opportunities, and professional business growth services.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button 
