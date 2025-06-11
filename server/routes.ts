@@ -120,6 +120,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   }
 
+  // Driver registration route
+  app.post('/api/drivers/register', async (req, res) => {
+    try {
+      const driverData = insertContractorSchema.parse({
+        ...req.body,
+        role: 'driver',
+        status: 'pending_verification'
+      });
+      
+      const driver = await storage.createContractor(driverData);
+      
+      // Send notification email
+      try {
+        await emailService.sendRegistrationNotification({
+          ...driver,
+          email: driver.email || 'contactus@achievemor.io'
+        });
+      } catch (emailError) {
+        console.error('Failed to send registration notification:', emailError);
+      }
+      
+      res.json({ 
+        message: 'Driver registration successful', 
+        id: driver.id,
+        status: driver.status 
+      });
+    } catch (error) {
+      console.error('Error registering driver:', error);
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ message: 'Validation error', errors: error.errors });
+      } else {
+        res.status(500).json({ message: 'Failed to register driver' });
+      }
+    }
+  });
+
   // Contractor routes
   app.post('/api/contractors', async (req, res) => {
     try {

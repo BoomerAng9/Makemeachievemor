@@ -257,7 +257,7 @@ export default function LandingPage() {
                     asChild
                     className="w-full bg-primary hover:bg-primary/90"
                   >
-                    <Link href="/register/contractor">Join as Contractor</Link>
+                    <Link href="/register/driver">Join as Driver</Link>
                   </Button>
                   <p className="text-center text-sm text-gray-500 mt-2">
                     CDL required • Background check • Quick approval
