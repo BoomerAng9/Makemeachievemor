@@ -52,13 +52,26 @@ export default function RegisterDriverPage() {
     setIsSubmitting(true);
     
     try {
+      // Prepare data with required fields and defaults
+      const submitData = {
+        ...formData,
+        dateOfBirth: formData.dateOfBirth || "1990-01-01", // Default if not provided
+        country: "US", // Default country
+        dotNumber: formData.dotNumber || "",
+        mcNumber: formData.mcNumber || "",
+        vehicleType: formData.vehicleType || "truck",
+        cdlClass: formData.cdlClass || "A",
+        yearsExperience: formData.yearsExperience || "2-5",
+        specialEndorsements: formData.specialEndorsements.join(",")
+      };
+
       // Submit to backend API
       const response = await fetch('/api/drivers/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(submitData)
       });
 
       if (response.ok) {
