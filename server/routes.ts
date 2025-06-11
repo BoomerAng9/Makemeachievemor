@@ -459,10 +459,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Background check routes
-  app.post("/api/background-check/submit", isAuthenticated, async (req, res) => {
+  app.post("/api/background-check/submit", requireAuth, async (req, res) => {
     try {
       const { contractorId, checkType, personalInfo } = req.body;
-      const userId = req.user?.claims?.sub;
+      const userId = req.user?.userId;
       
       const { backgroundCheckService } = await import("./backgroundCheckService");
       const request = await backgroundCheckService.submitBackgroundCheck(
@@ -480,7 +480,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/background-check/contractor/:id", isAuthenticated, async (req, res) => {
+  app.get("/api/background-check/contractor/:id", requireAuth, async (req, res) => {
     try {
       const contractorId = parseInt(req.params.id);
       const results = await storage.getContractorBackgroundCheckResults(contractorId);
@@ -506,7 +506,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/background-check/status/:requestId", isAuthenticated, async (req, res) => {
+  app.get("/api/background-check/status/:requestId", requireAuth, async (req, res) => {
     try {
       const requestId = parseInt(req.params.requestId);
       const { backgroundCheckService } = await import("./backgroundCheckService");
@@ -520,7 +520,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // AI Insights routes
-  app.get("/api/insights/contractor/:id", isAuthenticated, async (req, res) => {
+  app.get("/api/insights/contractor/:id", requireAuth, async (req, res) => {
     try {
       const contractorId = parseInt(req.params.id);
       const { aiInsightsService } = await import("./aiInsightsService");
@@ -533,7 +533,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/insights/quick-actions/:id", isAuthenticated, async (req, res) => {
+  app.get("/api/insights/quick-actions/:id", requireAuth, async (req, res) => {
     try {
       const contractorId = parseInt(req.params.id);
       const { aiInsightsService } = await import("./aiInsightsService");
@@ -546,7 +546,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/insights/performance/:id", isAuthenticated, async (req, res) => {
+  app.get("/api/insights/performance/:id", requireAuth, async (req, res) => {
     try {
       const contractorId = parseInt(req.params.id);
       const { aiInsightsService } = await import("./aiInsightsService");
@@ -559,7 +559,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/insights/risks/:id", isAuthenticated, async (req, res) => {
+  app.get("/api/insights/risks/:id", requireAuth, async (req, res) => {
     try {
       const contractorId = parseInt(req.params.id);
       const { aiInsightsService } = await import("./aiInsightsService");
@@ -573,7 +573,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Driver checklist progress routes
-  app.get('/api/driver-checklist/progress', isAuthenticated, async (req: any, res) => {
+  app.get('/api/driver-checklist/progress', requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const progress = await storage.getDriverChecklistProgress(userId);
@@ -584,7 +584,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/driver-checklist/progress', isAuthenticated, async (req: any, res) => {
+  app.post('/api/driver-checklist/progress', requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const { checklistData, completionPercentage, isCompleted } = req.body;
@@ -605,7 +605,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/driver-checklist/progress', isAuthenticated, async (req: any, res) => {
+  app.delete('/api/driver-checklist/progress', requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       await storage.clearDriverChecklistProgress(userId);
@@ -617,7 +617,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Glovebox document storage routes
-  app.get('/api/glovebox/documents', isAuthenticated, async (req: any, res) => {
+  app.get('/api/glovebox/documents', requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const documents = await storage.getUserDocuments(userId);
@@ -628,7 +628,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/glovebox/upload', isAuthenticated, upload.single('file'), async (req: any, res) => {
+  app.post('/api/glovebox/upload', requireAuth, upload.single('file'), async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const file = req.file;
@@ -668,7 +668,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/glovebox/documents/:id', isAuthenticated, async (req: any, res) => {
+  app.delete('/api/glovebox/documents/:id', requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const documentId = parseInt(req.params.id);
@@ -681,7 +681,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/glovebox/share', isAuthenticated, async (req: any, res) => {
+  app.post('/api/glovebox/share', requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const { documentIds, recipientCompany, recipientEmail, message, expiresIn, maxViews } = req.body;
@@ -714,7 +714,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/glovebox/shares', isAuthenticated, async (req: any, res) => {
+  app.get('/api/glovebox/shares', requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const shares = await storage.getActiveDocumentShares(userId);
@@ -726,7 +726,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Google Maps location services routes
-  app.get('/api/location/driver', isAuthenticated, async (req: any, res) => {
+  app.get('/api/location/driver', requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const location = await storage.getDriverLocation(userId);
@@ -737,7 +737,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/location/update', isAuthenticated, async (req: any, res) => {
+  app.post('/api/location/update', requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const { address, vehicleType, maxDistance, isAvailable } = req.body;
@@ -766,7 +766,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/location/nearby-loads', isAuthenticated, async (req: any, res) => {
+  app.get('/api/location/nearby-loads', requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const maxDistance = parseInt(req.query.maxDistance as string) || 100;
@@ -811,7 +811,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/location/calculate-route', isAuthenticated, async (req: any, res) => {
+  app.post('/api/location/calculate-route', requireAuth, async (req: any, res) => {
     try {
       const { stops } = req.body;
 
@@ -851,7 +851,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   };
 
   // Admin API routes
-  app.get('/api/admin/stats', isAuthenticated, isAdmin, async (req, res) => {
+  app.get('/api/admin/stats', requireAuth, isAdmin, async (req, res) => {
     try {
       const stats = await storage.getAdminStats();
       res.json(stats);
@@ -861,7 +861,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/admin/users', isAuthenticated, isAdmin, async (req, res) => {
+  app.get('/api/admin/users', requireAuth, isAdmin, async (req, res) => {
     try {
       const { search, status } = req.query;
       const users = await storage.getAllUsers(search as string, status as string);
@@ -872,7 +872,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/admin/users/:userId/action', isAuthenticated, isAdmin, async (req: any, res) => {
+  app.post('/api/admin/users/:userId/action', requireAuth, isAdmin, async (req: any, res) => {
     try {
       const { userId } = req.params;
       const { action, reason } = req.body;
@@ -897,7 +897,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/admin/activity', isAuthenticated, isAdmin, async (req, res) => {
+  app.get('/api/admin/activity', requireAuth, isAdmin, async (req, res) => {
     try {
       const activityLog = await storage.getAdminActivityLog();
       res.json(activityLog);

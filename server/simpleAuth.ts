@@ -131,7 +131,7 @@ export async function verifyCode(req: Request, res: Response) {
 // Get current user
 export async function getCurrentUser(req: Request, res: Response) {
   try {
-    const sessionId = req.cookies?.sessionId;
+    const sessionId = req.cookies?.sessionId || null;
     
     if (!sessionId) {
       return res.status(401).json({ message: "No session found" });
