@@ -56,6 +56,7 @@ export interface IStorage {
   // User operations (for authentication)
   getUser(id: string): Promise<User | undefined>;
   getUserByPhone(phoneNumber: string): Promise<User | undefined>;
+  createUser(user: InsertUser): Promise<User>;
   upsertUser(user: UpsertUser): Promise<User>;
   
   // Contractor operations
@@ -153,6 +154,17 @@ export class DatabaseStorage implements IStorage {
 
   async getUserByPhone(phoneNumber: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.phoneNumber, phoneNumber));
+    return user;
+  }
+
+  async createUser(userData: InsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values({
+        ...userData,
+        id: `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      })
+      .returning();
     return user;
   }
 

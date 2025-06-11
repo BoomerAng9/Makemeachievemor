@@ -7,13 +7,12 @@ import { insertContractorSchema, insertVehicleSchema, insertDocumentSchema, inse
 import { z } from "zod";
 import { generateChatbotResponse } from "./chatbot";
 import {
-  sendVerificationCode,
-  verifyCodeAndLogin,
-  checkAuthStatus,
-  logout,
-  isAuthenticated,
-} from "./smsAuth";
-import { createSessionConfig } from "./sessionConfig";
+  sendCode,
+  verifyCode,
+  getCurrentUser,
+  logoutUser,
+  requireAuth,
+} from "./simpleAuth";
 
 // Configure multer for file uploads
 const upload = multer({
@@ -31,15 +30,17 @@ const upload = multer({
   },
 });
 
-export async function registerRoutes(app: Express): Promise<Server> {
-  // Configure session middleware
-  app.use(createSessionConfig());
+import cookieParser from 'cookie-parser';
 
-  // SMS Authentication routes
-  app.post('/api/auth/send-code', sendVerificationCode);
-  app.post('/api/auth/verify', verifyCodeAndLogin);
-  app.post('/api/auth/logout', logout);
-  app.get('/api/auth/user', checkAuthStatus);
+export async function registerRoutes(app: Express): Promise<Server> {
+  // Configure cookie parser
+  app.use(cookieParser());
+
+  // Authentication routes
+  app.post('/api/auth/send-code', sendCode);
+  app.post('/api/auth/verify', verifyCode);
+  app.post('/api/auth/logout', logoutUser);
+  app.get('/api/auth/user', getCurrentUser);
 
   // Admin routes
   app.get('/api/admin/settings', async (req: any, res) => {

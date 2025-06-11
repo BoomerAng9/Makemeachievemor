@@ -13,11 +13,11 @@ function generateCode(): string {
 // Clean expired codes
 function cleanupExpired() {
   const now = new Date();
-  for (const [phone, data] of verificationCodes.entries()) {
+  Array.from(verificationCodes.entries()).forEach(([phone, data]) => {
     if (data.expiresAt < now) {
       verificationCodes.delete(phone);
     }
-  }
+  });
 }
 
 // Send verification code
