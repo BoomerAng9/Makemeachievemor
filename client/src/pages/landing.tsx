@@ -126,10 +126,10 @@ export default function LandingPage() {
                   912-742-9459
                 </a>
                 <Button 
-                  onClick={() => window.location.href = '/api/login'}
+                  asChild
                   className="bg-primary hover:bg-primary/90 mx-2"
                 >
-                  Sign In
+                  <Link href="/login">Sign In</Link>
                 </Button>
               </div>
             </div>
