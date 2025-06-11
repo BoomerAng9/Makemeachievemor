@@ -19,6 +19,9 @@ import SitemapPage from "@/pages/sitemap";
 import RegisterContractorPage from "@/pages/register-contractor";
 import RegisterCompanyPage from "@/pages/register-company";
 import LoginPage from "@/pages/Login";
+import PricingPage from "@/pages/Pricing";
+import CheckoutPage from "@/pages/Checkout";
+import AccountSettingsPage from "@/pages/AccountSettings";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -29,6 +32,8 @@ function Router() {
         <>
           <Route path="/" component={LandingPage} />
           <Route path="/login" component={LoginPage} />
+          <Route path="/pricing" component={PricingPage} />
+          <Route path="/checkout" component={CheckoutPage} />
           <Route path="/about" component={AboutPage} />
           <Route path="/sitemap" component={SitemapPage} />
           <Route path="/driver-checklist" component={DriverChecklistPage} />
@@ -41,6 +46,9 @@ function Router() {
       ) : (
         <>
           <Route path="/" component={DashboardPage} />
+          <Route path="/pricing" component={PricingPage} />
+          <Route path="/checkout" component={CheckoutPage} />
+          <Route path="/account-settings" component={AccountSettingsPage} />
           <Route path="/about" component={AboutPage} />
           <Route path="/sitemap" component={SitemapPage} />
           <Route path="/dashboard/:contractorId" component={DashboardPage} />

@@ -27,6 +27,14 @@ export const users = pgTable("users", {
   profileImageUrl: varchar("profile_image_url"),
   lastLoginAt: timestamp("last_login_at"),
   registrationSource: varchar("registration_source").default("web"),
+  // Subscription fields
+  subscriptionTier: varchar("subscription_tier").default("coffee"), // coffee | standard | professional | owner-operator
+  subscriptionStatus: varchar("subscription_status").default("inactive"), // inactive | active | canceled | past_due
+  stripeCustomerId: varchar("stripe_customer_id"),
+  stripeSubscriptionId: varchar("stripe_subscription_id"),
+  subscriptionStartDate: timestamp("subscription_start_date"),
+  subscriptionEndDate: timestamp("subscription_end_date"),
+  companyName: varchar("company_name"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

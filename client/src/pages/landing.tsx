@@ -144,7 +144,11 @@ export default function LandingPage() {
             <div className="text-left">
               <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
                 Choose 2 ACHIEVEMOR
-                <span className="block text-primary">Owner Operator Platform</span>
+                <span className="block text-primary text-center">
+                  Peer - 2 - Peer
+                  <br />
+                  Deployment Platform
+                </span>
               </h1>
               <p className="text-xl text-gray-600 mb-8 leading-relaxed">
                 Comprehensive onboarding platform for owner operator independent contractors. 
