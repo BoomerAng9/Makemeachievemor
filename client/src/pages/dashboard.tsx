@@ -9,12 +9,12 @@ import { ConsultationButton } from "@/components/business/ConsultationButton";
 import { BackgroundCheckDashboard } from "@/components/background-check/BackgroundCheckDashboard";
 import { PersonalizedWidgets } from "@/components/dashboard/PersonalizedWidgets";
 import { Chatbot } from "@/components/ui/chatbot";
+import { UniversalNav } from "@/components/UniversalNav";
 import { Truck, Phone, Mail, MapPin, TrendingUp, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { UniversalNav } from "@/components/UniversalNav";
 
 export default function DashboardPage() {
   const { contractorId } = useParams();
@@ -46,8 +46,34 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <UniversalNav showBackButton={false} title="ACHIEVEMOR - Contractor Portal" />
+    <div className="min-h-screen bg-gray-50">
+      <UniversalNav />
+      {/* Header */}
+      <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+                <Truck className="text-white h-5 w-5" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">ACHIEVEMOR</h1>
+                <p className="text-xs text-gray-500">Contractor Portal</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-4">
+              <a 
+                href="tel:912-742-9459" 
+                className="text-accent hover:text-gray-900 transition-colors flex items-center"
+              >
+                <Phone className="h-4 w-4 mr-2" />
+                <span className="hidden sm:inline">912-742-9459</span>
+              </a>
+              <Button variant="outline">Sign Out</Button>
+            </div>
+          </div>
+        </div>
+      </header>
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 py-8">
@@ -58,7 +84,7 @@ export default function DashboardPage() {
               <div className="flex flex-col md:flex-row md:items-center md:justify-between">
                 <div>
                   <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                    Welcome, {contractor?.name || contractor?.firstName + ' ' + contractor?.lastName || 'Contractor'}
+                    Welcome, {contractor?.name || contractor?.firstName + ' ' + contractor?.lastName || 'Driver'}
                   </h2>
                   <div className="flex items-center space-x-4">
                     <Badge 
@@ -74,7 +100,7 @@ export default function DashboardPage() {
                        'Suspended'}
                     </Badge>
                     <Badge variant="outline">
-                      {contractor?.role?.charAt(0).toUpperCase() + contractor?.role?.slice(1) || 'Contractor'}
+                      {contractor?.role?.charAt(0).toUpperCase() + contractor?.role?.slice(1) || 'Driver'}
                     </Badge>
                     <span className="text-sm text-gray-500">
                       Member since {new Date(contractor?.createdAt || Date.now()).toLocaleDateString()}
@@ -161,7 +187,7 @@ export default function DashboardPage() {
                   variant="outline" 
                   size="sm"
                   className="flex items-center gap-2 hover:bg-orange-50"
-                  onClick={() => window.location.href = '/contractor-checklist'}
+                  onClick={() => window.location.href = '/driver-checklist'}
                 >
                   <FileText className="h-4 w-4" />
                   Authority Checklist
@@ -178,38 +204,6 @@ export default function DashboardPage() {
             <PersonalizedWidgets contractorId={parseInt(userId)} />
           </div>
         )}
-
-        {/* Glovebox Document Storage */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <FileText className="h-5 w-5" />
-              <span>Glovebox - Document Storage</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Button asChild variant="outline" className="h-20 flex-col">
-                <a href="/glovebox">
-                  <FileText className="h-6 w-6 mb-2" />
-                  <span className="text-sm">View Documents</span>
-                </a>
-              </Button>
-              <Button asChild variant="outline" className="h-20 flex-col">
-                <a href="/glovebox">
-                  <TrendingUp className="h-6 w-6 mb-2" />
-                  <span className="text-sm">Upload New</span>
-                </a>
-              </Button>
-              <Button asChild variant="outline" className="h-20 flex-col">
-                <a href="/glovebox">
-                  <Truck className="h-6 w-6 mb-2" />
-                  <span className="text-sm">Share Documents</span>
-                </a>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Background Check Section */}
         {userId && (

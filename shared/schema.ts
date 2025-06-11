@@ -17,7 +17,6 @@ export const sessions = pgTable(
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().notNull(),
   email: varchar("email").unique(),
-  phoneNumber: varchar("phone_number").unique(), // For SMS authentication
   name: varchar("name").notNull(), // Combined name field as per outline
   role: varchar("role").notNull().default("driver"), // driver | company | admin
   status: varchar("status").notNull().default("pending_verification"), // pending_verification | active | suspended
@@ -27,14 +26,6 @@ export const users = pgTable("users", {
   profileImageUrl: varchar("profile_image_url"),
   lastLoginAt: timestamp("last_login_at"),
   registrationSource: varchar("registration_source").default("web"),
-  // Subscription fields
-  subscriptionTier: varchar("subscription_tier").default("coffee"), // coffee | standard | professional | owner-operator
-  subscriptionStatus: varchar("subscription_status").default("inactive"), // inactive | active | canceled | past_due
-  stripeCustomerId: varchar("stripe_customer_id"),
-  stripeSubscriptionId: varchar("stripe_subscription_id"),
-  subscriptionStartDate: timestamp("subscription_start_date"),
-  subscriptionEndDate: timestamp("subscription_end_date"),
-  companyName: varchar("company_name"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

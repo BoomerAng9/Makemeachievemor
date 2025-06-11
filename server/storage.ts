@@ -55,8 +55,6 @@ import { eq, and, desc } from "drizzle-orm";
 export interface IStorage {
   // User operations (for authentication)
   getUser(id: string): Promise<User | undefined>;
-  getUserByPhone(phoneNumber: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
   upsertUser(user: UpsertUser): Promise<User>;
   
   // Contractor operations
@@ -131,10 +129,6 @@ export interface IStorage {
   getDriverLocation(userId: string): Promise<DriverLocation | undefined>;
   getNearbyDrivers(latitude: number, longitude: number, radiusMiles: number): Promise<DriverLocation[]>;
   
-  // Subscription operations
-  updateUserSubscription(userId: string, data: Partial<UpsertUser>): Promise<User>;
-  getCompanyOpportunities(userId: string): Promise<Opportunity[]>;
-
   // Admin operations
   getAdminStats(): Promise<any>;
   getAllUsers(search?: string, status?: string): Promise<User[]>;
@@ -149,22 +143,6 @@ export class DatabaseStorage implements IStorage {
   // User operations (for authentication)
   async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user;
-  }
-
-  async getUserByPhone(phoneNumber: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.phoneNumber, phoneNumber));
-    return user;
-  }
-
-  async createUser(userData: InsertUser): Promise<User> {
-    const [user] = await db
-      .insert(users)
-      .values({
-        ...userData,
-        id: `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-      })
-      .returning();
     return user;
   }
 
@@ -717,20 +695,6 @@ export class DatabaseStorage implements IStorage {
     // For now, just log the notification - can be enhanced with actual notification system
     console.log('Job Notification:', notificationData);
     return notificationData;
-  }
-
-  // Subscription operations
-  async updateUserSubscription(userId: string, data: Partial<UpsertUser>): Promise<User> {
-    const [user] = await db
-      .update(users)
-      .set({ ...data, updatedAt: new Date() })
-      .where(eq(users.id, userId))
-      .returning();
-    return user;
-  }
-
-  async getCompanyOpportunities(userId: string): Promise<Opportunity[]> {
-    return db.select().from(opportunities).where(eq(opportunities.posted_by, userId));
   }
 }
 

@@ -6,13 +6,7 @@ import path from "path";
 import { insertContractorSchema, insertVehicleSchema, insertDocumentSchema, insertOpportunitySchema, insertMessageSchema, insertJobAssignmentSchema } from "@shared/schema";
 import { z } from "zod";
 import { generateChatbotResponse } from "./chatbot";
-import {
-  sendCode,
-  verifyCode,
-  getCurrentUser,
-  logoutUser,
-  requireAuth,
-} from "./simpleAuth";
+import { setupAuth, isAuthenticated } from "./replitAuth";
 
 // Configure multer for file uploads
 const upload = multer({
@@ -30,81 +24,23 @@ const upload = multer({
   },
 });
 
-import cookieParser from 'cookie-parser';
-
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Configure cookie parser
-  app.use(cookieParser());
+  // Setup authentication
+  await setupAuth(app);
 
-  // Authentication routes
-  app.post('/api/auth/send-code', sendCode);
-  app.post('/api/auth/verify', verifyCode);
-  app.post('/api/auth/logout', logoutUser);
-  app.get('/api/auth/user', getCurrentUser);
-
-  // Admin routes
-  app.get('/api/admin/settings', async (req: any, res) => {
+  // Auth routes
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      // Return current global settings
-      res.json({
-        platformName: "Choose 2 ACHIEVEMOR",
-        platformDescription: "Peer - 2 - Peer Deployment Platform",
-        supportEmail: "contactus@achievemor.io",
-        supportPhone: "912-742-9459",
-        coffeeTierPrice: "4.30",
-        standardTierPrice: "29.99",
-        professionalTierPrice: "59.99",
-        ownerOperatorTierPrice: "99.99",
-        enableSmsAuth: true,
-        enableStripePayments: true,
-        enableBackgroundChecks: true,
-        enableGoogleMaps: true,
-        enableAiInsights: true,
-        maxActiveLoadsBasic: "1",
-        maxActiveLoadsStandard: "3",
-        maxActiveLoadsProfessional: "10",
-        jobLockTimeoutMinutes: "5",
-      });
-    } catch (error) {
-      console.error("Error fetching admin settings:", error);
-      res.status(500).json({ message: "Failed to fetch settings" });
-    }
-  });
-
-  app.post('/api/admin/settings', async (req: any, res) => {
-    try {
-      // In a full implementation, save settings to database
-      console.log("Admin settings updated:", req.body);
-      res.json({ message: "Settings updated successfully" });
-    } catch (error) {
-      console.error("Error updating admin settings:", error);
-      res.status(500).json({ message: "Failed to update settings" });
-    }
-  });
-
-  app.post('/api/admin/test-service/:service', async (req: any, res) => {
-    try {
-      const { service } = req.params;
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
       
-      switch (service) {
-        case 'stripe':
-          res.json({ message: "Stripe service test successful" });
-          break;
-        case 'twilio':
-          res.json({ message: "Twilio service test successful" });
-          break;
-        case 'googlemaps':
-          res.json({ message: "Google Maps service test successful" });
-          break;
-        case 'openai':
-          res.json({ message: "OpenAI service test successful" });
-          break;
-        default:
-          res.status(400).json({ message: "Unknown service" });
-      }
+      // Ensure contractor profile exists for this user
+      await ensureUserContractorProfile(user);
+      
+      res.json(user);
     } catch (error) {
-      console.error(`Error testing ${req.params.service}:`, error);
-      res.status(500).json({ message: `Failed to test ${req.params.service}` });
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
     }
   });
 
@@ -119,43 +55,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error ensuring contractor profile:", error);
     }
   }
-
-  // Driver registration route
-  app.post('/api/drivers/register', async (req, res) => {
-    try {
-      const driverData = insertContractorSchema.parse({
-        ...req.body,
-        role: 'driver',
-        status: 'pending_verification'
-      });
-      
-      const driver = await storage.createContractor(driverData);
-      
-      // Send notification email
-      try {
-        const { emailService } = await import("./emailService");
-        await emailService.sendRegistrationNotification({
-          ...driver,
-          email: driver.email || 'contactus@achievemor.io'
-        });
-      } catch (emailError) {
-        console.error('Failed to send registration notification:', emailError);
-      }
-      
-      res.json({ 
-        message: 'Driver registration successful', 
-        id: driver.id,
-        status: driver.verificationStatus || 'pending'
-      });
-    } catch (error) {
-      console.error('Error registering driver:', error);
-      if (error instanceof z.ZodError) {
-        res.status(400).json({ message: 'Validation error', errors: error.errors });
-      } else {
-        res.status(500).json({ message: 'Failed to register driver' });
-      }
-    }
-  });
 
   // Contractor routes
   app.post('/api/contractors', async (req, res) => {
@@ -496,10 +395,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Background check routes
-  app.post("/api/background-check/submit", requireAuth, async (req, res) => {
+  app.post("/api/background-check/submit", isAuthenticated, async (req, res) => {
     try {
       const { contractorId, checkType, personalInfo } = req.body;
-      const userId = req.user?.userId;
+      const userId = req.user?.claims?.sub;
       
       const { backgroundCheckService } = await import("./backgroundCheckService");
       const request = await backgroundCheckService.submitBackgroundCheck(
@@ -517,7 +416,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/background-check/contractor/:id", requireAuth, async (req, res) => {
+  app.get("/api/background-check/contractor/:id", isAuthenticated, async (req, res) => {
     try {
       const contractorId = parseInt(req.params.id);
       const results = await storage.getContractorBackgroundCheckResults(contractorId);
@@ -543,7 +442,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/background-check/status/:requestId", requireAuth, async (req, res) => {
+  app.get("/api/background-check/status/:requestId", isAuthenticated, async (req, res) => {
     try {
       const requestId = parseInt(req.params.requestId);
       const { backgroundCheckService } = await import("./backgroundCheckService");
@@ -556,85 +455,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Stripe payment routes
-  app.post("/api/create-payment-intent", async (req, res) => {
-    try {
-      const Stripe = (await import("stripe")).default;
-      
-      if (!process.env.STRIPE_SECRET_KEY) {
-        throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
-      }
-      
-      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-        apiVersion: "2025-05-28.basil",
-      });
-
-      const { amount, planId, billing } = req.body;
-      
-      const paymentIntent = await stripe.paymentIntents.create({
-        amount: Math.round(amount * 100), // Convert to cents
-        currency: "usd",
-        metadata: {
-          planId,
-          billing,
-        },
-      });
-      
-      res.json({ clientSecret: paymentIntent.client_secret });
-    } catch (error: any) {
-      console.error("Error creating payment intent:", error);
-      res.status(500).json({ 
-        message: "Error creating payment intent: " + error.message 
-      });
-    }
-  });
-
-  app.post("/api/create-subscription", async (req, res) => {
-    try {
-      const Stripe = (await import("stripe")).default;
-      
-      if (!process.env.STRIPE_SECRET_KEY) {
-        throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
-      }
-      
-      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-        apiVersion: "2025-05-28.basil",
-      });
-
-      const { email, planId, billing } = req.body;
-      
-      // Create customer
-      const customer = await stripe.customers.create({
-        email,
-      });
-
-      // For now, create a payment intent for one-time setup
-      // In production, you'd create actual subscription products in Stripe
-      const paymentIntent = await stripe.paymentIntents.create({
-        amount: 2999, // Example amount in cents
-        currency: "usd",
-        customer: customer.id,
-        metadata: {
-          planId,
-          billing,
-          type: 'subscription_setup'
-        },
-      });
-      
-      res.json({ 
-        clientSecret: paymentIntent.client_secret,
-        customerId: customer.id 
-      });
-    } catch (error: any) {
-      console.error("Error creating subscription:", error);
-      res.status(500).json({ 
-        message: "Error creating subscription: " + error.message 
-      });
-    }
-  });
-
   // AI Insights routes
-  app.get("/api/insights/contractor/:id", requireAuth, async (req, res) => {
+  app.get("/api/insights/contractor/:id", isAuthenticated, async (req, res) => {
     try {
       const contractorId = parseInt(req.params.id);
       const { aiInsightsService } = await import("./aiInsightsService");
@@ -647,7 +469,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/insights/quick-actions/:id", requireAuth, async (req, res) => {
+  app.get("/api/insights/quick-actions/:id", isAuthenticated, async (req, res) => {
     try {
       const contractorId = parseInt(req.params.id);
       const { aiInsightsService } = await import("./aiInsightsService");
@@ -660,7 +482,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/insights/performance/:id", requireAuth, async (req, res) => {
+  app.get("/api/insights/performance/:id", isAuthenticated, async (req, res) => {
     try {
       const contractorId = parseInt(req.params.id);
       const { aiInsightsService } = await import("./aiInsightsService");
@@ -673,7 +495,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/insights/risks/:id", requireAuth, async (req, res) => {
+  app.get("/api/insights/risks/:id", isAuthenticated, async (req, res) => {
     try {
       const contractorId = parseInt(req.params.id);
       const { aiInsightsService } = await import("./aiInsightsService");
@@ -687,7 +509,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Driver checklist progress routes
-  app.get('/api/driver-checklist/progress', requireAuth, async (req: any, res) => {
+  app.get('/api/driver-checklist/progress', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const progress = await storage.getDriverChecklistProgress(userId);
@@ -698,7 +520,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/driver-checklist/progress', requireAuth, async (req: any, res) => {
+  app.post('/api/driver-checklist/progress', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const { checklistData, completionPercentage, isCompleted } = req.body;
@@ -719,7 +541,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/driver-checklist/progress', requireAuth, async (req: any, res) => {
+  app.delete('/api/driver-checklist/progress', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       await storage.clearDriverChecklistProgress(userId);
@@ -731,7 +553,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Glovebox document storage routes
-  app.get('/api/glovebox/documents', requireAuth, async (req: any, res) => {
+  app.get('/api/glovebox/documents', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const documents = await storage.getUserDocuments(userId);
@@ -742,7 +564,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/glovebox/upload', requireAuth, upload.single('file'), async (req: any, res) => {
+  app.post('/api/glovebox/upload', isAuthenticated, upload.single('file'), async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const file = req.file;
@@ -782,7 +604,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/glovebox/documents/:id', requireAuth, async (req: any, res) => {
+  app.delete('/api/glovebox/documents/:id', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const documentId = parseInt(req.params.id);
@@ -795,7 +617,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/glovebox/share', requireAuth, async (req: any, res) => {
+  app.post('/api/glovebox/share', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const { documentIds, recipientCompany, recipientEmail, message, expiresIn, maxViews } = req.body;
@@ -828,7 +650,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/glovebox/shares', requireAuth, async (req: any, res) => {
+  app.get('/api/glovebox/shares', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const shares = await storage.getActiveDocumentShares(userId);
@@ -840,7 +662,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Google Maps location services routes
-  app.get('/api/location/driver', requireAuth, async (req: any, res) => {
+  app.get('/api/location/driver', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const location = await storage.getDriverLocation(userId);
@@ -851,7 +673,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/location/update', requireAuth, async (req: any, res) => {
+  app.post('/api/location/update', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const { address, vehicleType, maxDistance, isAvailable } = req.body;
@@ -880,7 +702,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/location/nearby-loads', requireAuth, async (req: any, res) => {
+  app.get('/api/location/nearby-loads', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const maxDistance = parseInt(req.query.maxDistance as string) || 100;
@@ -925,7 +747,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/location/calculate-route', requireAuth, async (req: any, res) => {
+  app.post('/api/location/calculate-route', isAuthenticated, async (req: any, res) => {
     try {
       const { stops } = req.body;
 
@@ -965,7 +787,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   };
 
   // Admin API routes
-  app.get('/api/admin/stats', requireAuth, isAdmin, async (req, res) => {
+  app.get('/api/admin/stats', isAuthenticated, isAdmin, async (req, res) => {
     try {
       const stats = await storage.getAdminStats();
       res.json(stats);
@@ -975,7 +797,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/admin/users', requireAuth, isAdmin, async (req, res) => {
+  app.get('/api/admin/users', isAuthenticated, isAdmin, async (req, res) => {
     try {
       const { search, status } = req.query;
       const users = await storage.getAllUsers(search as string, status as string);
@@ -986,7 +808,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/admin/users/:userId/action', requireAuth, isAdmin, async (req: any, res) => {
+  app.post('/api/admin/users/:userId/action', isAuthenticated, isAdmin, async (req: any, res) => {
     try {
       const { userId } = req.params;
       const { action, reason } = req.body;
@@ -1011,7 +833,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/admin/activity', requireAuth, isAdmin, async (req, res) => {
+  app.get('/api/admin/activity', isAuthenticated, isAdmin, async (req, res) => {
     try {
       const activityLog = await storage.getAdminActivityLog();
       res.json(activityLog);

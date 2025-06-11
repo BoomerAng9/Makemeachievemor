@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Chatbot } from "@/components/ui/chatbot";
+import { UniversalNav } from "@/components/UniversalNav";
 import { ArrowLeft, ExternalLink, Zap, Brain, Users, Rocket, Globe, Code2, Building2, GraduationCap } from "lucide-react";
 import deployLogo from "@assets/528362B4-B765-4BF2-A013-74B78A6A50B1_1749583627659.png";
 

@@ -43,7 +43,7 @@ export default function LandingPage() {
               </div>
               <div>
                 <h1 className="text-xl font-bold text-gray-900">Choose 2 ACHIEVEMOR</h1>
-                <p className="text-xs text-gray-500">Peer - 2 - Peer Deployment Platform</p>
+                <p className="text-xs text-gray-500">Owner Operator Platform</p>
               </div>
             </div>
             
@@ -126,10 +126,10 @@ export default function LandingPage() {
                   912-742-9459
                 </a>
                 <Button 
-                  asChild
+                  onClick={() => window.location.href = '/api/login'}
                   className="bg-primary hover:bg-primary/90 mx-2"
                 >
-                  <Link href="/login">Sign In</Link>
+                  Sign In
                 </Button>
               </div>
             </div>
@@ -144,16 +144,11 @@ export default function LandingPage() {
             <div className="text-left">
               <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
                 Choose 2 ACHIEVEMOR
-                <span className="block text-primary text-center">
-                  Peer - 2 - Peer
-                  <br />
-                  Deployment Platform
-                </span>
+                <span className="block text-primary">Owner Operator Platform</span>
               </h1>
               <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-                Revolutionary peer-to-peer deployment platform connecting independent contractors 
-                with business opportunities. Authority setup, compliance management, load matching, 
-                and AI-powered business intelligence for the modern transportation industry.
+                Comprehensive onboarding platform for owner operator independent contractors. 
+                Compliance verification, job opportunities, and business growth services.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button 
@@ -257,7 +252,7 @@ export default function LandingPage() {
                     asChild
                     className="w-full bg-primary hover:bg-primary/90"
                   >
-                    <Link href="/register/driver">Join as Driver</Link>
+                    <Link href="/register/contractor">Join as Driver</Link>
                   </Button>
                   <p className="text-center text-sm text-gray-500 mt-2">
                     CDL required • Background check • Quick approval

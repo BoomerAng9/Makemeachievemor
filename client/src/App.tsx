@@ -17,15 +17,7 @@ import MasterSetup from "@/pages/admin/MasterSetup";
 import AdminAccess from "@/pages/AdminAccess";
 import SitemapPage from "@/pages/sitemap";
 import RegisterContractorPage from "@/pages/register-contractor";
-import RegisterDriverPage from "@/pages/register-driver";
 import RegisterCompanyPage from "@/pages/register-company";
-import LoginPage from "@/pages/Login";
-import PricingPage from "@/pages/Pricing";
-import CheckoutPage from "@/pages/Checkout";
-import AccountSettingsPage from "@/pages/AccountSettings";
-import CompanyDashboard from "@/pages/CompanyDashboard";
-import AdminPanel from "@/pages/admin/AdminPanel";
-import GlobalSettings from "@/pages/admin/GlobalSettings";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -35,13 +27,9 @@ function Router() {
       {isLoading || !isAuthenticated ? (
         <>
           <Route path="/" component={LandingPage} />
-          <Route path="/login" component={LoginPage} />
-          <Route path="/pricing" component={PricingPage} />
-          <Route path="/checkout" component={CheckoutPage} />
           <Route path="/about" component={AboutPage} />
           <Route path="/sitemap" component={SitemapPage} />
-          <Route path="/contractor-checklist" component={DriverChecklistPage} />
-          <Route path="/register/driver" component={RegisterDriverPage} />
+          <Route path="/driver-checklist" component={DriverChecklistPage} />
           <Route path="/register/contractor" component={RegisterContractorPage} />
           <Route path="/register/company" component={RegisterCompanyPage} />
           <Route path="/admin/setup" component={MasterSetup} />
@@ -51,19 +39,13 @@ function Router() {
       ) : (
         <>
           <Route path="/" component={DashboardPage} />
-          <Route path="/company-dashboard" component={CompanyDashboard} />
-          <Route path="/pricing" component={PricingPage} />
-          <Route path="/checkout" component={CheckoutPage} />
-          <Route path="/account-settings" component={AccountSettingsPage} />
           <Route path="/about" component={AboutPage} />
           <Route path="/sitemap" component={SitemapPage} />
           <Route path="/dashboard/:contractorId" component={DashboardPage} />
-          <Route path="/contractor-checklist" component={DriverChecklistPage} />
+          <Route path="/driver-checklist" component={DriverChecklistPage} />
           <Route path="/glovebox" component={GloveboxPage} />
           <Route path="/driver-location" component={DriverLocationPage} />
-          <Route path="/admin" component={AdminPanel} />
-          <Route path="/admin/dashboard" component={AdminDashboard} />
-          <Route path="/admin/settings" component={GlobalSettings} />
+          <Route path="/admin" component={AdminDashboard} />
           <Route path="/admin/setup" component={MasterSetup} />
           <Route path="/onboarding" component={OnboardingPage} />
         </>

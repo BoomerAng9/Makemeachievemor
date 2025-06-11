@@ -7,9 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { UniversalNav } from "@/components/UniversalNav";
 import { Building2, Users, MapPin, ArrowLeft, Package } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { UniversalNav } from "@/components/UniversalNav";
 
 export default function RegisterCompanyPage() {
   const [formData, setFormData] = useState({
@@ -450,8 +450,28 @@ export default function RegisterCompanyPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <UniversalNav />
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white shadow-sm border-b border-gray-200">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center space-x-3">
+              <Button variant="ghost" size="sm" asChild>
+                <Link href="/">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Home
+                </Link>
+              </Button>
+            </div>
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                <Building2 className="text-white h-4 w-4" />
+              </div>
+              <span className="text-lg font-bold text-gray-900">ACHIEVEMOR</span>
+            </div>
+          </div>
+        </div>
+      </header>
 
       {/* Main Content */}
       <main className="max-w-4xl mx-auto px-4 py-8">
