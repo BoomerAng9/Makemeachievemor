@@ -130,6 +130,10 @@ export interface IStorage {
   getDriverLocation(userId: string): Promise<DriverLocation | undefined>;
   getNearbyDrivers(latitude: number, longitude: number, radiusMiles: number): Promise<DriverLocation[]>;
   
+  // Subscription operations
+  updateUserSubscription(userId: string, data: Partial<UpsertUser>): Promise<User>;
+  getCompanyOpportunities(userId: string): Promise<Opportunity[]>;
+
   // Admin operations
   getAdminStats(): Promise<any>;
   getAllUsers(search?: string, status?: string): Promise<User[]>;

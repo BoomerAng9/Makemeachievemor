@@ -203,6 +203,38 @@ export default function DashboardPage() {
           </div>
         )}
 
+        {/* Glovebox Document Storage */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <FileText className="h-5 w-5" />
+              <span>Glovebox - Document Storage</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Button asChild variant="outline" className="h-20 flex-col">
+                <a href="/glovebox">
+                  <FileText className="h-6 w-6 mb-2" />
+                  <span className="text-sm">View Documents</span>
+                </a>
+              </Button>
+              <Button asChild variant="outline" className="h-20 flex-col">
+                <a href="/glovebox">
+                  <TrendingUp className="h-6 w-6 mb-2" />
+                  <span className="text-sm">Upload New</span>
+                </a>
+              </Button>
+              <Button asChild variant="outline" className="h-20 flex-col">
+                <a href="/glovebox">
+                  <Truck className="h-6 w-6 mb-2" />
+                  <span className="text-sm">Share Documents</span>
+                </a>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Background Check Section */}
         {userId && (
           <div className="space-y-4 sm:space-y-6">
