@@ -133,6 +133,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Send notification email
       try {
+        const { emailService } = await import("./emailService");
         await emailService.sendRegistrationNotification({
           ...driver,
           email: driver.email || 'contactus@achievemor.io'
@@ -552,6 +553,83 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Status check error:", error);
       res.status(500).json({ message: "Failed to check status" });
+    }
+  });
+
+  // Stripe payment routes
+  app.post("/api/create-payment-intent", async (req, res) => {
+    try {
+      const Stripe = (await import("stripe")).default;
+      
+      if (!process.env.STRIPE_SECRET_KEY) {
+        throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
+      }
+      
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+        apiVersion: "2025-05-28.basil",
+      });
+
+      const { amount, planId, billing } = req.body;
+      
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: Math.round(amount * 100), // Convert to cents
+        currency: "usd",
+        metadata: {
+          planId,
+          billing,
+        },
+      });
+      
+      res.json({ clientSecret: paymentIntent.client_secret });
+    } catch (error: any) {
+      console.error("Error creating payment intent:", error);
+      res.status(500).json({ 
+        message: "Error creating payment intent: " + error.message 
+      });
+    }
+  });
+
+  app.post("/api/create-subscription", async (req, res) => {
+    try {
+      const Stripe = (await import("stripe")).default;
+      
+      if (!process.env.STRIPE_SECRET_KEY) {
+        throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
+      }
+      
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+        apiVersion: "2025-05-28.basil",
+      });
+
+      const { email, planId, billing } = req.body;
+      
+      // Create customer
+      const customer = await stripe.customers.create({
+        email,
+      });
+
+      // For now, create a payment intent for one-time setup
+      // In production, you'd create actual subscription products in Stripe
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: 2999, // Example amount in cents
+        currency: "usd",
+        customer: customer.id,
+        metadata: {
+          planId,
+          billing,
+          type: 'subscription_setup'
+        },
+      });
+      
+      res.json({ 
+        clientSecret: paymentIntent.client_secret,
+        customerId: customer.id 
+      });
+    } catch (error: any) {
+      console.error("Error creating subscription:", error);
+      res.status(500).json({ 
+        message: "Error creating subscription: " + error.message 
+      });
     }
   });
 
