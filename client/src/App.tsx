@@ -18,6 +18,7 @@ import AdminAccess from "@/pages/AdminAccess";
 import SitemapPage from "@/pages/sitemap";
 import RegisterContractorPage from "@/pages/register-contractor";
 import RegisterCompanyPage from "@/pages/register-company";
+import LoginPage from "@/pages/Login";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -27,6 +28,7 @@ function Router() {
       {isLoading || !isAuthenticated ? (
         <>
           <Route path="/" component={LandingPage} />
+          <Route path="/login" component={LoginPage} />
           <Route path="/about" component={AboutPage} />
           <Route path="/sitemap" component={SitemapPage} />
           <Route path="/driver-checklist" component={DriverChecklistPage} />

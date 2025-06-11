@@ -6,7 +6,14 @@ import path from "path";
 import { insertContractorSchema, insertVehicleSchema, insertDocumentSchema, insertOpportunitySchema, insertMessageSchema, insertJobAssignmentSchema } from "@shared/schema";
 import { z } from "zod";
 import { generateChatbotResponse } from "./chatbot";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { 
+  getSMSAuthSession, 
+  isAuthenticated, 
+  requestVerificationCode, 
+  verifyCode, 
+  getCurrentUser, 
+  logout 
+} from "./smsAuth";
 
 // Configure multer for file uploads
 const upload = multer({
@@ -25,24 +32,15 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Setup authentication
-  await setupAuth(app);
+  // Session middleware for SMS auth
+  app.use(getSMSAuthSession());
 
-  // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      
-      // Ensure contractor profile exists for this user
-      await ensureUserContractorProfile(user);
-      
-      res.json(user);
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      res.status(500).json({ message: "Failed to fetch user" });
-    }
-  });
+  // SMS Auth routes
+  app.post('/api/auth/request-code', requestVerificationCode);
+  app.post('/api/auth/verify-code', verifyCode);
+  app.post('/api/auth/logout', logout);
+  
+  app.get('/api/auth/user', isAuthenticated, getCurrentUser);
 
   // Helper function to ensure contractor profile exists
   async function ensureUserContractorProfile(user: any) {
