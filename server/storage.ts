@@ -706,6 +706,20 @@ export class DatabaseStorage implements IStorage {
     console.log('Job Notification:', notificationData);
     return notificationData;
   }
+
+  // Subscription operations
+  async updateUserSubscription(userId: string, data: Partial<UpsertUser>): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
+  }
+
+  async getCompanyOpportunities(userId: string): Promise<Opportunity[]> {
+    return db.select().from(opportunities).where(eq(opportunities.posted_by, userId));
+  }
 }
 
 export const storage = new DatabaseStorage();
