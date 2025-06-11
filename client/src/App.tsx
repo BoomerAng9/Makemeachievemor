@@ -40,6 +40,7 @@ function Router() {
           <Route path="/about" component={AboutPage} />
           <Route path="/sitemap" component={SitemapPage} />
           <Route path="/contractor-checklist" component={DriverChecklistPage} />
+          <Route path="/register/driver" component={RegisterContractorPage} />
           <Route path="/register/contractor" component={RegisterContractorPage} />
           <Route path="/register/company" component={RegisterCompanyPage} />
           <Route path="/admin/setup" component={MasterSetup} />

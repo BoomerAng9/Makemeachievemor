@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { UniversalNav } from "@/components/UniversalNav";
 import { 
   Plus, 
   Truck, 
@@ -126,26 +127,8 @@ export default function CompanyDashboard() {
   const canPostMore = limits.activeLoads === -1 || activeLoads < limits.activeLoads;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b border-gray-200 p-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Company Dashboard</h1>
-              <p className="text-gray-600">{user.companyName || "Your Company"}</p>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Badge variant="outline" className="text-sm">
-                {userPlan.charAt(0).toUpperCase() + userPlan.slice(1)} Plan
-              </Badge>
-              <Badge variant={user.status === "active" ? "default" : "secondary"}>
-                {user.status.replace("_", " ").replace(/\b\w/g, l => l.toUpperCase())}
-              </Badge>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div className="min-h-screen bg-gray-50 p-4">
+      <UniversalNav showBackButton={false} title="ACHIEVEMOR - Company Dashboard" />
 
       <div className="max-w-7xl mx-auto p-6">
         <Tabs value={activeTab} onValueChange={setActiveTab}>

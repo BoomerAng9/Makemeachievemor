@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { UniversalNav } from "@/components/UniversalNav";
 
 export default function DashboardPage() {
   const { contractorId } = useParams();
@@ -45,33 +46,8 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-                <Truck className="text-white h-5 w-5" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">ACHIEVEMOR</h1>
-                <p className="text-xs text-gray-500">Contractor Portal</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <a 
-                href="tel:912-742-9459" 
-                className="text-accent hover:text-gray-900 transition-colors flex items-center"
-              >
-                <Phone className="h-4 w-4 mr-2" />
-                <span className="hidden sm:inline">912-742-9459</span>
-              </a>
-              <Button variant="outline">Sign Out</Button>
-            </div>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-gray-50 p-4">
+      <UniversalNav showBackButton={false} title="ACHIEVEMOR - Contractor Portal" />
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 py-8">
