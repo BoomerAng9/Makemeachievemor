@@ -11,6 +11,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { Phone, MessageSquare, ArrowLeft, Home } from "lucide-react";
+import { UniversalNav } from "@/components/UniversalNav";
 
 const phoneSchema = z.object({
   phoneNumber: z.string().min(10, "Phone number must be at least 10 digits"),
@@ -181,32 +182,11 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        {/* Navigation */}
-        <div className="flex items-center justify-between mb-6">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => step === "verification" ? setStep("phone") : setLocation("/")}
-            className="flex items-center space-x-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            <span>Back</span>
-          </Button>
-          
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setLocation("/")}
-            className="flex items-center space-x-2"
-          >
-            <Home className="h-4 w-4" />
-            <span>Home</span>
-          </Button>
-        </div>
-
-        <Card>
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white p-4">
+      <UniversalNav />
+      <div className="flex items-center justify-center">
+        <div className="w-full max-w-md">
+          <Card>
           <CardHeader className="text-center">
             <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center mx-auto mb-4">
               {step === "phone" ? (
@@ -350,6 +330,7 @@ export default function LoginPage() {
             </div>
           </CardContent>
         </Card>
+        </div>
       </div>
     </div>
   );
