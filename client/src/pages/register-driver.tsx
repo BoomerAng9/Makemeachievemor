@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Truck, Shield, ArrowLeft, ArrowRight, CheckCircle } from "lucide-react";
+import { Truck, CheckCircle, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { UniversalNav } from "@/components/UniversalNav";
 
@@ -28,7 +28,6 @@ export default function RegisterDriverPage() {
     agreedToBackground: false
   });
   
-  const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
@@ -36,8 +35,23 @@ export default function RegisterDriverPage() {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = async () => {
-    if (!isStepValid()) {
+  const isFormValid = () => {
+    return formData.firstName && 
+           formData.lastName && 
+           formData.email && 
+           formData.phone && 
+           formData.street && 
+           formData.city && 
+           formData.state && 
+           formData.zipCode && 
+           formData.agreedToTerms && 
+           formData.agreedToBackground;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!isFormValid()) {
       toast({
         title: "Form Incomplete",
         description: "Please fill in all required fields.",
@@ -52,6 +66,7 @@ export default function RegisterDriverPage() {
       const submitData = {
         ...formData,
         country: "US",
+        dateOfBirth: formData.dateOfBirth || "1990-01-01",
         dotNumber: formData.dotNumber || "",
         mcNumber: formData.mcNumber || "",
         cdlClass: formData.cdlClass || "A",
@@ -90,7 +105,6 @@ export default function RegisterDriverPage() {
           agreedToTerms: false,
           agreedToBackground: false
         });
-        setCurrentStep(1);
       } else {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Registration failed');
@@ -104,27 +118,6 @@ export default function RegisterDriverPage() {
       });
     } finally {
       setIsSubmitting(false);
-    }
-  };
-
-  const nextStep = () => {
-    if (currentStep < 3) setCurrentStep(currentStep + 1);
-  };
-
-  const prevStep = () => {
-    if (currentStep > 1) setCurrentStep(currentStep - 1);
-  };
-
-  const isStepValid = () => {
-    switch (currentStep) {
-      case 1:
-        return formData.firstName && formData.lastName && formData.email && formData.phone;
-      case 2:
-        return formData.street && formData.city && formData.state && formData.zipCode;
-      case 3:
-        return formData.agreedToTerms && formData.agreedToBackground;
-      default:
-        return false;
     }
   };
 
@@ -144,29 +137,11 @@ export default function RegisterDriverPage() {
             <p className="text-gray-600 mt-2">
               Join the ACHIEVEMOR network as an Owner Operator Driver
             </p>
-            
-            {/* Progress Indicators */}
-            <div className="flex items-center justify-center mt-6 space-x-4">
-              {[1, 2, 3].map((step) => (
-                <div key={step} className="flex items-center">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                    step <= currentStep ? 'bg-primary text-white' : 'bg-gray-200 text-gray-500'
-                  }`}>
-                    {step}
-                  </div>
-                  {step < 3 && (
-                    <div className={`w-12 h-1 ${
-                      step < currentStep ? 'bg-primary' : 'bg-gray-200'
-                    }`} />
-                  )}
-                </div>
-              ))}
-            </div>
           </CardHeader>
           
-          <CardContent className="space-y-6">
-            {/* Step 1: Personal Information */}
-            {currentStep === 1 && (
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Personal Information */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Personal Information</h3>
                 
@@ -227,12 +202,10 @@ export default function RegisterDriverPage() {
                   />
                 </div>
               </div>
-            )}
 
-            {/* Step 2: Address & Professional Info */}
-            {currentStep === 2 && (
+              {/* Address Information */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Address & Professional Information</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Address Information</h3>
                 
                 <div>
                   <Label htmlFor="street">Street Address *</Label>
@@ -288,7 +261,12 @@ export default function RegisterDriverPage() {
                     required
                   />
                 </div>
+              </div>
 
+              {/* Professional Information */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Professional Information</h3>
+                
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="dotNumber">DOT Number</Label>
@@ -339,10 +317,8 @@ export default function RegisterDriverPage() {
                   </Select>
                 </div>
               </div>
-            )}
 
-            {/* Step 3: Terms & Agreements */}
-            {currentStep === 3 && (
+              {/* Terms & Agreements */}
               <div className="space-y-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Terms & Agreements</h3>
                 
@@ -386,40 +362,28 @@ export default function RegisterDriverPage() {
                   </div>
                 </div>
               </div>
-            )}
 
-            {/* Navigation Buttons */}
-            <div className="flex justify-between pt-6 border-t">
-              <Button 
-                variant="outline" 
-                onClick={prevStep} 
-                disabled={currentStep === 1}
-                className="flex items-center gap-2"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Previous
-              </Button>
-              
-              {currentStep < 3 ? (
+              {/* Submit Button */}
+              <div className="pt-6 border-t">
                 <Button 
-                  onClick={nextStep} 
-                  disabled={!isStepValid()}
-                  className="flex items-center gap-2"
+                  type="submit"
+                  disabled={!isFormValid() || isSubmitting}
+                  className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700"
                 >
-                  Next Step
-                  <ArrowRight className="h-4 w-4" />
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Submitting...
+                    </>
+                  ) : (
+                    <>
+                      Complete Registration
+                      <CheckCircle className="h-4 w-4" />
+                    </>
+                  )}
                 </Button>
-              ) : (
-                <Button 
-                  onClick={handleSubmit} 
-                  disabled={!isStepValid() || isSubmitting}
-                  className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
-                >
-                  {isSubmitting ? "Submitting..." : "Complete Registration"}
-                  <CheckCircle className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
+              </div>
+            </form>
           </CardContent>
         </Card>
       </div>
