@@ -643,3 +643,14 @@ export type InsertDocumentShare = z.infer<typeof insertDocumentShareSchema>;
 
 export type DriverChecklistProgress = typeof driverChecklistProgress.$inferSelect;
 export type InsertDriverChecklistProgress = z.infer<typeof insertDriverChecklistProgressSchema>;
+
+// Application Settings table
+export const applicationSettings = pgTable('application_settings', {
+  key: varchar('key').primaryKey(),
+  value: jsonb('value'),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+export type ApplicationSetting = typeof applicationSettings.$inferSelect;
+export type InsertApplicationSetting = typeof applicationSettings.$inferInsert;
+
+export const insertApplicationSettingSchema = createInsertSchema(applicationSettings);

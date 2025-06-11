@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { config } from "./config";
 import multer from "multer";
 import path from "path";
 import { insertContractorSchema, insertVehicleSchema, insertDocumentSchema, insertOpportunitySchema, insertMessageSchema, insertJobAssignmentSchema } from "@shared/schema";
@@ -13,12 +14,38 @@ import {
   logoutUser,
   requireAuth,
 } from "./simpleAuth";
+import { getFileStorageService } from "./services/fileStorageService";
+import {
+  OpportunityService,
+  JobNotFoundError,
+  InvalidJobStateError,
+  JobLockedError,
+  PermissionDeniedError,
+  InvalidStateTransitionError
+} from "./services/opportunityService";
+import os from 'os';
 
 // Configure multer for file uploads
-const upload = multer({
-  dest: 'uploads/',
+// const upload = multer({ // Original configuration
+//   dest: 'uploads/',
+//   limits: {
+//     fileSize: config.UPLOAD_MAX_FILE_SIZE_MB * 1024 * 1024,
+//   },
+//   fileFilter: (req, file, cb) => {
+//     // Allow images and PDFs
+//     if (file.mimetype.startsWith('image/') || file.mimetype === 'application/pdf') {
+//       cb(null, true);
+//     } else {
+//       cb(new Error('Only images and PDF files are allowed'));
+//     }
+//   },
+// });
+
+// New multer configuration for temporary uploads
+const tmpUpload = multer({
+  dest: os.tmpdir(),
   limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB limit
+    fileSize: config.UPLOAD_MAX_FILE_SIZE_MB * 1024 * 1024,
   },
   fileFilter: (req, file, cb) => {
     // Allow images and PDFs
@@ -36,6 +63,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Configure cookie parser
   app.use(cookieParser());
 
+  // Instantiate services
+  const opportunityService = new OpportunityService(storage);
+
   // Authentication routes
   app.post('/api/auth/send-code', sendCode);
   app.post('/api/auth/verify', verifyCode);
@@ -45,36 +75,91 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin routes
   app.get('/api/admin/settings', async (req: any, res) => {
     try {
-      // Return current global settings
-      res.json({
-        platformName: "Choose 2 ACHIEVEMOR",
-        platformDescription: "Peer - 2 - Peer Deployment Platform",
-        supportEmail: "contactus@achievemor.io",
-        supportPhone: "912-742-9459",
-        coffeeTierPrice: "4.30",
-        standardTierPrice: "29.99",
-        professionalTierPrice: "59.99",
-        ownerOperatorTierPrice: "99.99",
-        enableSmsAuth: true,
-        enableStripePayments: true,
-        enableBackgroundChecks: true,
-        enableGoogleMaps: true,
-        enableAiInsights: true,
-        maxActiveLoadsBasic: "1",
-        maxActiveLoadsStandard: "3",
-        maxActiveLoadsProfessional: "10",
-        jobLockTimeoutMinutes: "5",
-      });
+      const dbSettingsRaw = await storage.getAllApplicationSettings();
+      const dbSettings = dbSettingsRaw.reduce((acc, setting) => {
+        acc[setting.key] = setting.value;
+        return acc;
+      }, {} as Record<string, any>);
+
+      // Helper to parse boolean from various potential DB stored values
+      const parseBool = (value: any, defaultValue: boolean): boolean => {
+        if (typeof value === 'boolean') return value;
+        if (typeof value === 'string') return value.toLowerCase() === 'true';
+        return defaultValue;
+      };
+
+      // Helper to parse int from various potential DB stored values
+      const parseIntVal = (value: any, defaultValue: number): number => {
+        if (typeof value === 'number') return value;
+        if (typeof value === 'string') {
+          const parsed = parseInt(value, 10);
+          return isNaN(parsed) ? defaultValue : parsed;
+        }
+        return defaultValue;
+      };
+
+      const liveSettings = {
+        platformName: dbSettings.PLATFORM_NAME ?? config.PLATFORM_NAME,
+        platformDescription: dbSettings.PLATFORM_DESCRIPTION ?? config.PLATFORM_DESCRIPTION,
+        supportEmail: dbSettings.SUPPORT_EMAIL ?? config.SUPPORT_EMAIL,
+        supportPhone: dbSettings.SUPPORT_PHONE ?? config.SUPPORT_PHONE,
+        adminEmailRecipient: dbSettings.ADMIN_EMAIL_RECIPIENT ?? config.ADMIN_EMAIL_RECIPIENT,
+
+        priceTierCoffee: dbSettings.PRICE_TIER_COFFEE ?? config.PRICE_TIER_COFFEE,
+        priceTierStandard: dbSettings.PRICE_TIER_STANDARD ?? config.PRICE_TIER_STANDARD,
+        priceTierProfessional: dbSettings.PRICE_TIER_PROFESSIONAL ?? config.PRICE_TIER_PROFESSIONAL,
+        priceTierOwnerOperator: dbSettings.PRICE_TIER_OWNER_OPERATOR ?? config.PRICE_TIER_OWNER_OPERATOR,
+
+        featureSmsAuthEnabled: parseBool(dbSettings.FEATURE_SMS_AUTH_ENABLED, config.FEATURE_SMS_AUTH_ENABLED),
+        featureStripePaymentsEnabled: parseBool(dbSettings.FEATURE_STRIPE_PAYMENTS_ENABLED, config.FEATURE_STRIPE_PAYMENTS_ENABLED),
+        featureBackgroundChecksEnabled: parseBool(dbSettings.FEATURE_BACKGROUND_CHECKS_ENABLED, config.FEATURE_BACKGROUND_CHECKS_ENABLED),
+        featureGoogleMapsEnabled: parseBool(dbSettings.FEATURE_GOOGLE_MAPS_ENABLED, config.FEATURE_GOOGLE_MAPS_ENABLED),
+        featureAiInsightsEnabled: parseBool(dbSettings.FEATURE_AI_INSIGHTS_ENABLED, config.FEATURE_AI_INSIGHTS_ENABLED),
+
+        maxActiveLoadsBasic: dbSettings.MAX_ACTIVE_LOADS_BASIC ?? config.MAX_ACTIVE_LOADS_BASIC,
+        maxActiveLoadsStandard: dbSettings.MAX_ACTIVE_LOADS_STANDARD ?? config.MAX_ACTIVE_LOADS_STANDARD,
+        maxActiveLoadsProfessional: dbSettings.MAX_ACTIVE_LOADS_PROFESSIONAL ?? config.MAX_ACTIVE_LOADS_PROFESSIONAL,
+        jobLockTimeoutMinutes: dbSettings.JOB_LOCK_TIMEOUT_MINUTES ?? config.JOB_LOCK_TIMEOUT_MINUTES,
+        uploadMaxFileSizeMb: parseIntVal(dbSettings.UPLOAD_MAX_FILE_SIZE_MB, config.UPLOAD_MAX_FILE_SIZE_MB),
+
+        sessionCookieMaxAgeHours: parseIntVal(dbSettings.SESSION_COOKIE_MAX_AGE_HOURS, config.SESSION_COOKIE_MAX_AGE_HOURS),
+        sessionCookieSecure: parseBool(dbSettings.SESSION_COOKIE_SECURE, config.SESSION_COOKIE_SECURE),
+        defaultEmailDomainForPhoneUsers: dbSettings.DEFAULT_EMAIL_DOMAIN_FOR_PHONE_USERS ?? config.DEFAULT_EMAIL_DOMAIN_FOR_PHONE_USERS,
+
+        openaiModelName: dbSettings.OPENAI_MODEL_NAME ?? config.OPENAI_MODEL_NAME,
+        backgroundCheckDefaultProviderId: parseIntVal(dbSettings.BACKGROUND_CHECK_DEFAULT_PROVIDER_ID, config.BACKGROUND_CHECK_DEFAULT_PROVIDER_ID),
+
+        // Note: API keys and master setup key are not typically exposed or modified via this settings panel for security
+        // They remain managed by environment variables directly through `config`.
+      };
+      res.json(liveSettings);
     } catch (error) {
       console.error("Error fetching admin settings:", error);
       res.status(500).json({ message: "Failed to fetch settings" });
     }
   });
 
-  app.post('/api/admin/settings', async (req: any, res) => {
+  app.post('/api/admin/settings', requireAuth, isAdmin, async (req: any, res) => { // Added requireAuth and isAdmin
     try {
-      // In a full implementation, save settings to database
-      console.log("Admin settings updated:", req.body);
+      const settingsToUpdate = req.body;
+      const allowedKeys = [ // Define keys that can be updated to prevent arbitrary writes
+        'PLATFORM_NAME', 'PLATFORM_DESCRIPTION', 'SUPPORT_EMAIL', 'SUPPORT_PHONE', 'ADMIN_EMAIL_RECIPIENT',
+        'PRICE_TIER_COFFEE', 'PRICE_TIER_STANDARD', 'PRICE_TIER_PROFESSIONAL', 'PRICE_TIER_OWNER_OPERATOR',
+        'FEATURE_SMS_AUTH_ENABLED', 'FEATURE_STRIPE_PAYMENTS_ENABLED', 'FEATURE_BACKGROUND_CHECKS_ENABLED',
+        'FEATURE_GOOGLE_MAPS_ENABLED', 'FEATURE_AI_INSIGHTS_ENABLED',
+        'MAX_ACTIVE_LOADS_BASIC', 'MAX_ACTIVE_LOADS_STANDARD', 'MAX_ACTIVE_LOADS_PROFESSIONAL',
+        'JOB_LOCK_TIMEOUT_MINUTES', 'UPLOAD_MAX_FILE_SIZE_MB',
+        'SESSION_COOKIE_MAX_AGE_HOURS', 'SESSION_COOKIE_SECURE', 'DEFAULT_EMAIL_DOMAIN_FOR_PHONE_USERS',
+        'OPENAI_MODEL_NAME', 'BACKGROUND_CHECK_DEFAULT_PROVIDER_ID'
+      ];
+
+      for (const key in settingsToUpdate) {
+        if (Object.prototype.hasOwnProperty.call(settingsToUpdate, key) && allowedKeys.includes(key)) {
+          // Type coercion might be needed here depending on how values are sent from frontend
+          // For now, storing as received (jsonb handles various types)
+          await storage.saveApplicationSetting(key, settingsToUpdate[key]);
+        }
+      }
       res.json({ message: "Settings updated successfully" });
     } catch (error) {
       console.error("Error updating admin settings:", error);
@@ -107,18 +192,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: `Failed to test ${req.params.service}` });
     }
   });
-
-  // Helper function to ensure contractor profile exists
-  async function ensureUserContractorProfile(user: any) {
-    if (!user) return;
-    
-    try {
-      // Users work directly with their user profiles - no separate contractor table needed
-      console.log(`User profile ready for ${user.id}`);
-    } catch (error) {
-      console.error("Error ensuring contractor profile:", error);
-    }
-  }
 
   // Contractor routes
   app.post('/api/contractors', async (req, res) => {
@@ -217,7 +290,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Document upload routes
-  app.post('/api/contractors/:contractorId/documents', upload.single('document'), async (req, res) => {
+  app.post('/api/contractors/:contractorId/documents', requireAuth, tmpUpload.single('document'), async (req: any, res) => { // Changed to tmpUpload
     try {
       const contractorId = parseInt(req.params.contractorId);
       if (isNaN(contractorId)) {
@@ -291,69 +364,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Job state machine routes - implements: open → requested → assigned → picked_up → delivered → paid
-  app.post('/api/jobs/:jobId/accept', async (req, res) => {
+  app.post('/api/jobs/:jobId/accept', requireAuth, async (req: any, res) => {
     try {
       const jobId = req.params.jobId;
-      const { userId } = req.body;
+      const requestingUserId = req.user.claims.sub; // Get user ID from authenticated user
 
-      if (!jobId || !userId) {
-        return res.status(400).json({ message: 'Invalid job ID or user ID' });
+      if (!jobId) {
+        return res.status(400).json({ message: 'Job ID is required' });
       }
 
-      // State transition: open → requested
-      // Implements 5-minute TTL lock to prevent double-booking
-      const result = await storage.requestJob(jobId, userId);
-      
-      // Notify admin about the request
-      await storage.createJobNotification(jobId, userId, 'job_requested');
-      
-      res.json(result);
-    } catch (error) {
-      console.error('Error requesting job:', error);
+      const updatedJob = await opportunityService.requestJob(jobId, requestingUserId);
+      res.json(updatedJob);
+    } catch (error: any) {
+      console.error(`Error requesting job ${req.params.jobId}:`, error);
+      if (error instanceof JobNotFoundError) {
+        return res.status(404).json({ message: error.message });
+      } else if (error instanceof InvalidJobStateError) {
+        return res.status(409).json({ message: error.message }); // 409 Conflict
+      } else if (error instanceof JobLockedError) {
+        return res.status(423).json({ message: error.message }); // 423 Locked
+      }
       res.status(500).json({ message: 'Failed to request job' });
     }
   });
 
-  app.patch('/api/jobs/:jobId/status', async (req, res) => {
+  app.patch('/api/jobs/:jobId/status', requireAuth, async (req: any, res) => {
     try {
       const jobId = req.params.jobId;
-      const { status, userId } = req.body;
+      const { status } = req.body; // The acting user ID will be from req.user
+      const actingUserId = req.user.claims.sub;
+      const authenticatedUser = req.user; // Pass the whole user for role checks etc.
 
-      if (!jobId || !status || !userId) {
-        return res.status(400).json({ message: 'Invalid parameters' });
+      if (!jobId || !status) {
+        return res.status(400).json({ message: 'Job ID and new status are required' });
       }
-
-      let result;
       
-      switch (status) {
-        case 'assigned':
-          // Admin action: requested → assigned
-          result = await storage.assignJob(jobId, userId);
-          break;
-        case 'picked_up':
-          // Driver action: assigned → picked_up
-          result = await storage.markJobPickedUp(jobId, userId);
-          break;
-        case 'delivered':
-          // Driver action: picked_up → delivered
-          result = await storage.markJobDelivered(jobId, userId);
-          break;
-        case 'paid':
-          // Admin action: delivered → paid
-          result = await storage.markJobPaid(jobId, userId);
-          break;
-        default:
-          return res.status(400).json({ message: 'Invalid status transition' });
+      const updatedJob = await opportunityService.updateJobStatus(jobId, status, actingUserId, authenticatedUser);
+      res.json(updatedJob);
+    } catch (error: any) {
+      console.error(`Error updating job ${req.params.jobId} to status ${req.body.status}:`, error);
+      if (error instanceof JobNotFoundError) {
+        return res.status(404).json({ message: error.message });
+      } else if (error instanceof InvalidStateTransitionError) {
+        return res.status(409).json({ message: error.message }); // 409 Conflict
+      } else if (error instanceof PermissionDeniedError) {
+        return res.status(403).json({ message: error.message }); // 403 Forbidden
       }
-
-      res.json(result);
-    } catch (error) {
-      console.error('Error updating job status:', error);
       res.status(500).json({ message: 'Failed to update job status' });
     }
   });
 
-  // Legacy opportunity route for backward compatibility
+  // Legacy opportunity route for backward compatibility (Consider removing or refactoring if not essential)
   app.post('/api/opportunities/:opportunityId/accept', async (req, res) => {
     try {
       const opportunityId = parseInt(req.params.opportunityId);
@@ -628,7 +689,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/glovebox/upload', requireAuth, upload.single('file'), async (req: any, res) => {
+  app.post('/api/glovebox/upload', requireAuth, tmpUpload.single('file'), async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const file = req.file;
@@ -640,30 +701,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Security check: Never allow driver license storage
       const documentType = req.body.documentType?.toLowerCase();
       if (documentType === 'drivers_license' || documentType === 'driver_license') {
+        // Clean up the temp file if it's a disallowed type
+        if (req.file?.path) {
+          try {
+            const fs = await import('fs-extra');
+            await fs.unlink(req.file.path);
+          } catch (unlinkError) {
+            console.error("Error deleting disallowed temp file:", unlinkError);
+          }
+        }
         return res.status(400).json({ 
           message: "Driver licenses cannot be stored for security compliance" 
         });
       }
 
+      const fileStorageService = getFileStorageService();
+      const destinationPathPrefix = `user-${userId}/glovebox`;
+
+      const uploadResult = await fileStorageService.uploadFile(
+        file.path,
+        file.originalname,
+        file.mimetype,
+        destinationPathPrefix
+      );
+
+      // The uploadFile service should handle deleting the temp file (file.path)
+
       const documentData = {
         userId,
         documentType: req.body.documentType,
         documentCategory: req.body.documentCategory,
-        fileName: file.filename,
-        originalFileName: file.originalname,
-        filePath: file.path,
-        fileSize: file.size,
-        mimeType: file.mimetype,
+        fileName: uploadResult.fileName, // This is originalName
+        originalFileName: file.originalname, // Redundant if fileName is originalName, but good for clarity
+        filePath: uploadResult.storageKey, // This is the storageKey
+        fileSize: uploadResult.size || file.size, // Prefer size from storage service if available
+        mimeType: uploadResult.mimeType || file.mimetype,
         expirationDate: req.body.expirationDate ? new Date(req.body.expirationDate) : null,
         tags: req.body.tags ? req.body.tags.split(',').map((tag: string) => tag.trim()) : [],
         notes: req.body.notes,
         isShared: false,
+        // publicUrl: uploadResult.publicUrl, // Optional: store if needed
       };
 
       const document = await storage.uploadDocument(documentData);
       res.json(document);
     } catch (error) {
       console.error("Error uploading document:", error);
+      // Ensure temp file is deleted in case of error after upload but before DB save
+      if (req.file?.path) {
+        try {
+            const fs = await import('fs-extra');
+            await fs.unlink(req.file.path);
+        } catch (unlinkError) {
+            // Log this secondary error but don't overwrite the primary error response
+            console.error("Error deleting temp file after primary error:", unlinkError);
+        }
+      }
       res.status(500).json({ message: "Failed to upload document" });
     }
   });
@@ -834,7 +927,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin middleware to check admin role
-  const isAdmin = async (req: any, res: any, next: any) => {
+  async function isAdmin(req: any, res: any, next: any) {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
@@ -848,7 +941,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       res.status(500).json({ message: "Failed to verify admin access" });
     }
-  };
+  }
 
   // Admin API routes
   app.get('/api/admin/stats', requireAuth, isAdmin, async (req, res) => {
@@ -913,7 +1006,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { masterKey, userId } = req.body;
       
       // This should be a secure setup process - for demo, we'll use a simple check
-      if (masterKey !== "ACHIEVEMOR_MASTER_SETUP_2024") {
+      if (masterKey !== config.MASTER_ADMIN_SETUP_KEY) {
         return res.status(403).json({ message: "Invalid master key" });
       }
 

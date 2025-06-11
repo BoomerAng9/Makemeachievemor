@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { storage } from "./storage";
+import { config } from "./config";
 
 // Simple in-memory session store for SMS authentication
 const userSessions = new Map<string, { userId: string; phoneNumber: string; role: string; name: string }>();
@@ -85,7 +86,7 @@ export async function verifyCode(req: Request, res: Response) {
           phoneNumber,
           name,
           role,
-          email: `${phoneNumber}@achievemor.io`,
+          email: `${phoneNumber}@${config.DEFAULT_EMAIL_DOMAIN_FOR_PHONE_USERS}`,
           status: "active"
         });
       }
@@ -109,8 +110,8 @@ export async function verifyCode(req: Request, res: Response) {
     // Set session cookie
     res.cookie('sessionId', sessionId, {
       httpOnly: true,
-      secure: false, // Set to true in production
-      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+      secure: config.SESSION_COOKIE_SECURE,
+      maxAge: config.SESSION_COOKIE_MAX_AGE_HOURS * 60 * 60 * 1000
     });
 
     res.json({

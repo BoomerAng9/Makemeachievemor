@@ -1,4 +1,5 @@
 import { storage } from "./storage";
+import { config } from "./config";
 import type { InsertDriverLocation, DriverLocation, Opportunity } from "@shared/schema";
 
 interface GoogleMapsGeocodingResponse {
@@ -35,7 +36,7 @@ export class MapsService {
   private baseUrl = "https://maps.googleapis.com/maps/api";
 
   constructor() {
-    this.apiKey = process.env.GOOGLE_MAPS_API_KEY!;
+    this.apiKey = config.GOOGLE_MAPS_API_KEY!;
     if (!this.apiKey) {
       throw new Error("GOOGLE_MAPS_API_KEY environment variable is required");
     }

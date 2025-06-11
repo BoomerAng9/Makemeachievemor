@@ -47,10 +47,13 @@ import {
   type BackgroundCheckAuditLog,
   type InsertBackgroundCheckAuditLog,
   type DriverChecklistProgress,
-  type InsertDriverChecklistProgress
+  type InsertDriverChecklistProgress,
+  applicationSettings,
+  type ApplicationSetting,
+  type InsertApplicationSetting,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, sql, gte, or, ilike } from "drizzle-orm";
 
 export interface IStorage {
   // User operations (for authentication)
@@ -74,19 +77,21 @@ export interface IStorage {
   
   // Opportunity operations
   getAvailableOpportunities(): Promise<Opportunity[]>;
+  getOpportunityById(id: string): Promise<Opportunity | undefined>; // Added
   createOpportunity(data: InsertOpportunity): Promise<Opportunity>;
-  acceptOpportunity(opportunityId: number, contractorId: number): Promise<JobAssignment>;
+  updateOpportunity(id: string, data: Partial<Opportunity>): Promise<Opportunity | undefined>; // Added
+  acceptOpportunity(opportunityId: number, contractorId: number): Promise<JobAssignment>; // Potentially remove/refactor if all logic moves to service
   
   // Job operations
   getContractorJobs(contractorId: number): Promise<JobAssignment[]>;
   
-  // Job state machine operations
-  requestJob(jobId: string, userId: string): Promise<any>;
-  assignJob(jobId: string, userId: string): Promise<any>;
-  markJobPickedUp(jobId: string, userId: string): Promise<any>;
-  markJobDelivered(jobId: string, userId: string): Promise<any>;
-  markJobPaid(jobId: string, userId: string): Promise<any>;
-  createJobNotification(jobId: string, userId: string, type: string): Promise<any>;
+  // Job state machine operations (to be removed or simplified)
+  // requestJob(jobId: string, userId: string): Promise<any>; // Moved to service
+  // assignJob(jobId: string, userId: string): Promise<any>; // Moved to service
+  // markJobPickedUp(jobId: string, userId: string): Promise<any>; // Moved to service
+  // markJobDelivered(jobId: string, userId: string): Promise<any>; // Moved to service
+  // markJobPaid(jobId: string, userId: string): Promise<any>; // Moved to service
+  createJobNotification(jobId: string, userId: string, type: string): Promise<any>; // Keep or move to Notif. Service
   
   // Message operations
   getContractorMessages(contractorId: number): Promise<Message[]>;
@@ -134,6 +139,11 @@ export interface IStorage {
   // Subscription operations
   updateUserSubscription(userId: string, data: Partial<UpsertUser>): Promise<User>;
   getCompanyOpportunities(userId: string): Promise<Opportunity[]>;
+
+  // Application Settings operations
+  getApplicationSetting(key: string): Promise<ApplicationSetting | null>;
+  saveApplicationSetting(key: string, value: any): Promise<ApplicationSetting>;
+  getAllApplicationSettings(): Promise<ApplicationSetting[]>;
 
   // Admin operations
   getAdminStats(): Promise<any>;
@@ -234,7 +244,13 @@ export class DatabaseStorage implements IStorage {
 
   // Opportunity operations
   async getAvailableOpportunities(): Promise<Opportunity[]> {
-    return await db.select().from(opportunities).where(eq(opportunities.status, 'available')).orderBy(desc(opportunities.createdAt));
+    // TODO: This status 'available' might need to be 'open' to align with service logic
+    return await db.select().from(opportunities).where(eq(opportunities.status, 'open')).orderBy(desc(opportunities.createdAt));
+  }
+
+  async getOpportunityById(id: string): Promise<Opportunity | undefined> {
+    const [opportunity] = await db.select().from(opportunities).where(eq(opportunities.id, id));
+    return opportunity;
   }
 
   async createOpportunity(data: InsertOpportunity): Promise<Opportunity> {
@@ -245,16 +261,28 @@ export class DatabaseStorage implements IStorage {
     return opportunity;
   }
 
+  async updateOpportunity(id: string, data: Partial<Opportunity>): Promise<Opportunity | undefined> {
+    const [updatedOpportunity] = await db
+      .update(opportunities)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(opportunities.id, id))
+      .returning();
+    return updatedOpportunity;
+  }
+
   async acceptOpportunity(opportunityId: number, contractorId: number): Promise<JobAssignment> {
+    // This method's logic might be entirely superseded by OpportunityService.
+    // For now, keeping it, but it might be removed or refactored.
     // Update opportunity status
     await db
       .update(opportunities)
       .set({ 
-        status: 'assigned',
-        assignedContractorId: contractorId,
+        status: 'assigned', // This is a direct state change, service layer provides more control
+        // assignedContractorId: contractorId, // This field does not exist on opportunities schema
+        assigned_to: contractorId.toString(), // Assuming contractorId is a user ID string for assigned_to
         updatedAt: new Date()
       })
-      .where(eq(opportunities.id, opportunityId));
+      .where(eq(opportunities.id, opportunityId.toString())); // Ensure ID compatibility if needed
 
     // Create job assignment
     const [assignment] = await db
@@ -622,86 +650,15 @@ export class DatabaseStorage implements IStorage {
     return notification;
   }
 
-  // Job state machine operations - implements: open → requested → assigned → picked_up → delivered → paid
-  async requestJob(jobId: string, userId: string): Promise<any> {
-    // Update opportunity status to 'requested' and set lock with 5-minute TTL
-    const lockExpiry = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes from now
-    
-    const [updatedOpportunity] = await db
-      .update(opportunities)
-      .set({
-        status: 'requested',
-        assigned_to: userId,
-        requestedAt: new Date(),
-        lockExpiresAt: lockExpiry,
-        updatedAt: new Date()
-      })
-      .where(eq(opportunities.id, jobId))
-      .returning();
-    
-    return updatedOpportunity;
-  }
+  // Job state machine operations - The core logic for these is moved to OpportunityService.
+  // These storage methods can be removed or simplified to be basic `updateOpportunity` calls
+  // if any specific pre-update checks unique to storage were needed (which is unlikely).
 
-  async assignJob(jobId: string, userId: string): Promise<any> {
-    // Admin action: requested → assigned
-    const [updatedOpportunity] = await db
-      .update(opportunities)
-      .set({
-        status: 'assigned',
-        assignedAt: new Date(),
-        lockExpiresAt: null, // Remove lock once assigned
-        updatedAt: new Date()
-      })
-      .where(eq(opportunities.id, jobId))
-      .returning();
-    
-    return updatedOpportunity;
-  }
-
-  async markJobPickedUp(jobId: string, userId: string): Promise<any> {
-    // Driver action: assigned → picked_up
-    const [updatedOpportunity] = await db
-      .update(opportunities)
-      .set({
-        status: 'picked_up',
-        pickedUpAt: new Date(),
-        updatedAt: new Date()
-      })
-      .where(eq(opportunities.id, jobId))
-      .returning();
-    
-    return updatedOpportunity;
-  }
-
-  async markJobDelivered(jobId: string, userId: string): Promise<any> {
-    // Driver action: picked_up → delivered
-    const [updatedOpportunity] = await db
-      .update(opportunities)
-      .set({
-        status: 'delivered',
-        deliveredAt: new Date(),
-        updatedAt: new Date()
-      })
-      .where(eq(opportunities.id, jobId))
-      .returning();
-    
-    return updatedOpportunity;
-  }
-
-  async markJobPaid(jobId: string, userId: string): Promise<any> {
-    // Admin action: delivered → paid
-    const [updatedOpportunity] = await db
-      .update(opportunities)
-      .set({
-        status: 'paid',
-        paidAt: new Date(),
-        updatedAt: new Date()
-      })
-      .where(eq(opportunities.id, jobId))
-      .returning();
-    
-    return updatedOpportunity;
-  }
+  // async requestJob(jobId: string, userId: string): Promise<any> { ... } // REMOVED
+  // async assignJob(jobId: string, userId: string): Promise<any> { ... } // REMOVED
+  // async markJobPickedUp(jobId: string, userId: string): Promise<any> { ... } // REMOVED
+  // async markJobDelivered(jobId: string, userId: string): Promise<any> { ... } // REMOVED
+  // async markJobPaid(jobId: string, userId: string): Promise<any> { ... } // REMOVED
 
   async createJobNotification(jobId: string, userId: string, type: string): Promise<any> {
     // Create notification for admin about job status changes
@@ -731,6 +688,28 @@ export class DatabaseStorage implements IStorage {
 
   async getCompanyOpportunities(userId: string): Promise<Opportunity[]> {
     return db.select().from(opportunities).where(eq(opportunities.posted_by, userId));
+  }
+
+  // Application Settings operations
+  async getApplicationSetting(key: string): Promise<ApplicationSetting | null> {
+    const [setting] = await db.select().from(applicationSettings).where(eq(applicationSettings.key, key));
+    return setting || null;
+  }
+
+  async saveApplicationSetting(key: string, value: any): Promise<ApplicationSetting> {
+    const [setting] = await db
+      .insert(applicationSettings)
+      .values({ key, value, updatedAt: new Date() })
+      .onConflictDoUpdate({
+        target: applicationSettings.key,
+        set: { value, updatedAt: new Date() },
+      })
+      .returning();
+    return setting;
+  }
+
+  async getAllApplicationSettings(): Promise<ApplicationSetting[]> {
+    return await db.select().from(applicationSettings);
   }
 }
 

@@ -1,8 +1,9 @@
 import OpenAI from "openai";
 import { storage } from "./storage";
+import { config } from "./config";
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const openai = new OpenAI({ apiKey: config.OPENAI_API_KEY });
 
 export interface ContractorInsights {
   contractorId: number;
@@ -192,7 +193,7 @@ class AIInsightsService {
       `;
 
       const response = await openai.chat.completions.create({
-        model: "gpt-4o",
+        model: config.OPENAI_MODEL_NAME,
         messages: [
           {
             role: "system",

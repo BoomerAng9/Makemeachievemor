@@ -1,4 +1,5 @@
 import { MailService } from '@sendgrid/mail';
+import { config } from './config';
 
 interface EmailNotificationData {
   to: string;
@@ -9,17 +10,17 @@ interface EmailNotificationData {
 
 class EmailService {
   private mailService: MailService | null = null;
-  private fromEmail = 'noreply@achievemor.io';
+  private fromEmail = config.SENDGRID_FROM_EMAIL;
 
   constructor() {
-    if (process.env.SENDGRID_API_KEY) {
+    if (config.SENDGRID_API_KEY) {
       this.mailService = new MailService();
-      this.mailService.setApiKey(process.env.SENDGRID_API_KEY);
+      this.mailService.setApiKey(config.SENDGRID_API_KEY);
     }
   }
 
   async sendRegistrationNotification(user: any): Promise<boolean> {
-    const adminEmail = 'contactus@achievemor.io';
+    const adminEmail = config.ADMIN_EMAIL_RECIPIENT;
     
     const emailData: EmailNotificationData = {
       to: adminEmail,
@@ -103,7 +104,7 @@ Please review this registration in the Admin Panel.
   }
 
   async sendDocumentVerificationAlert(user: any, documents: any[]): Promise<boolean> {
-    const adminEmail = 'contactus@achievemor.io';
+    const adminEmail = config.ADMIN_EMAIL_RECIPIENT;
     
     const documentList = documents.map(doc => `- ${doc.documentType} (${doc.originalFileName})`).join('\n');
     

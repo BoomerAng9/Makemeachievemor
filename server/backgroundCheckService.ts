@@ -8,6 +8,7 @@ import {
   InsertBackgroundCheckAuditLog
 } from "@shared/schema";
 import { storage } from "./storage";
+import { config } from "./config";
 
 export interface BackgroundCheckProviderAPI {
   name: string;
@@ -157,15 +158,19 @@ export class BackgroundCheckService {
     this.providers.set('mock', new MockBackgroundCheckProvider());
     
     // Real providers would be initialized with API keys from environment
-    // this.providers.set('checkr', new CheckrProvider(process.env.CHECKR_API_KEY!));
-    // this.providers.set('sterling', new SterlingProvider(process.env.STERLING_API_KEY!));
+    if (config.CHECKR_API_KEY) {
+      this.providers.set('checkr', new CheckrProvider(config.CHECKR_API_KEY));
+    }
+    if (config.STERLING_API_KEY) {
+      this.providers.set('sterling', new SterlingProvider(config.STERLING_API_KEY));
+    }
   }
 
   async submitBackgroundCheck(
     contractorId: number, 
     checkType: string, 
     personalInfo: any,
-    providerId: number = 1, // Default to mock provider
+    providerId: number = config.BACKGROUND_CHECK_DEFAULT_PROVIDER_ID,
     requestedBy: string
   ): Promise<BackgroundCheckRequest> {
     try {

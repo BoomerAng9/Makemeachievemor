@@ -48,6 +48,13 @@
 - Maintain consistent spacing and typography
 - Implement dark mode support
 
+### Linting and Formatting
+This project uses ESLint for identifying and reporting on patterns in JavaScript and TypeScript, and Prettier for enforcing consistent code style.
+- Run `npm run lint` to check for linting issues.
+- Run `npm run lint:fix` to automatically fix many linting and style issues.
+- Run `npm run format` to format the entire codebase with Prettier.
+Please ensure your code adheres to these standards before submitting a pull request.
+
 ### Database
 - Use Drizzle ORM for all database operations
 - Write migrations for schema changes
@@ -55,21 +62,13 @@
 - Implement proper indexing
 
 ## Testing
+The backend uses [Vitest](https://vitest.dev/) for unit and integration tests.
+- Tests are located in the `server/__tests__` directory.
+- Run all backend tests using: `npm test`
+- To run tests in watch mode: `npm run test:watch`
+- To generate a coverage report (output to `./coverage/server`): `npm run test:coverage`
 
-### Unit Tests
-```bash
-npm run test
-```
-
-### Integration Tests
-```bash
-npm run test:integration
-```
-
-### E2E Tests
-```bash
-npm run test:e2e
-```
+(Note: The previous `test:integration` and `test:e2e` scripts might need to be updated or removed if Vitest now covers their scope, or if they are for separate frontend/E2E test runners not covered by this backend setup.)
 
 ## Pull Request Process
 
