@@ -3,10 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Truck, Shield, FileText, ArrowLeft, ArrowRight } from "lucide-react";
+import { Truck, Shield, ArrowLeft, ArrowRight, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { UniversalNav } from "@/components/UniversalNav";
 
@@ -23,10 +22,8 @@ export default function RegisterDriverPage() {
     zipCode: "",
     dotNumber: "",
     mcNumber: "",
-    vehicleType: "",
     cdlClass: "",
     yearsExperience: "",
-    specialEndorsements: [] as string[],
     agreedToTerms: false,
     agreedToBackground: false
   });
@@ -39,33 +36,28 @@ export default function RegisterDriverPage() {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleEndorsementChange = (endorsement: string, checked: boolean) => {
-    setFormData(prev => ({
-      ...prev,
-      specialEndorsements: checked 
-        ? [...prev.specialEndorsements, endorsement]
-        : prev.specialEndorsements.filter(e => e !== endorsement)
-    }));
-  };
-
   const handleSubmit = async () => {
+    if (!isStepValid()) {
+      toast({
+        title: "Form Incomplete",
+        description: "Please fill in all required fields.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     
     try {
-      // Prepare data with required fields and defaults
       const submitData = {
         ...formData,
-        dateOfBirth: formData.dateOfBirth || "1990-01-01", // Default if not provided
-        country: "US", // Default country
+        country: "US",
         dotNumber: formData.dotNumber || "",
         mcNumber: formData.mcNumber || "",
-        vehicleType: formData.vehicleType || "truck",
         cdlClass: formData.cdlClass || "A",
-        yearsExperience: formData.yearsExperience || "2-5",
-        specialEndorsements: formData.specialEndorsements.join(",")
+        yearsExperience: formData.yearsExperience || "2-5"
       };
 
-      // Submit to backend API
       const response = await fetch('/api/drivers/register', {
         method: 'POST',
         headers: {
@@ -77,7 +69,7 @@ export default function RegisterDriverPage() {
       if (response.ok) {
         toast({
           title: "Registration Successful!",
-          description: "Welcome to ACHIEVEMOR! Check your email for next steps."
+          description: "Welcome to ACHIEVEMOR! Our team will contact you soon."
         });
         
         // Reset form
@@ -93,21 +85,21 @@ export default function RegisterDriverPage() {
           zipCode: "",
           dotNumber: "",
           mcNumber: "",
-          vehicleType: "",
           cdlClass: "",
           yearsExperience: "",
-          specialEndorsements: [],
           agreedToTerms: false,
           agreedToBackground: false
         });
         setCurrentStep(1);
       } else {
-        throw new Error('Registration failed');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Registration failed');
       }
     } catch (error) {
+      console.error('Registration error:', error);
       toast({
         title: "Registration Error",
-        description: "There was an issue with your registration. Please try again.",
+        description: error instanceof Error ? error.message : "Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -185,6 +177,7 @@ export default function RegisterDriverPage() {
                       id="firstName"
                       value={formData.firstName}
                       onChange={(e) => handleInputChange("firstName", e.target.value)}
+                      placeholder="Enter your first name"
                       required
                     />
                   </div>
@@ -194,6 +187,7 @@ export default function RegisterDriverPage() {
                       id="lastName"
                       value={formData.lastName}
                       onChange={(e) => handleInputChange("lastName", e.target.value)}
+                      placeholder="Enter your last name"
                       required
                     />
                   </div>
@@ -206,6 +200,7 @@ export default function RegisterDriverPage() {
                     type="email"
                     value={formData.email}
                     onChange={(e) => handleInputChange("email", e.target.value)}
+                    placeholder="your.email@example.com"
                     required
                   />
                 </div>
@@ -217,6 +212,7 @@ export default function RegisterDriverPage() {
                     type="tel"
                     value={formData.phone}
                     onChange={(e) => handleInputChange("phone", e.target.value)}
+                    placeholder="(555) 123-4567"
                     required
                   />
                 </div>
@@ -244,6 +240,7 @@ export default function RegisterDriverPage() {
                     id="street"
                     value={formData.street}
                     onChange={(e) => handleInputChange("street", e.target.value)}
+                    placeholder="123 Main Street"
                     required
                   />
                 </div>
@@ -255,6 +252,7 @@ export default function RegisterDriverPage() {
                       id="city"
                       value={formData.city}
                       onChange={(e) => handleInputChange("city", e.target.value)}
+                      placeholder="Atlanta"
                       required
                     />
                   </div>
@@ -271,6 +269,10 @@ export default function RegisterDriverPage() {
                         <SelectItem value="SC">South Carolina</SelectItem>
                         <SelectItem value="NC">North Carolina</SelectItem>
                         <SelectItem value="TN">Tennessee</SelectItem>
+                        <SelectItem value="TX">Texas</SelectItem>
+                        <SelectItem value="CA">California</SelectItem>
+                        <SelectItem value="NY">New York</SelectItem>
+                        <SelectItem value="OH">Ohio</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -282,6 +284,7 @@ export default function RegisterDriverPage() {
                     id="zipCode"
                     value={formData.zipCode}
                     onChange={(e) => handleInputChange("zipCode", e.target.value)}
+                    placeholder="30309"
                     required
                   />
                 </div>
@@ -293,6 +296,7 @@ export default function RegisterDriverPage() {
                       id="dotNumber"
                       value={formData.dotNumber}
                       onChange={(e) => handleInputChange("dotNumber", e.target.value)}
+                      placeholder="123456 (optional)"
                     />
                   </div>
                   <div>
@@ -301,6 +305,7 @@ export default function RegisterDriverPage() {
                       id="mcNumber"
                       value={formData.mcNumber}
                       onChange={(e) => handleInputChange("mcNumber", e.target.value)}
+                      placeholder="789012 (optional)"
                     />
                   </div>
                 </div>
@@ -312,73 +317,79 @@ export default function RegisterDriverPage() {
                       <SelectValue placeholder="Select CDL class" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="A">Class A</SelectItem>
-                      <SelectItem value="B">Class B</SelectItem>
-                      <SelectItem value="C">Class C</SelectItem>
+                      <SelectItem value="A">Class A - Heavy trucks, tractor-trailers</SelectItem>
+                      <SelectItem value="B">Class B - Large trucks, buses</SelectItem>
+                      <SelectItem value="C">Class C - Regular vehicles</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div>
-                  <Label htmlFor="yearsExperience">Years of Experience</Label>
+                  <Label htmlFor="yearsExperience">Years of Driving Experience</Label>
                   <Select value={formData.yearsExperience} onValueChange={(value) => handleInputChange("yearsExperience", value)}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select experience" />
+                      <SelectValue placeholder="Select experience level" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="0-1">0-1 years</SelectItem>
+                      <SelectItem value="0-1">0-1 years (New driver)</SelectItem>
                       <SelectItem value="2-5">2-5 years</SelectItem>
                       <SelectItem value="6-10">6-10 years</SelectItem>
-                      <SelectItem value="10+">10+ years</SelectItem>
+                      <SelectItem value="10+">10+ years (Experienced)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
             )}
 
-            {/* Step 3: Agreements */}
+            {/* Step 3: Terms & Agreements */}
             {currentStep === 3 && (
               <div className="space-y-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Terms & Agreements</h3>
                 
                 <div className="space-y-4">
-                  <div className="flex items-start space-x-2">
+                  <div className="flex items-start space-x-3">
                     <Checkbox
                       id="terms"
                       checked={formData.agreedToTerms}
-                      onCheckedChange={(checked) => handleInputChange("agreedToTerms", checked)}
+                      onCheckedChange={(checked) => handleInputChange("agreedToTerms", !!checked)}
                     />
-                    <Label htmlFor="terms" className="text-sm leading-relaxed">
-                      I agree to the <a href="/terms" className="text-primary hover:underline">Terms of Service</a> and <a href="/privacy" className="text-primary hover:underline">Privacy Policy</a>
+                    <Label htmlFor="terms" className="text-sm leading-relaxed cursor-pointer">
+                      I agree to the <span className="text-primary hover:underline font-medium">Terms of Service</span> and <span className="text-primary hover:underline font-medium">Privacy Policy</span>
                     </Label>
                   </div>
 
-                  <div className="flex items-start space-x-2">
+                  <div className="flex items-start space-x-3">
                     <Checkbox
                       id="background"
                       checked={formData.agreedToBackground}
-                      onCheckedChange={(checked) => handleInputChange("agreedToBackground", checked)}
+                      onCheckedChange={(checked) => handleInputChange("agreedToBackground", !!checked)}
                     />
-                    <Label htmlFor="background" className="text-sm leading-relaxed">
-                      I consent to background checks and verification processes as required for driver onboarding
+                    <Label htmlFor="background" className="text-sm leading-relaxed cursor-pointer">
+                      I consent to background checks and verification processes as required for driver onboarding and compliance
                     </Label>
                   </div>
                 </div>
 
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <h4 className="font-semibold text-blue-900 mb-2">What's Next?</h4>
-                  <ul className="text-blue-800 text-sm space-y-1">
-                    <li>• Email verification and account setup</li>
-                    <li>• Document upload and verification</li>
-                    <li>• Background check process</li>
-                    <li>• Welcome to the ACHIEVEMOR network!</li>
-                  </ul>
+                  <div className="flex items-start space-x-3">
+                    <CheckCircle className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <h4 className="font-semibold text-blue-900 mb-2">Next Steps After Registration</h4>
+                      <ul className="text-blue-800 text-sm space-y-1">
+                        <li>• Email verification and account activation</li>
+                        <li>• Document upload and verification process</li>
+                        <li>• Background check completion</li>
+                        <li>• Orientation and onboarding session</li>
+                        <li>• Start receiving job opportunities</li>
+                      </ul>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
 
             {/* Navigation Buttons */}
-            <div className="flex justify-between pt-6">
+            <div className="flex justify-between pt-6 border-t">
               <Button 
                 variant="outline" 
                 onClick={prevStep} 
@@ -395,17 +406,17 @@ export default function RegisterDriverPage() {
                   disabled={!isStepValid()}
                   className="flex items-center gap-2"
                 >
-                  Next
+                  Next Step
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               ) : (
                 <Button 
                   onClick={handleSubmit} 
                   disabled={!isStepValid() || isSubmitting}
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
                 >
                   {isSubmitting ? "Submitting..." : "Complete Registration"}
-                  <Shield className="h-4 w-4" />
+                  <CheckCircle className="h-4 w-4" />
                 </Button>
               )}
             </div>

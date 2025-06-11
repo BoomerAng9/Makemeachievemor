@@ -145,7 +145,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ 
         message: 'Driver registration successful', 
         id: driver.id,
-        status: driver.status 
+        status: driver.verificationStatus || 'pending'
       });
     } catch (error) {
       console.error('Error registering driver:', error);
