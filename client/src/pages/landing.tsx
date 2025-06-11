@@ -43,7 +43,7 @@ export default function LandingPage() {
               </div>
               <div>
                 <h1 className="text-xl font-bold text-gray-900">Choose 2 ACHIEVEMOR</h1>
-                <p className="text-xs text-gray-500">Owner Operator Platform</p>
+                <p className="text-xs text-gray-500">Peer - 2 - Peer Deployment Platform</p>
               </div>
             </div>
             
@@ -151,8 +151,9 @@ export default function LandingPage() {
                 </span>
               </h1>
               <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-                Comprehensive onboarding platform for owner operator independent contractors. 
-                Compliance verification, job opportunities, and business growth services.
+                Revolutionary peer-to-peer deployment platform connecting independent contractors 
+                with business opportunities. Authority setup, compliance management, load matching, 
+                and AI-powered business intelligence for the modern transportation industry.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button 

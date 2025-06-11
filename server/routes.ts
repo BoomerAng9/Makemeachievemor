@@ -6,13 +6,12 @@ import path from "path";
 import { insertContractorSchema, insertVehicleSchema, insertDocumentSchema, insertOpportunitySchema, insertMessageSchema, insertJobAssignmentSchema } from "@shared/schema";
 import { z } from "zod";
 import { generateChatbotResponse } from "./chatbot";
-import { 
-  getSMSAuthSession, 
-  isAuthenticated, 
-  requestVerificationCode, 
-  verifyCode, 
-  getCurrentUser, 
-  logout 
+import {
+  sendVerificationCode,
+  verifyCodeAndLogin,
+  checkAuthStatus,
+  logout,
+  isAuthenticated,
 } from "./smsAuth";
 
 // Configure multer for file uploads
@@ -32,15 +31,11 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Session middleware for SMS auth
-  app.use(getSMSAuthSession());
-
-  // SMS Auth routes
-  app.post('/api/auth/request-code', requestVerificationCode);
-  app.post('/api/auth/verify-code', verifyCode);
+  // SMS Authentication routes
+  app.post('/api/auth/send-code', sendVerificationCode);
+  app.post('/api/auth/verify', verifyCodeAndLogin);
   app.post('/api/auth/logout', logout);
-  
-  app.get('/api/auth/user', isAuthenticated, getCurrentUser);
+  app.get('/api/auth/user', checkAuthStatus);
 
   // Helper function to ensure contractor profile exists
   async function ensureUserContractorProfile(user: any) {
