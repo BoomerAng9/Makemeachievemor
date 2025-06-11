@@ -13,6 +13,7 @@ import {
   logout,
   isAuthenticated,
 } from "./smsAuth";
+import { createSessionConfig } from "./sessionConfig";
 
 // Configure multer for file uploads
 const upload = multer({
@@ -31,6 +32,9 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Configure session middleware
+  app.use(createSessionConfig());
+
   // SMS Authentication routes
   app.post('/api/auth/send-code', sendVerificationCode);
   app.post('/api/auth/verify', verifyCodeAndLogin);
