@@ -22,6 +22,7 @@ import LoginPage from "@/pages/Login";
 import PricingPage from "@/pages/Pricing";
 import CheckoutPage from "@/pages/Checkout";
 import AccountSettingsPage from "@/pages/AccountSettings";
+import CompanyDashboard from "@/pages/CompanyDashboard";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -46,6 +47,7 @@ function Router() {
       ) : (
         <>
           <Route path="/" component={DashboardPage} />
+          <Route path="/company-dashboard" component={CompanyDashboard} />
           <Route path="/pricing" component={PricingPage} />
           <Route path="/checkout" component={CheckoutPage} />
           <Route path="/account-settings" component={AccountSettingsPage} />
