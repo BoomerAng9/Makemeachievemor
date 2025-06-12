@@ -6,7 +6,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import NotFound from "@/pages/not-found";
 import LandingPage from "@/pages/landing";
+import HomePage from "@/pages/home";
 import AboutPage from "@/pages/about";
+import OpportunitiesPage from "@/pages/opportunities";
 import OnboardingPage from "@/pages/onboarding";
 import DashboardPage from "@/pages/dashboard";
 import DriverChecklistPage from "@/pages/driver-checklist";
@@ -21,7 +23,6 @@ import RegisterCompanyPage from "@/pages/register-company";
 import SettingsPage from "@/pages/settings";
 import SubscriptionPage from "@/pages/subscription";
 import ProfilePage from "@/pages/profile";
-import OpportunitiesPage from "@/pages/opportunities";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -30,7 +31,7 @@ function Router() {
     <Switch>
       {isLoading || !isAuthenticated ? (
         <>
-          <Route path="/" component={LandingPage} />
+          <Route path="/" component={HomePage} />
           <Route path="/about" component={AboutPage} />
           <Route path="/sitemap" component={SitemapPage} />
           <Route path="/driver-checklist" component={DriverChecklistPage} />
