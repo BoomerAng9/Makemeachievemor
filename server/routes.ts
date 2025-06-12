@@ -843,6 +843,103 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Contact form submission
+  app.post('/api/contact', async (req, res) => {
+    try {
+      const { name, email, phone, note } = req.body;
+      
+      if (!name || !email || !note) {
+        return res.status(400).json({ message: "Name, email, and message are required" });
+      }
+
+      // Send email notification to ACHIEVEMOR
+      const { emailService } = await import('./emailService');
+      await emailService.sendContactNotification({
+        name,
+        email,
+        phone,
+        note
+      });
+      
+      res.json({ message: "Contact form submitted successfully" });
+    } catch (error) {
+      console.error("Error submitting contact form:", error);
+      res.status(500).json({ message: "Failed to submit contact form" });
+    }
+  });
+
+  // Enhanced chatbot API with email functionality
+  app.post('/api/chatbot', async (req, res) => {
+    try {
+      const { message, userEmail, userName, isLead = false, isIssue = false } = req.body;
+      
+      if (!message) {
+        return res.status(400).json({ message: "Message is required" });
+      }
+
+      // Generate AI response
+      const aiResponse = await generateChatbotResponse(message);
+
+      // If this is a lead or issue, send email notification
+      if (isLead || isIssue) {
+        const { emailService } = await import('./emailService');
+        await emailService.sendChatbotNotification({
+          userName,
+          userEmail,
+          message,
+          aiResponse,
+          isLead,
+          isIssue
+        });
+      }
+
+      res.json({ response: aiResponse });
+    } catch (error) {
+      console.error("Error processing chatbot request:", error);
+      res.status(500).json({ message: "Failed to process chatbot request" });
+    }
+  });
+
+  // Opportunities API
+  app.get('/api/opportunities', async (req, res) => {
+    try {
+      // Get real opportunities from storage
+      const opportunities = await storage.getOpportunities();
+      res.json(opportunities);
+    } catch (error) {
+      console.error("Error fetching opportunities:", error);
+      res.status(500).json({ message: "Failed to fetch opportunities" });
+    }
+  });
+
+  app.get('/api/opportunities/applied', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const appliedJobs = await storage.getAppliedJobs(userId);
+      res.json(appliedJobs);
+    } catch (error) {
+      console.error("Error fetching applied jobs:", error);
+      res.status(500).json({ message: "Failed to fetch applied jobs" });
+    }
+  });
+
+  app.post('/api/opportunities/apply', isAuthenticated, async (req: any, res) => {
+    try {
+      const { jobId } = req.body;
+      const userId = req.user.claims.sub;
+      
+      if (!jobId) {
+        return res.status(400).json({ message: "Job ID is required" });
+      }
+
+      await storage.applyToJob(userId, jobId);
+      res.json({ message: "Application submitted successfully" });
+    } catch (error) {
+      console.error("Error applying to job:", error);
+      res.status(500).json({ message: "Failed to apply to job" });
+    }
+  });
+
   // Master admin setup route (for creating the first admin)
   app.post('/api/admin/setup-master', async (req, res) => {
     try {
