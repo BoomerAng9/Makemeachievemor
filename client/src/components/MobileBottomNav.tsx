@@ -52,6 +52,10 @@ export function MobileBottomNav() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 safe-area-bottom">
+      {/* Network Status Strip */}
+      <div className="px-4 py-1 border-b border-gray-100 dark:border-gray-700">
+        <NetworkStatusIndicator compact showDetails className="w-full" />
+      </div>
       <div className="flex items-center justify-around px-2 py-2">
         {visibleItems.map((item) => {
           const Icon = item.icon;
