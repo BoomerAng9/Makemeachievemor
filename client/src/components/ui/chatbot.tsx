@@ -167,8 +167,8 @@ export function Chatbot({ isOpen, onToggle, mode = 'floating', position = 'botto
   }
 
   return (
-    <Card className={`${getPositionClasses()} w-96 shadow-retina-xl z-50 border-2 border-amber-400/30 glass ${isMinimized ? 'h-16' : 'h-[500px]'}`}>
-      <CardHeader className="pb-3 bg-gradient-to-r from-gray-800 to-gray-900 text-white rounded-t-lg">
+    <Card className={`${getPositionClasses()} w-96 max-w-[calc(100vw-2rem)] shadow-retina-xl z-50 border-2 border-amber-400/30 glass ${isMinimized ? 'h-16' : 'h-[600px] max-h-[80vh]'} flex flex-col`}>
+      <CardHeader className="pb-3 bg-gradient-to-r from-gray-800 to-gray-900 text-white rounded-t-lg flex-shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <img 
@@ -200,66 +200,71 @@ export function Chatbot({ isOpen, onToggle, mode = 'floating', position = 'botto
       </CardHeader>
       
       {!isMinimized && (
-        <CardContent className="p-0 flex flex-col h-full">
-          <ScrollArea className="flex-1 p-4">
-            <div className="space-y-4">
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
-                >
+        <>
+          {/* Messages Area */}
+          <div className="flex-1 overflow-hidden">
+            <ScrollArea className="h-full">
+              <div className="p-4 space-y-3">
+                {messages.map((message) => (
                   <div
-                    className={`max-w-[80%] p-3 rounded-lg ${
-                      message.isUser
-                        ? 'bg-primary text-white'
-                        : 'bg-gray-100 text-gray-900'
-                    }`}
+                    key={message.id}
+                    className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
                   >
-                    <p className="text-sm whitespace-pre-wrap">{message.text}</p>
-                    <p className={`text-xs mt-1 ${message.isUser ? 'text-primary-foreground/70' : 'text-gray-500'}`}>
-                      {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </p>
-                  </div>
-                </div>
-              ))}
-              {isLoading && (
-                <div className="flex justify-start">
-                  <div className="bg-gray-100 p-3 rounded-lg">
-                    <div className="flex space-x-1">
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    <div
+                      className={`max-w-[85%] px-4 py-3 rounded-2xl shadow-sm ${
+                        message.isUser
+                          ? 'bg-blue-600 text-white rounded-br-md'
+                          : 'bg-white text-gray-900 border border-gray-200 rounded-bl-md'
+                      }`}
+                    >
+                      <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.text}</p>
+                      <p className={`text-xs mt-2 ${message.isUser ? 'text-blue-100' : 'text-gray-500'}`}>
+                        {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </p>
                     </div>
                   </div>
-                </div>
-              )}
-              <div ref={messagesEndRef} />
-            </div>
-          </ScrollArea>
+                ))}
+                {isLoading && (
+                  <div className="flex justify-start">
+                    <div className="bg-white border border-gray-200 px-4 py-3 rounded-2xl rounded-bl-md shadow-sm">
+                      <div className="flex space-x-1">
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+            </ScrollArea>
+          </div>
           
-          <div className="p-4 border-t">
-            <div className="flex space-x-2">
+          {/* Input Area */}
+          <div className="flex-shrink-0 p-4 border-t bg-gray-50/50">
+            <div className="flex space-x-2 mb-2">
               <Input
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Ask about DOT requirements, MC Authority, or trucking regulations..."
+                placeholder="Ask about DOT requirements, MC Authority..."
                 disabled={isLoading}
-                className="flex-1"
+                className="flex-1 rounded-full border-gray-300 focus:border-blue-500 focus:ring-blue-500"
               />
               <Button 
                 onClick={sendMessage} 
                 disabled={!inputValue.trim() || isLoading}
-                className="bg-primary hover:bg-primary/90"
+                className="bg-blue-600 hover:bg-blue-700 rounded-full px-4"
+                size="sm"
               >
                 <Send className="h-4 w-4" />
               </Button>
             </div>
-            <p className="text-xs text-gray-500 mt-2">
+            <p className="text-xs text-gray-500 px-1">
               Ask about compliance, authority setup, or trucking regulations
             </p>
           </div>
-        </CardContent>
+        </>
       )}
     </Card>
   );
