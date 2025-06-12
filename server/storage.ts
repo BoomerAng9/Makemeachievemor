@@ -64,6 +64,7 @@ export interface IStorage {
   
   // Contractor operations
   getContractor(id: number): Promise<Contractor | undefined>;
+  getContractorByUserId(userId: string): Promise<Contractor | undefined>;
   createContractor(data: InsertContractor): Promise<Contractor>;
   updateContractor(id: number, data: Partial<InsertContractor>): Promise<Contractor | undefined>;
   
@@ -214,6 +215,11 @@ export class DatabaseStorage implements IStorage {
   // Contractor operations
   async getContractor(id: number): Promise<Contractor | undefined> {
     const [contractor] = await db.select().from(contractors).where(eq(contractors.id, id));
+    return contractor;
+  }
+
+  async getContractorByUserId(userId: string): Promise<Contractor | undefined> {
+    const [contractor] = await db.select().from(contractors).where(eq(contractors.userId, userId));
     return contractor;
   }
 
