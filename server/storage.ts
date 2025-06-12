@@ -18,8 +18,6 @@ import {
   driverChecklistProgress,
   userRegistrationNotifications,
   adminActivityLog,
-  dashboardWidgets,
-  widgetTemplates,
   type Contractor, 
   type InsertContractor,
   type Vehicle,
@@ -49,11 +47,7 @@ import {
   type BackgroundCheckAuditLog,
   type InsertBackgroundCheckAuditLog,
   type DriverChecklistProgress,
-  type InsertDriverChecklistProgress,
-  type DashboardWidget,
-  type InsertDashboardWidget,
-  type WidgetTemplate,
-  type InsertWidgetTemplate
+  type InsertDriverChecklistProgress
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
@@ -147,14 +141,7 @@ export interface IStorage {
   getAdminActivityLog(): Promise<any[]>;
   createRegistrationNotification(data: any): Promise<any>;
 
-  // Dashboard widget operations
-  getUserWidgets(userId: string): Promise<DashboardWidget[]>;
-  createWidget(data: InsertDashboardWidget): Promise<DashboardWidget>;
-  updateWidget(id: number, data: Partial<InsertDashboardWidget>): Promise<DashboardWidget | undefined>;
-  deleteWidget(id: number, userId: string): Promise<void>;
-  reorderWidgets(userId: string, widgetIds: number[]): Promise<void>;
-  getWidgetTemplates(): Promise<WidgetTemplate[]>;
-  createWidgetTemplate(data: InsertWidgetTemplate): Promise<WidgetTemplate>;
+
 }
 
 export class DatabaseStorage implements IStorage {

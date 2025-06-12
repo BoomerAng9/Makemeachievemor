@@ -1,340 +1,347 @@
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Settings, Trash2, GripVertical } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
-import { DashboardWidget, WidgetTemplate } from "@shared/schema";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { 
+  FileText, 
+  MapPin, 
+  DollarSign, 
+  Calendar, 
+  CheckCircle, 
+  Clock, 
+  AlertTriangle,
+  TrendingUp,
+  Users,
+  Package,
+  ArrowLeft
+} from "lucide-react";
+import { Link } from "wouter";
 
-// Widget Components
-const QuickStatsWidget = ({ config }: { config: any }) => (
-  <Card>
-    <CardHeader className="pb-3">
-      <CardTitle className="text-sm font-medium">Quick Stats</CardTitle>
-    </CardHeader>
-    <CardContent>
-      <div className="grid grid-cols-2 gap-4">
-        <div className="text-center">
-          <div className="text-2xl font-bold text-blue-600">12</div>
-          <div className="text-xs text-muted-foreground">Active Jobs</div>
-        </div>
-        <div className="text-center">
-          <div className="text-2xl font-bold text-green-600">$5,240</div>
-          <div className="text-xs text-muted-foreground">This Week</div>
-        </div>
-      </div>
-    </CardContent>
-  </Card>
-);
+// Sample data for demonstration
+const sampleDocuments = [
+  { id: 1, name: "Commercial Driver License", type: "license", status: "active", expiryDate: "2025-12-15" },
+  { id: 2, name: "DOT Medical Certificate", type: "medical", status: "active", expiryDate: "2025-08-30" },
+  { id: 3, name: "Insurance Certificate", type: "insurance", status: "pending", expiryDate: "2025-06-01" },
+  { id: 4, name: "Vehicle Registration", type: "registration", status: "active", expiryDate: "2025-11-20" },
+];
 
-const RecentActivityWidget = ({ config }: { config: any }) => (
-  <Card>
-    <CardHeader className="pb-3">
-      <CardTitle className="text-sm font-medium">Recent Activity</CardTitle>
-    </CardHeader>
-    <CardContent>
-      <div className="space-y-3">
-        <div className="flex items-center justify-between text-sm">
-          <span>Job #12345 completed</span>
-          <span className="text-muted-foreground">2h ago</span>
-        </div>
-        <div className="flex items-center justify-between text-sm">
-          <span>New opportunity available</span>
-          <span className="text-muted-foreground">4h ago</span>
-        </div>
-        <div className="flex items-center justify-between text-sm">
-          <span>Payment received</span>
-          <span className="text-muted-foreground">1d ago</span>
-        </div>
-      </div>
-    </CardContent>
-  </Card>
-);
+const sampleOpportunities = [
+  { id: 1, title: "Atlanta to Nashville", rate: "$2,400", miles: "240", type: "Flatbed", urgency: "high" },
+  { id: 2, title: "Memphis to Birmingham", rate: "$1,800", miles: "180", type: "Dry Van", urgency: "medium" },
+  { id: 3, title: "Charlotte to Jacksonville", rate: "$3,200", miles: "320", type: "Refrigerated", urgency: "low" },
+];
 
-const WeatherWidget = ({ config }: { config: any }) => (
-  <Card>
-    <CardHeader className="pb-3">
-      <CardTitle className="text-sm font-medium">Weather</CardTitle>
-    </CardHeader>
-    <CardContent>
-      <div className="text-center">
-        <div className="text-3xl font-bold">72°F</div>
-        <div className="text-sm text-muted-foreground">Partly Cloudy</div>
-        <div className="text-xs text-muted-foreground mt-1">
-          {config?.location || "Current Location"}
-        </div>
-      </div>
-    </CardContent>
-  </Card>
-);
-
-const NotificationsWidget = ({ config }: { config: any }) => (
-  <Card>
-    <CardHeader className="pb-3">
-      <CardTitle className="text-sm font-medium">Notifications</CardTitle>
-    </CardHeader>
-    <CardContent>
-      <div className="space-y-2">
-        <div className="flex items-center gap-2 p-2 bg-blue-50 rounded text-sm">
-          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-          <span>Vehicle inspection due</span>
-        </div>
-        <div className="flex items-center gap-2 p-2 bg-yellow-50 rounded text-sm">
-          <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-          <span>License renewal reminder</span>
-        </div>
-      </div>
-    </CardContent>
-  </Card>
-);
-
-const WIDGET_COMPONENTS: Record<string, React.ComponentType<{ config: any }>> = {
-  quick_stats: QuickStatsWidget,
-  recent_activity: RecentActivityWidget,
-  weather: WeatherWidget,
-  notifications: NotificationsWidget,
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case "active": return "bg-green-100 text-green-800";
+    case "pending": return "bg-yellow-100 text-yellow-800";
+    case "expired": return "bg-red-100 text-red-800";
+    default: return "bg-gray-100 text-gray-800";
+  }
 };
 
-interface AddWidgetDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onAddWidget: (templateId: number, config: any) => void;
-}
-
-function AddWidgetDialog({ open, onOpenChange, onAddWidget }: AddWidgetDialogProps) {
-  const [selectedTemplate, setSelectedTemplate] = useState<WidgetTemplate | null>(null);
-  const [config, setConfig] = useState<any>({});
-
-  const { data: templates = [] } = useQuery<WidgetTemplate[]>({
-    queryKey: ["/api/widget-templates"],
-  });
-
-  const handleAdd = () => {
-    if (selectedTemplate) {
-      const templateConfig = selectedTemplate.defaultConfiguration as any || {};
-      onAddWidget(selectedTemplate.id, { ...templateConfig, ...config });
-      setSelectedTemplate(null);
-      setConfig({});
-      onOpenChange(false);
-    }
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Add Widget</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4">
-          <div>
-            <Label>Widget Type</Label>
-            <Select onValueChange={(value) => {
-              const template = templates.find(t => t.id === parseInt(value));
-              setSelectedTemplate(template || null);
-              setConfig(template?.defaultConfiguration || {});
-            }}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select a widget type" />
-              </SelectTrigger>
-              <SelectContent>
-                {templates.map((template) => (
-                  <SelectItem key={template.id} value={template.id.toString()}>
-                    {template.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {selectedTemplate && (
-            <div>
-              <Label>Widget Title</Label>
-              <Input
-                value={config.title || selectedTemplate.name}
-                onChange={(e) => setConfig({ ...config, title: e.target.value })}
-                placeholder="Enter widget title"
-              />
-            </div>
-          )}
-
-          {selectedTemplate?.widgetType === 'weather' && (
-            <div>
-              <Label>Location</Label>
-              <Input
-                value={config.location || ''}
-                onChange={(e) => setConfig({ ...config, location: e.target.value })}
-                placeholder="Enter location"
-              />
-            </div>
-          )}
-
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleAdd} disabled={!selectedTemplate}>
-              Add Widget
-            </Button>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
+const getUrgencyColor = (urgency: string) => {
+  switch (urgency) {
+    case "high": return "bg-red-100 text-red-800";
+    case "medium": return "bg-yellow-100 text-yellow-800";
+    case "low": return "bg-green-100 text-green-800";
+    default: return "bg-gray-100 text-gray-800";
+  }
+};
 
 export default function DashboardPage() {
-  const [addWidgetOpen, setAddWidgetOpen] = useState(false);
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
+  const { user } = useAuth();
 
-  const { data: widgets = [], isLoading } = useQuery<DashboardWidget[]>({
-    queryKey: ["/api/widgets"],
-  });
-
-  const createWidgetMutation = useMutation({
-    mutationFn: async ({ templateId, config }: { templateId: number; config: any }) => {
-      const response = await apiRequest("POST", "/api/widgets", {
-        templateId,
-        configuration: config,
-        position: widgets.length,
-        isVisible: true,
-      });
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/widgets"] });
-      toast({
-        title: "Widget added",
-        description: "Your widget has been added to the dashboard.",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to add widget. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const deleteWidgetMutation = useMutation({
-    mutationFn: async (widgetId: number) => {
-      await apiRequest("DELETE", `/api/widgets/${widgetId}`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/widgets"] });
-      toast({
-        title: "Widget removed",
-        description: "The widget has been removed from your dashboard.",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to remove widget. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const handleAddWidget = (templateId: number, config: any) => {
-    createWidgetMutation.mutate({ templateId, config });
-  };
-
-  const handleDeleteWidget = (widgetId: number) => {
-    deleteWidgetMutation.mutate(widgetId);
-  };
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="animate-pulse space-y-4">
-            <div className="h-8 bg-gray-300 rounded w-1/4"></div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="h-32 bg-gray-300 rounded"></div>
-              ))}
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      {/* Header with Back Button */}
+      <div className="bg-white dark:bg-gray-800 shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center gap-4">
+              <Link href="/">
+                <Button variant="ghost" size="sm" className="gap-2">
+                  <ArrowLeft className="h-4 w-4" />
+                  Back to Home
+                </Button>
+              </Link>
+              <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
+                Dashboard - {user?.firstName || 'User'}'s Glovebox
+              </h1>
             </div>
           </div>
         </div>
       </div>
-    );
-  }
 
-  return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <Button onClick={() => setAddWidgetOpen(true)}>
-            <Plus className="w-4 h-4 mr-2" />
-            Add Widget
-          </Button>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Quick Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center">
+                <FileText className="h-8 w-8 text-blue-600" />
+                <div className="ml-4">
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white">4</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Documents</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center">
+                <DollarSign className="h-8 w-8 text-green-600" />
+                <div className="ml-4">
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white">$7,400</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Available Jobs</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center">
+                <MapPin className="h-8 w-8 text-purple-600" />
+                <div className="ml-4">
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white">3</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Opportunities</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center">
+                <CheckCircle className="h-8 w-8 text-indigo-600" />
+                <div className="ml-4">
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white">92%</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Compliance</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
-        {widgets.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="max-w-md mx-auto">
-              <Settings className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                Customize Your Dashboard
-              </h3>
-              <p className="text-gray-600 mb-6">
-                Add widgets to personalize your dashboard and get quick access to the information that matters most to you.
-              </p>
-              <Button onClick={() => setAddWidgetOpen(true)}>
-                <Plus className="w-4 h-4 mr-2" />
-                Add Your First Widget
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {widgets.map((widget) => {
-              const config = widget.configuration as any || {};
-              const WidgetComponent = WIDGET_COMPONENTS[config.widgetType] || QuickStatsWidget;
-              
-              return (
-                <div key={widget.id} className="relative group">
-                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                    <div className="flex gap-1">
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        className="h-8 w-8 p-0"
-                        title="Drag to reorder"
-                      >
-                        <GripVertical className="w-3 h-3" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        className="h-8 w-8 p-0"
-                        onClick={() => handleDeleteWidget(widget.id)}
-                        title="Remove widget"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </Button>
+        {/* Main Content Tabs */}
+        <Tabs defaultValue="documents" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="documents">Documents</TabsTrigger>
+            <TabsTrigger value="opportunities">Opportunities</TabsTrigger>
+            <TabsTrigger value="compliance">Compliance</TabsTrigger>
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+          </TabsList>
+
+          {/* Documents Tab */}
+          <TabsContent value="documents" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  Document Management
+                </CardTitle>
+                <CardDescription>
+                  Manage your important trucking documents and certifications
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {sampleDocuments.map((doc) => (
+                    <div key={doc.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <FileText className="h-8 w-8 text-blue-600" />
+                        <div>
+                          <div className="font-medium">{doc.name}</div>
+                          <div className="text-sm text-gray-600">Expires: {doc.expiryDate}</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <Badge className={getStatusColor(doc.status)}>
+                          {doc.status}
+                        </Badge>
+                        <Button variant="outline" size="sm">
+                          View
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-6">
+                  <Link href="/glovebox">
+                    <Button className="w-full">
+                      <Package className="h-4 w-4 mr-2" />
+                      Open Glovebox
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Opportunities Tab */}
+          <TabsContent value="opportunities" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MapPin className="h-5 w-5" />
+                  Available Opportunities
+                </CardTitle>
+                <CardDescription>
+                  Explore new job opportunities and routes
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {sampleOpportunities.map((opp) => (
+                    <div key={opp.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <MapPin className="h-8 w-8 text-purple-600" />
+                        <div>
+                          <div className="font-medium">{opp.title}</div>
+                          <div className="text-sm text-gray-600">{opp.type} • {opp.miles} miles</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <Badge className={getUrgencyColor(opp.urgency)}>
+                          {opp.urgency}
+                        </Badge>
+                        <div className="text-right">
+                          <div className="font-bold text-green-600">{opp.rate}</div>
+                          <Button variant="outline" size="sm" className="mt-1">
+                            Apply
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Compliance Tab */}
+          <TabsContent value="compliance" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CheckCircle className="h-5 w-5" />
+                  Compliance Status
+                </CardTitle>
+                <CardDescription>
+                  Track your compliance status and upcoming requirements
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium">Overall Compliance Score</span>
+                    <span className="text-2xl font-bold text-green-600">92%</span>
+                  </div>
+                  <Progress value={92} className="w-full" />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-4 border rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <CheckCircle className="h-5 w-5 text-green-600" />
+                      <span className="font-medium">Documents Up to Date</span>
+                    </div>
+                    <div className="text-sm text-gray-600">3 of 4 documents current</div>
+                  </div>
+
+                  <div className="p-4 border rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Clock className="h-5 w-5 text-yellow-600" />
+                      <span className="font-medium">Pending Renewals</span>
+                    </div>
+                    <div className="text-sm text-gray-600">1 document needs attention</div>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <AlertTriangle className="h-5 w-5 text-yellow-600" />
+                    <span className="font-medium text-yellow-800">Action Required</span>
+                  </div>
+                  <div className="text-sm text-yellow-700">
+                    Insurance Certificate expires in 30 days. Please renew to maintain compliance.
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Overview Tab */}
+          <TabsContent value="overview" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5" />
+                    Performance Overview
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span>Jobs Completed This Month</span>
+                    <span className="font-bold">8</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>Total Earnings</span>
+                    <span className="font-bold text-green-600">$18,400</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>Miles Driven</span>
+                    <span className="font-bold">12,480</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>Fuel Efficiency</span>
+                    <span className="font-bold">6.8 MPG</span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Calendar className="h-5 w-5" />
+                    Upcoming Schedule
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                      <div>
+                        <div className="font-medium">Delivery - Birmingham</div>
+                        <div className="text-sm text-gray-600">Tomorrow, 9:00 AM</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-green-600 rounded-full"></div>
+                      <div>
+                        <div className="font-medium">DOT Inspection</div>
+                        <div className="text-sm text-gray-600">Friday, 2:00 PM</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-yellow-600 rounded-full"></div>
+                      <div>
+                        <div className="font-medium">License Renewal</div>
+                        <div className="text-sm text-gray-600">Next Monday</div>
+                      </div>
                     </div>
                   </div>
-                  <WidgetComponent config={config} />
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        <AddWidgetDialog
-          open={addWidgetOpen}
-          onOpenChange={setAddWidgetOpen}
-          onAddWidget={handleAddWidget}
-        />
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
