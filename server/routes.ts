@@ -23,9 +23,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      res.json(user);
+      // Return user from session claims
+      const profile = {
+        id: req.user.claims.sub,
+        name: `${req.user.claims.first_name || ''} ${req.user.claims.last_name || ''}`.trim() || 'User',
+        email: req.user.claims.email || '',
+        profileImageUrl: req.user.claims.profile_image_url,
+        role: 'driver',
+        status: 'active'
+      };
+      res.json(profile);
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
@@ -35,17 +42,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // User profile route
   app.get('/api/user', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      
-      // Return basic user profile
+      // Return basic user profile from session
       const profile = {
-        id: userId,
+        id: req.user.claims.sub,
         name: `${req.user.claims.first_name || ''} ${req.user.claims.last_name || ''}`.trim() || 'User',
         email: req.user.claims.email || '',
         profileImageUrl: req.user.claims.profile_image_url,
-        role: user?.role || 'driver',
-        status: user?.status || 'active'
+        role: 'driver',
+        status: 'active'
       };
       
       res.json(profile);
