@@ -72,6 +72,7 @@ function RouterInner() {
           <Route path="/" component={Dashboard} />
           <Route path="/dashboard" component={Dashboard} />
           <Route path="/dashboard/:contractorId" component={DashboardPage} />
+          <Route path="/location" component={LocationServices} />
           <Route path="/glovebox" component={GloveboxPage} />
           <Route path="/driver-location" component={DriverLocationPage} />
           <Route path="/admin" component={AdminDashboard} />
