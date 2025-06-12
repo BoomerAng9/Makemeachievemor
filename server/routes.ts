@@ -953,8 +953,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/widgets", tempAuthMiddleware, async (req, res) => {
     try {
+      console.log("User object in widget route:", req.user);
       const userId = req.user?.id;
       if (!userId) {
+        console.log("No user ID found, user object:", req.user);
         return res.status(401).json({ message: "User not authenticated" });
       }
 

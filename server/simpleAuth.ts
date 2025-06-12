@@ -149,13 +149,24 @@ export function setupSimpleAuth(app: Express) {
 }
 
 // Auth middleware
-export function requireAuth(req: any, res: any, next: any) {
+export async function requireAuth(req: any, res: any, next: any) {
   const userId = (req.session as any)?.userId;
   if (!userId) {
     return res.status(401).json({ message: "Authentication required" });
   }
   
-  // Add user ID to request for convenience
-  req.userId = userId;
-  next();
+  try {
+    const user = await storage.getUser(userId);
+    if (!user) {
+      return res.status(401).json({ message: "User not found" });
+    }
+    
+    // Add user object to request
+    req.user = user;
+    req.userId = userId;
+    next();
+  } catch (error) {
+    console.error('Auth middleware error:', error);
+    res.status(500).json({ message: "Authentication failed" });
+  }
 }
