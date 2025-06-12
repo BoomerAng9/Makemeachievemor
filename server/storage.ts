@@ -124,15 +124,15 @@ export interface IStorage {
   updateDocumentNotes(id: number, userId: string, notes: string): Promise<Document | undefined>;
   
   // Document sharing operations
-  createDocumentShare(data: InsertDocumentShare): Promise<DocumentShare>;
-  getDocumentShare(shareToken: string): Promise<DocumentShare | undefined>;
-  getActiveDocumentShares(userId: string): Promise<DocumentShare[]>;
+  createDocumentShare(data: any): Promise<any>;
+  getDocumentShare(shareToken: string): Promise<any | undefined>;
+  getActiveDocumentShares(userId: string): Promise<any[]>;
   deactivateDocumentShare(id: number, userId: string): Promise<void>;
   
   // Driver location operations
-  upsertDriverLocation(data: InsertDriverLocation): Promise<DriverLocation>;
-  getDriverLocation(userId: string): Promise<DriverLocation | undefined>;
-  getNearbyDrivers(latitude: number, longitude: number, radiusMiles: number): Promise<DriverLocation[]>;
+  upsertDriverLocation(data: any): Promise<any>;
+  getDriverLocation(userId: string): Promise<any | undefined>;
+  getNearbyDrivers(latitude: number, longitude: number, radiusMiles: number): Promise<any[]>;
   
   // Admin operations
   getAdminStats(): Promise<any>;
@@ -463,17 +463,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Document sharing operations
-  async createDocumentShare(data: InsertDocumentShare): Promise<DocumentShare> {
+  async createDocumentShare(data: any): Promise<any> {
     const [share] = await db.insert(documentShares).values(data).returning();
     return share;
   }
 
-  async getDocumentShare(shareToken: string): Promise<DocumentShare | undefined> {
+  async getDocumentShare(shareToken: string): Promise<any | undefined> {
     const [share] = await db.select().from(documentShares).where(eq(documentShares.shareToken, shareToken));
     return share;
   }
 
-  async getActiveDocumentShares(userId: string): Promise<DocumentShare[]> {
+  async getActiveDocumentShares(userId: string): Promise<any[]> {
     return await db.select().from(documentShares)
       .where(and(eq(documentShares.userId, userId), eq(documentShares.isActive, true)))
       .orderBy(documentShares.createdAt);

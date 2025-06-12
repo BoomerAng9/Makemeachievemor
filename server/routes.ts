@@ -24,6 +24,7 @@ import { generateChatbotResponse } from "./chatbot";
 import { setupSimpleAuth, requireAuth } from "./simpleAuth";
 import { setupSSOAuth } from "./ssoAuth";
 import { setupGoogleAuth, isGoogleOAuthConfigured } from "./googleAuth";
+import passport from "passport";
 import { zeroTrustMiddleware, enhancedAuth, trackComplianceEvent } from "./zeroTrustSecurity";
 import { db } from "./db";
 import { eq, and, desc, or, gte, lt, sql, asc, count, sum, avg, ilike } from "drizzle-orm";
@@ -1306,18 +1307,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   if (isGoogleOAuthConfigured()) {
     console.log("Setting up Google OAuth");
     setupGoogleAuth(app);
-    
-    // Override the SSO Google route with proper Passport.js implementation
-    app.get('/api/auth/google', (req, res, next) => {
-      passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next);
-    });
-
-    app.get('/api/auth/google/callback', 
-      passport.authenticate('google', { failureRedirect: '/' }),
-      (req, res) => {
-        res.redirect('/dashboard');
-      }
-    );
   }
 
   const httpServer = createServer(app);

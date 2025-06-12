@@ -893,10 +893,6 @@ export type BackgroundCheckTemplate = typeof backgroundCheckTemplates.$inferSele
 export type InsertBackgroundCheckTemplate = z.infer<typeof insertBackgroundCheckTemplateSchema>;
 export type BackgroundCheckAuditLog = typeof backgroundCheckAuditLog.$inferSelect;
 export type InsertBackgroundCheckAuditLog = z.infer<typeof insertBackgroundCheckAuditLogSchema>;
-export type DriverLocation = typeof driverLocations.$inferSelect;
-export type InsertDriverLocation = z.infer<typeof insertDriverLocationSchema>;
-export type DocumentShare = typeof documentShares.$inferSelect;
-export type InsertDocumentShare = z.infer<typeof insertDocumentShareSchema>;
 
 export type DriverChecklistProgress = typeof driverChecklistProgress.$inferSelect;
 export type InsertDriverChecklistProgress = z.infer<typeof insertDriverChecklistProgressSchema>;
