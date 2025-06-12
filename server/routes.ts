@@ -1,13 +1,48 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import Stripe from "stripe";
 import { storage } from "./storage";
 import multer from "multer";
 import path from "path";
-import { insertContractorSchema, insertVehicleSchema, insertDocumentSchema, insertOpportunitySchema, insertMessageSchema, insertJobAssignmentSchema } from "@shared/schema";
+import { 
+  insertContractorSchema, 
+  insertVehicleSchema, 
+  insertDocumentSchema, 
+  insertOpportunitySchema, 
+  insertMessageSchema, 
+  insertJobAssignmentSchema,
+  insertContractorAvailabilitySchema,
+  insertCompanyJobRequirementsSchema,
+  insertSubscriptionSchema,
+  contractorAvailability,
+  companyJobRequirements,
+  subscriptions,
+  contractorCompanyRelationships
+} from "@shared/schema";
 import { z } from "zod";
 import { generateChatbotResponse } from "./chatbot";
 import { setupSimpleAuth, requireAuth } from "./simpleAuth";
 import { setupSSOAuth } from "./ssoAuth";
+import { zeroTrustMiddleware, enhancedAuth, trackComplianceEvent } from "./zeroTrustSecurity";
+import { db } from "./db";
+import { eq, and, desc } from "drizzle-orm";
+
+if (!process.env.STRIPE_SECRET_KEY) {
+  throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
+}
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+  apiVersion: "2023-10-16",
+});
+
+// Subscription pricing configuration
+const SUBSCRIPTION_PRICES = {
+  contractor_basic: { price: 2900, name: "Basic Driver" },
+  contractor_professional: { price: 7900, name: "Professional Driver" },
+  contractor_premium: { price: 14900, name: "Elite Driver" },
+  company_basic: { price: 19900, name: "Startup Fleet" },
+  company_professional: { price: 49900, name: "Growing Business" },
+  enterprise: { price: 0, name: "Enterprise" }
+};
 
 // Configure multer for file uploads
 const upload = multer({
@@ -29,6 +64,9 @@ const upload = multer({
 const tempAuthMiddleware = requireAuth;
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Apply Zero Trust security middleware to all routes
+  app.use(zeroTrustMiddleware);
+  
   // Setup authentication systems
   setupSimpleAuth(app);
   setupSSOAuth(app);
@@ -36,6 +74,330 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Basic health check
   app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  });
+
+  // ============================================================================
+  // CONTRACTOR AVAILABILITY ROUTES
+  // ============================================================================
+
+  // Create/Update contractor availability
+  app.post('/api/contractor/availability', enhancedAuth, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const validatedData = insertContractorAvailabilitySchema.parse(req.body);
+      
+      // Check if availability already exists
+      const [existing] = await db
+        .select()
+        .from(contractorAvailability)
+        .where(eq(contractorAvailability.contractorId, validatedData.contractorId))
+        .limit(1);
+
+      let result;
+      if (existing) {
+        [result] = await db
+          .update(contractorAvailability)
+          .set({ ...validatedData, lastUpdated: new Date() })
+          .where(eq(contractorAvailability.contractorId, validatedData.contractorId))
+          .returning();
+      } else {
+        [result] = await db
+          .insert(contractorAvailability)
+          .values(validatedData)
+          .returning();
+      }
+
+      await trackComplianceEvent(
+        'availability_updated',
+        'processing_integrity',
+        userId,
+        'Contractor availability preferences updated',
+        'low',
+        ['availability_data'],
+        ['availability_system']
+      );
+
+      res.json(result);
+    } catch (error) {
+      console.error('Availability setup error:', error);
+      res.status(500).json({ message: 'Failed to save availability preferences' });
+    }
+  });
+
+  // Get contractor availability
+  app.get('/api/contractor/availability/:contractorId', enhancedAuth, async (req, res) => {
+    try {
+      const contractorId = parseInt(req.params.contractorId);
+      
+      const [availability] = await db
+        .select()
+        .from(contractorAvailability)
+        .where(eq(contractorAvailability.contractorId, contractorId))
+        .limit(1);
+
+      res.json(availability || null);
+    } catch (error) {
+      console.error('Get availability error:', error);
+      res.status(500).json({ message: 'Failed to retrieve availability' });
+    }
+  });
+
+  // ============================================================================
+  // COMPANY JOB REQUIREMENTS ROUTES
+  // ============================================================================
+
+  // Create/Update company job requirements
+  app.post('/api/company/job-requirements', enhancedAuth, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const validatedData = insertCompanyJobRequirementsSchema.parse(req.body);
+      
+      // Check if requirements already exist
+      const [existing] = await db
+        .select()
+        .from(companyJobRequirements)
+        .where(eq(companyJobRequirements.companyId, validatedData.companyId))
+        .limit(1);
+
+      let result;
+      if (existing) {
+        [result] = await db
+          .update(companyJobRequirements)
+          .set({ ...validatedData, lastUpdated: new Date() })
+          .where(eq(companyJobRequirements.companyId, validatedData.companyId))
+          .returning();
+      } else {
+        [result] = await db
+          .insert(companyJobRequirements)
+          .values(validatedData)
+          .returning();
+      }
+
+      await trackComplianceEvent(
+        'job_requirements_updated',
+        'processing_integrity',
+        userId,
+        'Company job requirements updated',
+        'low',
+        ['job_requirements'],
+        ['requirements_system']
+      );
+
+      res.json(result);
+    } catch (error) {
+      console.error('Job requirements setup error:', error);
+      res.status(500).json({ message: 'Failed to save job requirements' });
+    }
+  });
+
+  // Get company job requirements
+  app.get('/api/company/job-requirements/:companyId', enhancedAuth, async (req, res) => {
+    try {
+      const companyId = req.params.companyId;
+      
+      const [requirements] = await db
+        .select()
+        .from(companyJobRequirements)
+        .where(eq(companyJobRequirements.companyId, companyId))
+        .limit(1);
+
+      res.json(requirements || null);
+    } catch (error) {
+      console.error('Get job requirements error:', error);
+      res.status(500).json({ message: 'Failed to retrieve job requirements' });
+    }
+  });
+
+  // ============================================================================
+  // STRIPE SUBSCRIPTION ROUTES
+  // ============================================================================
+
+  // Create subscription
+  app.post('/api/subscription/create', enhancedAuth, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const { planId } = req.body;
+      
+      if (!SUBSCRIPTION_PRICES[planId as keyof typeof SUBSCRIPTION_PRICES]) {
+        return res.status(400).json({ message: 'Invalid plan ID' });
+      }
+
+      const plan = SUBSCRIPTION_PRICES[planId as keyof typeof SUBSCRIPTION_PRICES];
+      
+      // Check if user already has a subscription
+      const [existingSubscription] = await db
+        .select()
+        .from(subscriptions)
+        .where(and(
+          eq(subscriptions.userId, userId),
+          eq(subscriptions.status, 'active')
+        ))
+        .limit(1);
+
+      if (existingSubscription) {
+        return res.status(409).json({ message: 'User already has an active subscription' });
+      }
+
+      // Create Stripe customer if not exists
+      let stripeCustomerId = '';
+      try {
+        const customer = await stripe.customers.create({
+          email: req.user!.email,
+          metadata: { userId, planId }
+        });
+        stripeCustomerId = customer.id;
+      } catch (stripeError) {
+        console.error('Stripe customer creation error:', stripeError);
+        return res.status(500).json({ message: 'Failed to create payment profile' });
+      }
+
+      // Create payment intent for subscription
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: plan.price,
+        currency: 'usd',
+        customer: stripeCustomerId,
+        setup_future_usage: 'off_session',
+        metadata: { userId, planId, subscriptionType: 'new' }
+      });
+
+      // Create subscription record
+      await db.insert(subscriptions).values({
+        userId,
+        stripeCustomerId,
+        tier: planId,
+        status: 'pending',
+        basePrice: (plan.price / 100).toString(),
+        currentPrice: (plan.price / 100).toString(),
+        billingCycle: 'monthly',
+        features: JSON.stringify([])
+      });
+
+      await trackComplianceEvent(
+        'subscription_created',
+        'processing_integrity',
+        userId,
+        `Subscription created for plan: ${plan.name}`,
+        'medium',
+        ['payment_data', 'subscription_data'],
+        ['payment_system', 'subscription_system']
+      );
+
+      res.json({ 
+        clientSecret: paymentIntent.client_secret,
+        subscriptionId: paymentIntent.id
+      });
+    } catch (error) {
+      console.error('Subscription creation error:', error);
+      res.status(500).json({ message: 'Failed to create subscription' });
+    }
+  });
+
+  // Get current subscription
+  app.get('/api/subscription/current', enhancedAuth, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      
+      const [subscription] = await db
+        .select()
+        .from(subscriptions)
+        .where(and(
+          eq(subscriptions.userId, userId),
+          eq(subscriptions.status, 'active')
+        ))
+        .orderBy(desc(subscriptions.createdAt))
+        .limit(1);
+
+      res.json(subscription || null);
+    } catch (error) {
+      console.error('Get subscription error:', error);
+      res.status(500).json({ message: 'Failed to retrieve subscription' });
+    }
+  });
+
+  // ============================================================================
+  // CONTRACTOR-COMPANY RELATIONSHIP ROUTES
+  // ============================================================================
+
+  // Track job completion for relationship building
+  app.post('/api/relationship/job-completed', enhancedAuth, async (req, res) => {
+    try {
+      const { contractorId, companyId, earnings, rating } = req.body;
+      
+      // Check if relationship exists
+      const [existing] = await db
+        .select()
+        .from(contractorCompanyRelationships)
+        .where(and(
+          eq(contractorCompanyRelationships.contractorId, contractorId),
+          eq(contractorCompanyRelationships.companyId, companyId)
+        ))
+        .limit(1);
+
+      if (existing) {
+        // Update existing relationship
+        const newJobsCompleted = (existing.jobsCompleted || 0) + 1;
+        const newTotalEarnings = parseFloat(existing.totalEarnings || '0') + earnings;
+        const newAverageRating = existing.averageRating ? 
+          ((parseFloat(existing.averageRating) * (newJobsCompleted - 1)) + rating) / newJobsCompleted :
+          rating;
+
+        // Determine if eligible for consistency discount
+        let consistentWorkDiscount = parseFloat(existing.consistentWorkDiscount || '0');
+        if (newJobsCompleted >= 10 && consistentWorkDiscount === 0) {
+          consistentWorkDiscount = 10.00; // 10% discount for consistent work
+        }
+
+        await db
+          .update(contractorCompanyRelationships)
+          .set({
+            jobsCompleted: newJobsCompleted,
+            totalEarnings: newTotalEarnings.toString(),
+            averageRating: newAverageRating.toString(),
+            consistentWorkDiscount: consistentWorkDiscount.toString(),
+            updatedAt: new Date()
+          })
+          .where(eq(contractorCompanyRelationships.id, existing.id));
+      } else {
+        // Create new relationship
+        await db.insert(contractorCompanyRelationships).values({
+          contractorId,
+          companyId,
+          relationshipType: 'on_demand',
+          jobsCompleted: 1,
+          totalEarnings: earnings.toString(),
+          averageRating: rating.toString(),
+          consistentWorkDiscount: '0.00',
+          longTermContractDiscount: '0.00'
+        });
+      }
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Relationship tracking error:', error);
+      res.status(500).json({ message: 'Failed to track relationship' });
+    }
+  });
+
+  // Get relationship status
+  app.get('/api/relationship/:contractorId/:companyId', enhancedAuth, async (req, res) => {
+    try {
+      const contractorId = parseInt(req.params.contractorId);
+      const companyId = req.params.companyId;
+      
+      const [relationship] = await db
+        .select()
+        .from(contractorCompanyRelationships)
+        .where(and(
+          eq(contractorCompanyRelationships.contractorId, contractorId),
+          eq(contractorCompanyRelationships.companyId, companyId)
+        ))
+        .limit(1);
+
+      res.json(relationship || null);
+    } catch (error) {
+      console.error('Get relationship error:', error);
+      res.status(500).json({ message: 'Failed to retrieve relationship' });
+    }
   });
 
   // User profile management routes

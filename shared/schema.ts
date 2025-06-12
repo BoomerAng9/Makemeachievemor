@@ -848,94 +848,7 @@ export const insertContractorCompanyRelationshipSchema = createInsertSchema(cont
   updatedAt: true,
 });
 
-// Type exports for TypeScript usage
-export type Contractor = typeof contractors.$inferSelect;
-export type InsertContractor = z.infer<typeof insertContractorSchema>;
 
-export type Vehicle = typeof vehicles.$inferSelect;
-export type InsertVehicle = z.infer<typeof insertVehicleSchema>;
-
-export type Document = typeof documents.$inferSelect;
-export type InsertDocument = z.infer<typeof insertDocumentSchema>;
-
-export type Opportunity = typeof opportunities.$inferSelect;
-export type InsertOpportunity = z.infer<typeof insertOpportunitySchema>;
-
-export type Message = typeof messages.$inferSelect;
-export type InsertMessage = z.infer<typeof insertMessageSchema>;
-
-export type JobAssignment = typeof jobAssignments.$inferSelect;
-export type InsertJobAssignment = z.infer<typeof insertJobAssignmentSchema>;
-
-export type User = typeof users.$inferSelect;
-export type InsertUser = z.infer<typeof insertUserSchema>;
-export type UpsertUser = typeof users.$inferInsert;
-
-export type FileStorage = typeof fileStorage.$inferSelect;
-export type InsertFileStorage = z.infer<typeof insertFileStorageSchema>;
-
-export type UserProfile = typeof userProfiles.$inferSelect;
-export type InsertUserProfile = z.infer<typeof insertUserProfileSchema>;
-
-export type DriverChecklistProgress = typeof driverChecklistProgress.$inferSelect;
-export type InsertDriverChecklistProgress = z.infer<typeof insertDriverChecklistProgressSchema>;
-
-export type ContractorAvailability = typeof contractorAvailability.$inferSelect;
-export type InsertContractorAvailability = z.infer<typeof insertContractorAvailabilitySchema>;
-
-export type CompanyJobRequirements = typeof companyJobRequirements.$inferSelect;
-export type InsertCompanyJobRequirements = z.infer<typeof insertCompanyJobRequirementsSchema>;
-
-export type Subscription = typeof subscriptions.$inferSelect;
-export type InsertSubscription = z.infer<typeof insertSubscriptionSchema>;
-
-export type SecurityAuditLog = typeof securityAuditLogs.$inferSelect;
-export type InsertSecurityAuditLog = z.infer<typeof insertSecurityAuditLogSchema>;
-
-export type DeviceTrust = typeof deviceTrust.$inferSelect;
-export type InsertDeviceTrust = z.infer<typeof insertDeviceTrustSchema>;
-
-export type AccessControl = typeof accessControls.$inferSelect;
-export type InsertAccessControl = z.infer<typeof insertAccessControlSchema>;
-
-export type ComplianceEvent = typeof complianceEvents.$inferSelect;
-export type InsertComplianceEvent = z.infer<typeof insertComplianceEventSchema>;
-
-export type DataRetention = typeof dataRetention.$inferSelect;
-export type InsertDataRetention = z.infer<typeof insertDataRetentionSchema>;
-
-export type ContractorCompanyRelationship = typeof contractorCompanyRelationships.$inferSelect;
-export type InsertContractorCompanyRelationship = z.infer<typeof insertContractorCompanyRelationshipSchema>;
-
-export type ExternalConnection = typeof externalConnections.$inferSelect;
-export type InsertExternalConnection = z.infer<typeof insertExternalConnectionSchema>;
-
-export type ConsultationRequest = typeof consultationRequests.$inferSelect;
-export type InsertConsultationRequest = z.infer<typeof insertConsultationRequestSchema>;
-
-export type CompanyConsultationRequest = typeof companyConsultationRequests.$inferSelect;
-export type InsertCompanyConsultationRequest = z.infer<typeof insertCompanyConsultationRequestSchema>;
-
-export type SocialMediaShare = typeof socialMediaShares.$inferSelect;
-export type InsertSocialMediaShare = z.infer<typeof insertSocialMediaShareSchema>;
-
-export type BackgroundCheckProvider = typeof backgroundCheckProviders.$inferSelect;
-export type InsertBackgroundCheckProvider = z.infer<typeof insertBackgroundCheckProviderSchema>;
-
-export type BackgroundCheckRequest = typeof backgroundCheckRequests.$inferSelect;
-export type InsertBackgroundCheckRequest = z.infer<typeof insertBackgroundCheckRequestSchema>;
-
-export type BackgroundCheckResult = typeof backgroundCheckResults.$inferSelect;
-export type InsertBackgroundCheckResult = z.infer<typeof insertBackgroundCheckResultSchema>;
-
-export type BackgroundCheckAlert = typeof backgroundCheckAlerts.$inferSelect;
-export type InsertBackgroundCheckAlert = z.infer<typeof insertBackgroundCheckAlertSchema>;
-
-export type BackgroundCheckTemplate = typeof backgroundCheckTemplates.$inferSelect;
-export type InsertBackgroundCheckTemplate = z.infer<typeof insertBackgroundCheckTemplateSchema>;
-
-export type BackgroundCheckAuditLog = typeof backgroundCheckAuditLog.$inferSelect;
-export type InsertBackgroundCheckAuditLog = z.infer<typeof insertBackgroundCheckAuditLogSchema>;
 
 export const insertDriverLocationSchema = createInsertSchema(driverLocations).omit({
   id: true,
@@ -995,3 +908,28 @@ export type InsertDocumentShare = z.infer<typeof insertDocumentShareSchema>;
 
 export type DriverChecklistProgress = typeof driverChecklistProgress.$inferSelect;
 export type InsertDriverChecklistProgress = z.infer<typeof insertDriverChecklistProgressSchema>;
+
+// New security and availability types
+export type CompanyJobRequirements = typeof companyJobRequirements.$inferSelect;
+export type InsertCompanyJobRequirements = z.infer<typeof insertCompanyJobRequirementsSchema>;
+
+export type Subscription = typeof subscriptions.$inferSelect;
+export type InsertSubscription = z.infer<typeof insertSubscriptionSchema>;
+
+export type SecurityAuditLog = typeof securityAuditLogs.$inferSelect;
+export type InsertSecurityAuditLog = z.infer<typeof insertSecurityAuditLogSchema>;
+
+export type DeviceTrust = typeof deviceTrust.$inferSelect;
+export type InsertDeviceTrust = z.infer<typeof insertDeviceTrustSchema>;
+
+export type AccessControl = typeof accessControls.$inferSelect;
+export type InsertAccessControl = z.infer<typeof insertAccessControlSchema>;
+
+export type ComplianceEvent = typeof complianceEvents.$inferSelect;
+export type InsertComplianceEvent = z.infer<typeof insertComplianceEventSchema>;
+
+export type DataRetention = typeof dataRetention.$inferSelect;
+export type InsertDataRetention = z.infer<typeof insertDataRetentionSchema>;
+
+export type ContractorCompanyRelationship = typeof contractorCompanyRelationships.$inferSelect;
+export type InsertContractorCompanyRelationship = z.infer<typeof insertContractorCompanyRelationshipSchema>;
