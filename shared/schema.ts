@@ -457,6 +457,37 @@ export const backgroundCheckAuditLog = pgTable("background_check_audit_log", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Dashboard widgets configuration
+export const dashboardWidgets = pgTable("dashboard_widgets", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  widgetType: varchar("widget_type").notNull(), // 'stats', 'chart', 'list', 'map', 'calendar', 'recent_activity'
+  title: varchar("title").notNull(),
+  position: integer("position").notNull().default(0), // Order on dashboard
+  size: varchar("size").notNull().default("medium"), // 'small', 'medium', 'large', 'extra_large'
+  isVisible: boolean("is_visible").notNull().default(true),
+  configuration: jsonb("configuration").notNull(), // Widget-specific settings
+  dataSource: varchar("data_source"), // API endpoint or data source identifier
+  refreshInterval: integer("refresh_interval").default(300), // Refresh interval in seconds
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Widget templates for easy widget creation
+export const widgetTemplates = pgTable("widget_templates", {
+  id: serial("id").primaryKey(),
+  name: varchar("name").notNull(),
+  description: text("description"),
+  widgetType: varchar("widget_type").notNull(),
+  defaultConfiguration: jsonb("default_configuration").notNull(),
+  category: varchar("category").notNull(), // 'analytics', 'operations', 'compliance', 'financial'
+  isSystemTemplate: boolean("is_system_template").notNull().default(true),
+  requiredRole: varchar("required_role"), // Minimum role required to use this template
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Create insert schemas
 export const insertContractorSchema = createInsertSchema(contractors).omit({
   id: true,
