@@ -28,38 +28,47 @@ import RegisterPage from "@/pages/register-page";
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <Switch>
-      {isLoading || !isAuthenticated ? (
-        <>
-          <Route path="/" component={LandingPage} />
-          <Route path="/home" component={HomePage} />
-          <Route path="/about" component={AboutPage} />
-          <Route path="/sitemap" component={SitemapPage} />
-          <Route path="/login" component={LoginPage} />
-          <Route path="/register" component={RegisterPage} />
-          <Route path="/driver-checklist" component={DriverChecklistPage} />
-          <Route path="/register/contractor" component={RegisterContractorPage} />
-          <Route path="/register/company" component={RegisterCompanyPage} />
-          <Route path="/admin/setup" component={MasterSetup} />
-          <Route path="/admin-access" component={AdminAccess} />
-          <Route path="/onboarding" component={OnboardingPage} />
-        </>
-      ) : (
+      {/* Authentication pages - always available */}
+      <Route path="/login" component={LoginPage} />
+      <Route path="/register" component={RegisterPage} />
+      
+      {/* Public pages */}
+      <Route path="/home" component={HomePage} />
+      <Route path="/about" component={AboutPage} />
+      <Route path="/sitemap" component={SitemapPage} />
+      <Route path="/driver-checklist" component={DriverChecklistPage} />
+      <Route path="/register/contractor" component={RegisterContractorPage} />
+      <Route path="/register/company" component={RegisterCompanyPage} />
+      <Route path="/admin/setup" component={MasterSetup} />
+      <Route path="/admin-access" component={AdminAccess} />
+      <Route path="/onboarding" component={OnboardingPage} />
+      
+      {/* Protected routes */}
+      {isAuthenticated ? (
         <>
           <Route path="/" component={DashboardPage} />
-          <Route path="/home" component={HomePage} />
-          <Route path="/about" component={AboutPage} />
-          <Route path="/sitemap" component={SitemapPage} />
           <Route path="/dashboard/:contractorId" component={DashboardPage} />
-          <Route path="/driver-checklist" component={DriverChecklistPage} />
           <Route path="/glovebox" component={GloveboxPage} />
           <Route path="/driver-location" component={DriverLocationPage} />
           <Route path="/admin" component={AdminDashboard} />
-          <Route path="/admin/setup" component={MasterSetup} />
-          <Route path="/onboarding" component={OnboardingPage} />
         </>
+      ) : (
+        <Route path="/" component={LandingPage} />
       )}
+      
       <Route component={NotFound} />
     </Switch>
   );

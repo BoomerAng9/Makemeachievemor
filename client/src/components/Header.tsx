@@ -41,7 +41,7 @@ import { useAuth } from "@/hooks/useAuth";
 export function Header() {
   const [location, setLocation] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, logout, isLoggingOut } = useAuth();
 
   const isActive = (path: string) => {
     return location === path || location.startsWith(path + '/');
@@ -191,8 +191,11 @@ export function Header() {
         <div className="flex items-center gap-4">
           {!isAuthenticated ? (
             <div className="hidden md:flex items-center gap-2">
-              <Link href="/api/login">
-                <Button size="sm">Sign In</Button>
+              <Link href="/login">
+                <Button variant="outline" size="sm">Sign In</Button>
+              </Link>
+              <Link href="/register">
+                <Button size="sm">Sign Up</Button>
               </Link>
             </div>
           ) : (
@@ -241,11 +244,13 @@ export function Header() {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <a href="/api/logout" className="flex items-center gap-2 w-full">
-                    <LogOut className="h-4 w-4" />
-                    Sign Out
-                  </a>
+                <DropdownMenuItem 
+                  onClick={logout}
+                  disabled={isLoggingOut}
+                  className="flex items-center gap-2 w-full cursor-pointer"
+                >
+                  <LogOut className="h-4 w-4" />
+                  {isLoggingOut ? 'Signing Out...' : 'Sign Out'}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
