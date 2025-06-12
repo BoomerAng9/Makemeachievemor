@@ -622,7 +622,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Glovebox document storage routes
   app.get('/api/glovebox/documents', tempAuthMiddleware, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const documents = await storage.getUserDocuments(userId);
       res.json(documents);
     } catch (error) {
@@ -633,7 +633,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/glovebox/upload', tempAuthMiddleware, upload.single('file'), async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const file = req.file;
       
       if (!file) {
@@ -719,7 +719,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/glovebox/shares', tempAuthMiddleware, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const shares = await storage.getActiveDocumentShares(userId);
       res.json(shares);
     } catch (error) {

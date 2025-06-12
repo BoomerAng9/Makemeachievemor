@@ -289,7 +289,7 @@ Ready for new opportunities in the transportation industry!
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-900">
       <UniversalNav />
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <div className="container mx-auto px-4 pt-20 pb-8 max-w-7xl">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-4">
