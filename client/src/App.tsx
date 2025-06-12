@@ -25,6 +25,7 @@ import RegisterCompanyPage from "@/pages/register-company";
 import LoginPage from "@/pages/login-page";
 import RegisterPage from "@/pages/register-page";
 import Login from "@/pages/Login";
+import Dashboard from "@/pages/Dashboard";
 import AccountSettingsPage from "@/pages/account-settings";
 
 function Router() {
@@ -67,7 +68,8 @@ function RouterInner() {
       {/* Protected routes */}
       {isAuthenticated ? (
         <>
-          <Route path="/" component={DashboardPage} />
+          <Route path="/" component={Dashboard} />
+          <Route path="/dashboard" component={Dashboard} />
           <Route path="/dashboard/:contractorId" component={DashboardPage} />
           <Route path="/glovebox" component={GloveboxPage} />
           <Route path="/driver-location" component={DriverLocationPage} />
