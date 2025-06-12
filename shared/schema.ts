@@ -244,21 +244,236 @@ export const userProfiles = pgTable("user_profiles", {
   updatedAt: timestamp("updated_at").defaultNow()
 });
 
-// Availability and sharing settings
+// Enhanced Availability and commitment tracking
 export const contractorAvailability = pgTable("contractor_availability", {
   id: serial("id").primaryKey(),
   contractorId: integer("contractor_id").references(() => contractors.id),
   isAvailable: boolean("is_available").default(true),
   availableFrom: timestamp("available_from"),
   availableUntil: timestamp("available_until"),
-  preferredRoutes: jsonb("preferred_routes"), // Array of route preferences
+  
+  // Location preferences (3 locations max)
+  preferredLocations: jsonb("preferred_locations"), // Array of {city, state, radius}
+  serviceRadius: integer("service_radius").default(50), // Miles from preferred locations
+  maxDistance: integer("max_distance").default(200), // Miles willing to travel
+  deadMileLimit: integer("dead_mile_limit").default(50), // Maximum dead miles acceptable
+  
+  // Equipment and services
   equipmentTypes: text("equipment_types").array(),
-  maxDistance: integer("max_distance"), // Miles
-  minRate: decimal("min_rate", { precision: 10, scale: 2 }),
   specialServices: text("special_services").array(),
+  minRate: decimal("min_rate", { precision: 10, scale: 2 }),
+  
+  // Commitment tracking for zero tolerance policy
+  commitmentScore: decimal("commitment_score", { precision: 3, scale: 2 }).default("100.00"), // 0-100 score
+  ghostingIncidents: integer("ghosting_incidents").default(0),
+  missedCommitments: integer("missed_commitments").default(0),
+  lastCommitmentBreach: timestamp("last_commitment_breach"),
+  isCommitmentSuspended: boolean("is_commitment_suspended").default(false),
+  suspensionEndDate: timestamp("suspension_end_date"),
+  
   notes: text("notes"),
   lastUpdated: timestamp("last_updated").defaultNow(),
   createdAt: timestamp("created_at").defaultNow()
+});
+
+// Company job posting requirements and preferences
+export const companyJobRequirements = pgTable("company_job_requirements", {
+  id: serial("id").primaryKey(),
+  companyId: varchar("company_id").references(() => users.id),
+  
+  // Job frequency and volume
+  estimatedJobsPerWeek: integer("estimated_jobs_per_week").notNull(),
+  deliveryFrequency: varchar("delivery_frequency").notNull(), // daily, weekly, monthly, as_needed
+  
+  // Delivery range without revealing clients
+  deliveryRange: jsonb("delivery_range"), // {minMiles, maxMiles, regions: []}
+  maxPayoutPerJob: decimal("max_payout_per_job", { precision: 10, scale: 2 }),
+  
+  // Contractor requirements
+  requiredEquipmentTypes: text("required_equipment_types").array(),
+  requiredCertifications: text("required_certifications").array(),
+  minimumExperience: integer("minimum_experience"), // Years
+  backgroundCheckRequired: boolean("background_check_required").default(true),
+  
+  // Consistency incentives
+  consistencyDiscountOffered: decimal("consistency_discount_offered", { precision: 3, scale: 2 }).default("10.00"), // 5-15%
+  longTermContractDiscount: decimal("long_term_contract_discount", { precision: 3, scale: 2 }).default("10.00"), // 5-15%
+  
+  isActive: boolean("is_active").default(true),
+  lastUpdated: timestamp("last_updated").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow()
+});
+
+// Subscription tiers and payment tracking
+export const subscriptions = pgTable("subscriptions", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").references(() => users.id),
+  stripeCustomerId: varchar("stripe_customer_id"),
+  stripeSubscriptionId: varchar("stripe_subscription_id"),
+  
+  tier: varchar("tier").notNull(), // basic, professional, premium, enterprise
+  status: varchar("status").notNull().default("active"), // active, cancelled, past_due, unpaid
+  
+  // Pricing
+  basePrice: decimal("base_price", { precision: 10, scale: 2 }).notNull(),
+  currentPrice: decimal("current_price", { precision: 10, scale: 2 }).notNull(),
+  discountPercent: decimal("discount_percent", { precision: 3, scale: 2 }).default("0.00"),
+  
+  // Billing
+  billingCycle: varchar("billing_cycle").notNull().default("monthly"), // monthly, yearly
+  nextBillingDate: timestamp("next_billing_date"),
+  lastPaymentDate: timestamp("last_payment_date"),
+  
+  // Features
+  features: jsonb("features"), // Array of enabled features
+  
+  startedAt: timestamp("started_at").defaultNow(),
+  endsAt: timestamp("ends_at"),
+  cancelledAt: timestamp("cancelled_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+// Zero Trust Security Framework Tables
+export const securityAuditLogs = pgTable("security_audit_logs", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").references(() => users.id),
+  sessionId: varchar("session_id"),
+  action: varchar("action").notNull(), // login, logout, data_access, permission_change, etc.
+  resource: varchar("resource"), // The resource being accessed
+  ipAddress: varchar("ip_address"),
+  userAgent: text("user_agent"),
+  deviceId: varchar("device_id"),
+  location: jsonb("location"), // {country, region, city, lat, lng}
+  riskScore: integer("risk_score").default(0), // 0-100 risk assessment
+  success: boolean("success").notNull(),
+  failureReason: text("failure_reason"),
+  metadata: jsonb("metadata"), // Additional context
+  timestamp: timestamp("timestamp").defaultNow()
+});
+
+export const deviceTrust = pgTable("device_trust", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").references(() => users.id),
+  deviceId: varchar("device_id").notNull().unique(),
+  deviceFingerprint: text("device_fingerprint").notNull(),
+  deviceType: varchar("device_type"), // mobile, desktop, tablet
+  browser: varchar("browser"),
+  operatingSystem: varchar("operating_system"),
+  
+  trustLevel: varchar("trust_level").default("unknown"), // trusted, suspicious, blocked, unknown
+  lastVerified: timestamp("last_verified"),
+  verificationMethod: varchar("verification_method"), // biometric, sms, email, totp
+  
+  isActive: boolean("is_active").default(true),
+  blockedReason: text("blocked_reason"),
+  blockedAt: timestamp("blocked_at"),
+  
+  firstSeen: timestamp("first_seen").defaultNow(),
+  lastSeen: timestamp("last_seen").defaultNow(),
+  accessCount: integer("access_count").default(1)
+});
+
+export const accessControls = pgTable("access_controls", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").references(() => users.id),
+  resource: varchar("resource").notNull(), // Table, API endpoint, feature
+  permission: varchar("permission").notNull(), // read, write, delete, admin
+  
+  granted: boolean("granted").default(false),
+  grantedBy: varchar("granted_by").references(() => users.id),
+  grantedAt: timestamp("granted_at"),
+  
+  expiresAt: timestamp("expires_at"),
+  conditions: jsonb("conditions"), // Time-based, location-based, etc.
+  
+  lastUsed: timestamp("last_used"),
+  usageCount: integer("usage_count").default(0),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+// SOC 2.0 Compliance Tables
+export const complianceEvents = pgTable("compliance_events", {
+  id: serial("id").primaryKey(),
+  eventType: varchar("event_type").notNull(), // data_access, data_modification, security_incident, etc.
+  category: varchar("category").notNull(), // security, availability, processing_integrity, confidentiality, privacy
+  
+  userId: varchar("user_id").references(() => users.id),
+  affectedUsers: text("affected_users").array(), // Array of user IDs
+  
+  description: text("description").notNull(),
+  riskLevel: varchar("risk_level").default("low"), // low, medium, high, critical
+  
+  dataTypes: text("data_types").array(), // PII, financial, health, etc.
+  systemsAffected: text("systems_affected").array(),
+  
+  detectedAt: timestamp("detected_at").defaultNow(),
+  reportedAt: timestamp("reported_at"),
+  resolvedAt: timestamp("resolved_at"),
+  
+  investigator: varchar("investigator"),
+  resolution: text("resolution"),
+  preventiveMeasures: text("preventive_measures"),
+  
+  complianceStatus: varchar("compliance_status").default("pending"), // pending, compliant, non_compliant
+  reviewedBy: varchar("reviewed_by"),
+  reviewedAt: timestamp("reviewed_at"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+export const dataRetention = pgTable("data_retention", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").references(() => users.id),
+  dataType: varchar("data_type").notNull(), // user_data, financial_records, audit_logs, etc.
+  tableName: varchar("table_name"),
+  recordId: varchar("record_id"),
+  
+  retentionPeriod: integer("retention_period").notNull(), // Days
+  createdAt: timestamp("created_at").defaultNow(),
+  scheduledDeletion: timestamp("scheduled_deletion").notNull(),
+  
+  legalHold: boolean("legal_hold").default(false),
+  legalHoldReason: text("legal_hold_reason"),
+  legalHoldBy: varchar("legal_hold_by"),
+  
+  deleted: boolean("deleted").default(false),
+  deletedAt: timestamp("deleted_at"),
+  deletedBy: varchar("deleted_by"),
+  
+  backupLocation: varchar("backup_location"),
+  encryptionKey: varchar("encryption_key")
+});
+
+// Contractor-Company relationship tracking
+export const contractorCompanyRelationships = pgTable("contractor_company_relationships", {
+  id: serial("id").primaryKey(),
+  contractorId: integer("contractor_id").references(() => contractors.id),
+  companyId: varchar("company_id").references(() => users.id),
+  
+  relationshipType: varchar("relationship_type").default("on_demand"), // on_demand, consistent, dedicated, long_term_contract
+  
+  // Consistency tracking
+  jobsCompleted: integer("jobs_completed").default(0),
+  totalEarnings: decimal("total_earnings", { precision: 12, scale: 2 }).default("0.00"),
+  averageRating: decimal("average_rating", { precision: 3, scale: 2 }),
+  
+  // Discount eligibility
+  consistentWorkDiscount: decimal("consistent_work_discount", { precision: 3, scale: 2 }).default("0.00"), // 0-10%
+  longTermContractDiscount: decimal("long_term_contract_discount", { precision: 3, scale: 2 }).default("0.00"), // 5-15%
+  
+  // Contract terms for dedicated relationships
+  contractStartDate: timestamp("contract_start_date"),
+  contractEndDate: timestamp("contract_end_date"),
+  guaranteedJobsPerWeek: integer("guaranteed_jobs_per_week"),
+  guaranteedMinEarnings: decimal("guaranteed_min_earnings", { precision: 10, scale: 2 }),
+  
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
 });
 
 // External integrations and connections
@@ -583,6 +798,144 @@ export const insertBackgroundCheckAuditLogSchema = createInsertSchema(background
   id: true,
   createdAt: true,
 });
+
+// New schema insert types for security and availability features
+export const insertCompanyJobRequirementsSchema = createInsertSchema(companyJobRequirements).omit({
+  id: true,
+  lastUpdated: true,
+  createdAt: true,
+});
+
+export const insertSubscriptionSchema = createInsertSchema(subscriptions).omit({
+  id: true,
+  startedAt: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertSecurityAuditLogSchema = createInsertSchema(securityAuditLogs).omit({
+  id: true,
+  timestamp: true,
+});
+
+export const insertDeviceTrustSchema = createInsertSchema(deviceTrust).omit({
+  id: true,
+  firstSeen: true,
+  lastSeen: true,
+});
+
+export const insertAccessControlSchema = createInsertSchema(accessControls).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertComplianceEventSchema = createInsertSchema(complianceEvents).omit({
+  id: true,
+  detectedAt: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertDataRetentionSchema = createInsertSchema(dataRetention).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertContractorCompanyRelationshipSchema = createInsertSchema(contractorCompanyRelationships).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Type exports for TypeScript usage
+export type Contractor = typeof contractors.$inferSelect;
+export type InsertContractor = z.infer<typeof insertContractorSchema>;
+
+export type Vehicle = typeof vehicles.$inferSelect;
+export type InsertVehicle = z.infer<typeof insertVehicleSchema>;
+
+export type Document = typeof documents.$inferSelect;
+export type InsertDocument = z.infer<typeof insertDocumentSchema>;
+
+export type Opportunity = typeof opportunities.$inferSelect;
+export type InsertOpportunity = z.infer<typeof insertOpportunitySchema>;
+
+export type Message = typeof messages.$inferSelect;
+export type InsertMessage = z.infer<typeof insertMessageSchema>;
+
+export type JobAssignment = typeof jobAssignments.$inferSelect;
+export type InsertJobAssignment = z.infer<typeof insertJobAssignmentSchema>;
+
+export type User = typeof users.$inferSelect;
+export type InsertUser = z.infer<typeof insertUserSchema>;
+export type UpsertUser = typeof users.$inferInsert;
+
+export type FileStorage = typeof fileStorage.$inferSelect;
+export type InsertFileStorage = z.infer<typeof insertFileStorageSchema>;
+
+export type UserProfile = typeof userProfiles.$inferSelect;
+export type InsertUserProfile = z.infer<typeof insertUserProfileSchema>;
+
+export type DriverChecklistProgress = typeof driverChecklistProgress.$inferSelect;
+export type InsertDriverChecklistProgress = z.infer<typeof insertDriverChecklistProgressSchema>;
+
+export type ContractorAvailability = typeof contractorAvailability.$inferSelect;
+export type InsertContractorAvailability = z.infer<typeof insertContractorAvailabilitySchema>;
+
+export type CompanyJobRequirements = typeof companyJobRequirements.$inferSelect;
+export type InsertCompanyJobRequirements = z.infer<typeof insertCompanyJobRequirementsSchema>;
+
+export type Subscription = typeof subscriptions.$inferSelect;
+export type InsertSubscription = z.infer<typeof insertSubscriptionSchema>;
+
+export type SecurityAuditLog = typeof securityAuditLogs.$inferSelect;
+export type InsertSecurityAuditLog = z.infer<typeof insertSecurityAuditLogSchema>;
+
+export type DeviceTrust = typeof deviceTrust.$inferSelect;
+export type InsertDeviceTrust = z.infer<typeof insertDeviceTrustSchema>;
+
+export type AccessControl = typeof accessControls.$inferSelect;
+export type InsertAccessControl = z.infer<typeof insertAccessControlSchema>;
+
+export type ComplianceEvent = typeof complianceEvents.$inferSelect;
+export type InsertComplianceEvent = z.infer<typeof insertComplianceEventSchema>;
+
+export type DataRetention = typeof dataRetention.$inferSelect;
+export type InsertDataRetention = z.infer<typeof insertDataRetentionSchema>;
+
+export type ContractorCompanyRelationship = typeof contractorCompanyRelationships.$inferSelect;
+export type InsertContractorCompanyRelationship = z.infer<typeof insertContractorCompanyRelationshipSchema>;
+
+export type ExternalConnection = typeof externalConnections.$inferSelect;
+export type InsertExternalConnection = z.infer<typeof insertExternalConnectionSchema>;
+
+export type ConsultationRequest = typeof consultationRequests.$inferSelect;
+export type InsertConsultationRequest = z.infer<typeof insertConsultationRequestSchema>;
+
+export type CompanyConsultationRequest = typeof companyConsultationRequests.$inferSelect;
+export type InsertCompanyConsultationRequest = z.infer<typeof insertCompanyConsultationRequestSchema>;
+
+export type SocialMediaShare = typeof socialMediaShares.$inferSelect;
+export type InsertSocialMediaShare = z.infer<typeof insertSocialMediaShareSchema>;
+
+export type BackgroundCheckProvider = typeof backgroundCheckProviders.$inferSelect;
+export type InsertBackgroundCheckProvider = z.infer<typeof insertBackgroundCheckProviderSchema>;
+
+export type BackgroundCheckRequest = typeof backgroundCheckRequests.$inferSelect;
+export type InsertBackgroundCheckRequest = z.infer<typeof insertBackgroundCheckRequestSchema>;
+
+export type BackgroundCheckResult = typeof backgroundCheckResults.$inferSelect;
+export type InsertBackgroundCheckResult = z.infer<typeof insertBackgroundCheckResultSchema>;
+
+export type BackgroundCheckAlert = typeof backgroundCheckAlerts.$inferSelect;
+export type InsertBackgroundCheckAlert = z.infer<typeof insertBackgroundCheckAlertSchema>;
+
+export type BackgroundCheckTemplate = typeof backgroundCheckTemplates.$inferSelect;
+export type InsertBackgroundCheckTemplate = z.infer<typeof insertBackgroundCheckTemplateSchema>;
+
+export type BackgroundCheckAuditLog = typeof backgroundCheckAuditLog.$inferSelect;
+export type InsertBackgroundCheckAuditLog = z.infer<typeof insertBackgroundCheckAuditLogSchema>;
 
 export const insertDriverLocationSchema = createInsertSchema(driverLocations).omit({
   id: true,
