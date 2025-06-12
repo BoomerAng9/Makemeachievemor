@@ -17,6 +17,7 @@ export const sessions = pgTable(
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().notNull(),
   email: varchar("email").unique().notNull(),
+  username: varchar("username").unique().notNull(),
   password: varchar("password").notNull(),
   name: varchar("name").notNull(), // Combined name field as per outline
   role: varchar("role").notNull().default("driver"), // driver | company | admin
