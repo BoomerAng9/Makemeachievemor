@@ -47,37 +47,44 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <UniversalNav />
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+      <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50 safe-area-padding">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+          <div className="flex justify-between items-center h-16 sm:h-20">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-                <Truck className="text-white h-5 w-5" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary rounded-lg flex items-center justify-center">
+                <Truck className="text-white h-5 w-5 sm:h-6 sm:w-6" />
               </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">ACHIEVEMOR</h1>
-                <p className="text-xs text-gray-500">Contractor Portal</p>
+              <div className="min-w-0 flex-1">
+                <h1 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white truncate">ACHIEVEMOR</h1>
+                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">Contractor Portal</p>
               </div>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-4">
               <a 
                 href="tel:912-742-9459" 
-                className="text-accent hover:text-gray-900 transition-colors flex items-center"
+                className="text-accent hover:text-gray-900 dark:hover:text-white transition-colors flex items-center touch-manipulation min-h-[44px] px-2"
               >
-                <Phone className="h-4 w-4 mr-2" />
-                <span className="hidden sm:inline">912-742-9459</span>
+                <Phone className="h-4 w-4 sm:mr-2" />
+                <span className="hidden md:inline text-sm">912-742-9459</span>
               </a>
-              <Button variant="outline">Sign Out</Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="touch-manipulation min-h-[44px] text-sm"
+              >
+                <span className="hidden sm:inline">Sign Out</span>
+                <span className="sm:hidden">Out</span>
+              </Button>
             </div>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8 safe-area-bottom">
         {/* Dashboard Header - Following outlined structure */}
         <div className="mb-8">
           <Card>

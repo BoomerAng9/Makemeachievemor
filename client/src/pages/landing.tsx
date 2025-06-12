@@ -34,66 +34,67 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {/* Header */}
-      <header className="glass shadow-retina-lg sticky top-0 z-50 backdrop-blur-xl">
+      <header className="glass shadow-retina-lg sticky top-0 z-50 backdrop-blur-xl safe-area-padding">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+          <div className="flex justify-between items-center h-16 sm:h-20">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-                <Truck className="text-white h-5 w-5" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary rounded-lg flex items-center justify-center">
+                <Truck className="text-white h-5 w-5 sm:h-6 sm:w-6" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">Choose 2 ACHIEVEMOR</h1>
-                <p className="text-xs text-gray-500">Owner Operator Platform</p>
+                <h1 className="text-lg sm:text-xl font-bold text-gray-900">Choose 2 ACHIEVEMOR</h1>
+                <p className="text-xs sm:text-sm text-gray-500">Owner Operator Platform</p>
               </div>
             </div>
             
             {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center space-x-6">
-              <Link href="/about" className="text-gray-600 hover:text-primary transition-colors">
+            <nav className="hidden lg:flex items-center space-x-6">
+              <Link href="/about" className="text-gray-600 hover:text-primary transition-colors touch-manipulation">
                 About
               </Link>
-              <Link href="/driver-checklist" className="text-gray-600 hover:text-primary transition-colors">
+              <Link href="/driver-checklist" className="text-gray-600 hover:text-primary transition-colors touch-manipulation">
                 Authority Checklist
               </Link>
-              <Link href="/register/contractor" className="text-gray-600 hover:text-primary transition-colors">
+              <Link href="/register/contractor" className="text-gray-600 hover:text-primary transition-colors touch-manipulation">
                 Join as Driver
               </Link>
-              <Link href="/register/company" className="text-gray-600 hover:text-primary transition-colors">
+              <Link href="/register/company" className="text-gray-600 hover:text-primary transition-colors touch-manipulation">
                 Partner Company
               </Link>
               <a 
                 href="tel:912-742-9459" 
-                className="text-accent hover:text-gray-900 transition-colors"
+                className="text-accent hover:text-gray-900 transition-colors touch-manipulation"
               >
                 912-742-9459
               </a>
               <Button 
                 onClick={() => window.location.href = '/api/login'}
-                className="bg-primary hover:bg-primary/90"
+                className="bg-primary hover:bg-primary/90 touch-manipulation"
               >
                 Sign In
               </Button>
             </nav>
 
             {/* Mobile Menu Button */}
-            <div className="md:hidden">
+            <div className="lg:hidden">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="touch-manipulation min-h-[48px] min-w-[48px]"
               >
-                {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
               </Button>
             </div>
           </div>
 
           {/* Mobile Navigation */}
           {isMobileMenuOpen && (
-            <div className="md:hidden border-t border-gray-200 py-4">
-              <div className="flex flex-col space-y-3">
+            <div className="lg:hidden border-t border-gray-200 py-4 tablet-nav">
+              <div className="flex flex-col space-y-4">
                 <Link 
                   href="/about" 
-                  className="text-gray-600 hover:text-primary transition-colors px-2 py-1"
+                  className="text-gray-600 hover:text-primary transition-colors px-4 py-3 touch-manipulation"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   About
