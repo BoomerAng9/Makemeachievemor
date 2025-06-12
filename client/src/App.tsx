@@ -51,41 +51,46 @@ function RouterInner() {
   }
 
   return (
-    <Switch>
-      {/* Authentication pages - always available */}
-      <Route path="/login" component={Login} />
-      <Route path="/auth" component={Login} />
-      <Route path="/register" component={RegisterPage} />
-      
-      {/* Public pages */}
-      <Route path="/home" component={HomePage} />
-      <Route path="/about" component={AboutPage} />
-      <Route path="/sitemap" component={SitemapPage} />
-      <Route path="/driver-checklist" component={DriverChecklistPage} />
-      <Route path="/register/contractor" component={RegisterContractorPage} />
-      <Route path="/register/company" component={RegisterCompanyPage} />
-      <Route path="/admin/setup" component={MasterSetup} />
-      <Route path="/admin-access" component={AdminAccess} />
-      <Route path="/onboarding" component={OnboardingPage} />
-      
-      {/* Protected routes */}
-      {isAuthenticated ? (
-        <>
-          <Route path="/" component={Dashboard} />
-          <Route path="/dashboard" component={Dashboard} />
-          <Route path="/dashboard/:contractorId" component={DashboardPage} />
-          <Route path="/location" component={LocationServices} />
-          <Route path="/glovebox" component={GloveboxPage} />
-          <Route path="/driver-location" component={DriverLocationPage} />
-          <Route path="/admin" component={AdminDashboard} />
-          <Route path="/settings" component={AccountSettingsPage} />
-        </>
-      ) : (
-        <Route path="/" component={Landing} />
-      )}
-      
-      <Route component={NotFound} />
-    </Switch>
+    <div className="flex flex-col min-h-screen">
+      {isAuthenticated && <UniversalNavigation />}
+      <div className="flex-1">
+        <Switch>
+          {/* Authentication pages - always available */}
+          <Route path="/login" component={Login} />
+          <Route path="/auth" component={Login} />
+          <Route path="/register" component={RegisterPage} />
+          
+          {/* Public pages */}
+          <Route path="/home" component={HomePage} />
+          <Route path="/about" component={AboutPage} />
+          <Route path="/sitemap" component={SitemapPage} />
+          <Route path="/driver-checklist" component={DriverChecklistPage} />
+          <Route path="/register/contractor" component={RegisterContractorPage} />
+          <Route path="/register/company" component={RegisterCompanyPage} />
+          <Route path="/admin/setup" component={MasterSetup} />
+          <Route path="/admin-access" component={AdminAccess} />
+          <Route path="/onboarding" component={OnboardingPage} />
+          
+          {/* Protected routes */}
+          {isAuthenticated ? (
+            <>
+              <Route path="/" component={Dashboard} />
+              <Route path="/dashboard" component={Dashboard} />
+              <Route path="/dashboard/:contractorId" component={DashboardPage} />
+              <Route path="/location" component={LocationServices} />
+              <Route path="/glovebox" component={GloveboxPage} />
+              <Route path="/driver-location" component={DriverLocationPage} />
+              <Route path="/admin" component={AdminDashboard} />
+              <Route path="/settings" component={AccountSettingsPage} />
+            </>
+          ) : (
+            <Route path="/" component={Landing} />
+          )}
+          
+          <Route component={NotFound} />
+        </Switch>
+      </div>
+    </div>
   );
 }
 
