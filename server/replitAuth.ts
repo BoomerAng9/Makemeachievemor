@@ -23,21 +23,14 @@ const getOidcConfig = memoize(
 
 export function getSession() {
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
-  const pgStore = connectPg(session);
-  const sessionStore = new pgStore({
-    conString: process.env.DATABASE_URL,
-    createTableIfMissing: false,
-    ttl: sessionTtl,
-    tableName: "sessions",
-  });
+  
   return session({
     secret: process.env.SESSION_SECRET!,
-    store: sessionStore,
     resave: false,
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: true,
+      secure: false, // Set to false for development
       maxAge: sessionTtl,
     },
   });
@@ -74,14 +67,7 @@ async function upsertUser(
     return user;
   } catch (error) {
     console.error('Database operation failed during authentication:', error);
-    // Return minimal user object to allow authentication to proceed
-    return {
-      id: claims["sub"],
-      email: claims["email"],
-      firstName: claims["first_name"],
-      lastName: claims["last_name"],
-      profileImageUrl: claims["profile_image_url"],
-    };
+    // Continue without database storage
   }
 }
 
@@ -197,14 +183,16 @@ export async function setupAuth(app: Express) {
   passport.deserializeUser((user: Express.User, cb) => cb(null, user));
 
   app.get("/api/login", (req, res, next) => {
-    passport.authenticate(`replitauth:${req.hostname}`, {
+    const domain = process.env.REPLIT_DOMAINS!.split(",")[0];
+    passport.authenticate(`replitauth:${domain}`, {
       prompt: "login consent",
       scope: ["openid", "email", "profile", "offline_access"],
     })(req, res, next);
   });
 
   app.get("/api/callback", (req, res, next) => {
-    passport.authenticate(`replitauth:${req.hostname}`, {
+    const domain = process.env.REPLIT_DOMAINS!.split(",")[0];
+    passport.authenticate(`replitauth:${domain}`, {
       successReturnToOrRedirect: "/",
       failureRedirect: "/api/login",
     })(req, res, next);

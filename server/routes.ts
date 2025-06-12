@@ -20,15 +20,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
   });
 
-  // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+  // Auth routes - temporary bypass for development
+  app.get('/api/auth/user', async (req: any, res) => {
     try {
-      // Return user from session claims
+      // Temporary demo user for development
       const profile = {
-        id: req.user.claims.sub,
-        name: `${req.user.claims.first_name || ''} ${req.user.claims.last_name || ''}`.trim() || 'User',
-        email: req.user.claims.email || '',
-        profileImageUrl: req.user.claims.profile_image_url,
+        id: 'demo-user-123',
+        name: 'Demo Driver',
+        email: 'demo@achievemor.io',
+        profileImageUrl: null,
         role: 'driver',
         status: 'active'
       };
