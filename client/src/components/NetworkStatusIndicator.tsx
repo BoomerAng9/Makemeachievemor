@@ -2,6 +2,7 @@ import { Wifi, WifiOff, Signal, AlertTriangle } from "lucide-react";
 import { useNetworkStatus, getConnectionQuality, getConnectionSpeed } from "@/hooks/useNetworkStatus";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 interface NetworkStatusIndicatorProps {
   className?: string;
