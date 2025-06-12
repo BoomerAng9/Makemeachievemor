@@ -748,15 +748,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createWidget(data: InsertDashboardWidget): Promise<DashboardWidget> {
-    const config = data.configuration as any || {};
     const [widget] = await db
       .insert(dashboardWidgets)
-      .values({
-        ...data,
-        widgetType: config.widgetType || 'generic',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      })
+      .values(data)
       .returning();
     return widget;
   }

@@ -962,9 +962,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "User not authenticated" });
       }
 
+      const { templateId, configuration, position, isVisible } = req.body;
+      const config = configuration || {};
+      
       const widget = await storage.createWidget({
-        ...req.body,
-        userId
+        userId,
+        templateId,
+        title: config.title || 'Widget',
+        widgetType: config.widgetType || 'generic',
+        position: position || 0,
+        isVisible: isVisible !== undefined ? isVisible : true,
+        configuration: config
       });
       res.status(201).json(widget);
     } catch (error) {
