@@ -202,6 +202,51 @@ export default function Glovebox() {
     shareMutation.mutate(shareData);
   };
 
+  const handleSocialShare = async (platform: string) => {
+    const verifiedDocs = documents.filter((doc: Document) => doc.verificationStatus === 'approved');
+    const certificationDocs = verifiedDocs.filter((doc: Document) => doc.documentCategory === 'certification');
+    const complianceDocs = verifiedDocs.filter((doc: Document) => doc.documentCategory === 'compliance');
+    
+    const shareText = `🚛 Proud to share my professional credentials as a verified ACHIEVEMOR driver!
+
+✅ ${verifiedDocs.length} verified documents
+🏆 ${certificationDocs.length} certifications
+📋 ${complianceDocs.length} compliance records
+
+Ready for new opportunities in the transportation industry!
+
+#ACHIEVEMOR #TruckDriver #Professional #Verified #Transportation #Logistics`;
+
+    const profileUrl = `${window.location.origin}/profile/${user?.id}`;
+
+    const shareUrls = {
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(profileUrl)}&quote=${encodeURIComponent(shareText)}`,
+      twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(profileUrl)}`,
+      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(profileUrl)}&summary=${encodeURIComponent(shareText)}`,
+      instagram: shareText // Copy text for Instagram
+    };
+
+    if (platform === 'instagram') {
+      await navigator.clipboard.writeText(shareText);
+      alert('Text copied to clipboard! Paste it in your Instagram post.');
+    } else {
+      window.open(shareUrls[platform as keyof typeof shareUrls], '_blank', 'width=600,height=400');
+    }
+  };
+
+  const copyShareText = async () => {
+    const verifiedDocs = documents.filter((doc: Document) => doc.verificationStatus === 'approved');
+    const shareText = `🚛 Proud to share my professional credentials as a verified ACHIEVEMOR driver!
+
+✅ ${verifiedDocs.length} verified documents
+Ready for new opportunities in the transportation industry!
+
+#ACHIEVEMOR #TruckDriver #Professional #Verified`;
+    
+    await navigator.clipboard.writeText(shareText);
+    alert('Share text copied to clipboard!');
+  };
+
   const filteredDocuments = documents.filter((doc: Document) => {
     const matchesCategory = selectedCategory === "all" || doc.documentCategory === selectedCategory;
     const matchesSearch = doc.fileName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -295,6 +340,69 @@ export default function Glovebox() {
           </div>
           
           <div className="flex gap-2">
+            <Dialog open={isSocialShareOpen} onOpenChange={setIsSocialShareOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline">
+                  <Share2 className="h-4 w-4 mr-2" />
+                  Share Credentials
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-lg">
+                <DialogHeader>
+                  <DialogTitle>Share Your Professional Credentials</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Award className="h-5 w-5 text-blue-600" />
+                      <span className="font-medium text-blue-800">Your Verified Documents</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div className="text-blue-700">
+                        ✅ {documents.filter((doc: Document) => doc.verificationStatus === 'approved').length} Verified
+                      </div>
+                      <div className="text-blue-700">
+                        🏆 {documents.filter((doc: Document) => doc.documentCategory === 'certification' && doc.verificationStatus === 'approved').length} Certifications
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    <Button variant="outline" onClick={() => handleSocialShare('linkedin')} className="flex items-center gap-2">
+                      <Linkedin className="h-4 w-4 text-blue-600" />
+                      LinkedIn
+                    </Button>
+                    <Button variant="outline" onClick={() => handleSocialShare('facebook')} className="flex items-center gap-2">
+                      <Facebook className="h-4 w-4 text-blue-700" />
+                      Facebook
+                    </Button>
+                    <Button variant="outline" onClick={() => handleSocialShare('twitter')} className="flex items-center gap-2">
+                      <Twitter className="h-4 w-4 text-sky-500" />
+                      Twitter
+                    </Button>
+                    <Button variant="outline" onClick={() => handleSocialShare('instagram')} className="flex items-center gap-2">
+                      <Instagram className="h-4 w-4 text-pink-600" />
+                      Instagram
+                    </Button>
+                  </div>
+                  
+                  <Button variant="outline" onClick={copyShareText} className="w-full flex items-center gap-2">
+                    <Copy className="h-4 w-4" />
+                    Copy Share Text
+                  </Button>
+                  
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                    <div className="flex items-start gap-2">
+                      <Shield className="h-4 w-4 text-amber-600 mt-0.5" />
+                      <div className="text-sm text-amber-800">
+                        <strong>Privacy:</strong> Only verification status is shared. Document content remains private.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+            
             <Dialog open={isUploadOpen} onOpenChange={setIsUploadOpen}>
               <DialogTrigger asChild>
                 <Button>

@@ -8,6 +8,7 @@ import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { ConsultationButton } from "@/components/business/ConsultationButton";
 import { BackgroundCheckDashboard } from "@/components/background-check/BackgroundCheckDashboard";
 import { PersonalizedWidgets } from "@/components/dashboard/PersonalizedWidgets";
+import { DocumentStatusWidget } from "@/components/dashboard/DocumentStatusWidget";
 import { Chatbot } from "@/components/ui/chatbot";
 import { UniversalNav } from "@/components/UniversalNav";
 import { Truck, Phone, Mail, MapPin, TrendingUp, FileText } from "lucide-react";
@@ -145,7 +146,9 @@ export default function DashboardPage() {
         </div>
 
         {/* Main Dashboard Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+          {/* Document Status Widget */}
+          <DocumentStatusWidget />
 
           {/* Recent Activity and Messages */}
           <Card>
@@ -160,6 +163,11 @@ export default function DashboardPage() {
               />
             </CardContent>
           </Card>
+
+          {/* Background Check Status */}
+          <div className="lg:col-span-1">
+            <BackgroundCheckDashboard contractorId={parseInt(userId) || 0} />
+          </div>
         </div>
 
         {/* Quick Actions Bar */}
