@@ -8,6 +8,7 @@ import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { useDeviceType } from "@/hooks/use-mobile";
 import NotFound from "@/pages/not-found";
 import LandingPage from "@/pages/landing";
+import HomePage from "@/pages/home";
 import AboutPage from "@/pages/about";
 import OnboardingPage from "@/pages/onboarding";
 import DashboardPage from "@/pages/dashboard";
@@ -29,6 +30,7 @@ function Router() {
       {isLoading || !isAuthenticated ? (
         <>
           <Route path="/" component={LandingPage} />
+          <Route path="/home" component={HomePage} />
           <Route path="/about" component={AboutPage} />
           <Route path="/sitemap" component={SitemapPage} />
           <Route path="/driver-checklist" component={DriverChecklistPage} />
@@ -41,6 +43,7 @@ function Router() {
       ) : (
         <>
           <Route path="/" component={DashboardPage} />
+          <Route path="/home" component={HomePage} />
           <Route path="/about" component={AboutPage} />
           <Route path="/sitemap" component={SitemapPage} />
           <Route path="/dashboard/:contractorId" component={DashboardPage} />
