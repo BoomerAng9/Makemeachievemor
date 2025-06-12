@@ -18,6 +18,10 @@ import AdminAccess from "@/pages/AdminAccess";
 import SitemapPage from "@/pages/sitemap";
 import RegisterContractorPage from "@/pages/register-contractor";
 import RegisterCompanyPage from "@/pages/register-company";
+import SettingsPage from "@/pages/settings";
+import SubscriptionPage from "@/pages/subscription";
+import ProfilePage from "@/pages/profile";
+import OpportunitiesPage from "@/pages/opportunities";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -30,6 +34,7 @@ function Router() {
           <Route path="/about" component={AboutPage} />
           <Route path="/sitemap" component={SitemapPage} />
           <Route path="/driver-checklist" component={DriverChecklistPage} />
+          <Route path="/register" component={RegisterContractorPage} />
           <Route path="/register/contractor" component={RegisterContractorPage} />
           <Route path="/register/company" component={RegisterCompanyPage} />
           <Route path="/admin/setup" component={MasterSetup} />
@@ -43,7 +48,12 @@ function Router() {
           <Route path="/sitemap" component={SitemapPage} />
           <Route path="/dashboard/:contractorId" component={DashboardPage} />
           <Route path="/driver-checklist" component={DriverChecklistPage} />
+          <Route path="/dashboard" component={DashboardPage} />
+          <Route path="/opportunities" component={OpportunitiesPage} />
           <Route path="/glovebox" component={GloveboxPage} />
+          <Route path="/profile" component={ProfilePage} />
+          <Route path="/settings" component={SettingsPage} />
+          <Route path="/subscription" component={SubscriptionPage} />
           <Route path="/driver-location" component={DriverLocationPage} />
           <Route path="/admin" component={AdminDashboard} />
           <Route path="/admin/setup" component={MasterSetup} />
