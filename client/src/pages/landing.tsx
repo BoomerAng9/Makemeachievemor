@@ -67,12 +67,11 @@ export default function LandingPage() {
               >
                 912-742-9459
               </a>
-              <Button 
-                onClick={() => window.location.href = '/api/login'}
-                className="bg-primary hover:bg-primary/90 touch-manipulation"
-              >
-                Sign In
-              </Button>
+              <Link href="/login">
+                <Button className="bg-primary hover:bg-primary/90 touch-manipulation">
+                  Sign In
+                </Button>
+              </Link>
             </nav>
 
             {/* Mobile Menu Button */}
@@ -126,12 +125,11 @@ export default function LandingPage() {
                 >
                   912-742-9459
                 </a>
-                <Button 
-                  onClick={() => window.location.href = '/api/login'}
-                  className="bg-primary hover:bg-primary/90 mx-2"
-                >
-                  Sign In
-                </Button>
+                <Link href="/login">
+                  <Button className="bg-primary hover:bg-primary/90 mx-2">
+                    Sign In
+                  </Button>
+                </Link>
               </div>
             </div>
           )}
