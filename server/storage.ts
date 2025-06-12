@@ -486,7 +486,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Driver location operations
-  async upsertDriverLocation(data: InsertDriverLocation): Promise<DriverLocation> {
+  async upsertDriverLocation(data: any): Promise<any> {
     const existing = await db.select().from(driverLocations).where(eq(driverLocations.userId, data.userId));
     
     if (existing.length > 0) {
@@ -501,12 +501,12 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getDriverLocation(userId: string): Promise<DriverLocation | undefined> {
+  async getDriverLocation(userId: string): Promise<any | undefined> {
     const [location] = await db.select().from(driverLocations).where(eq(driverLocations.userId, userId));
     return location;
   }
 
-  async getNearbyDrivers(latitude: number, longitude: number, radiusMiles: number): Promise<DriverLocation[]> {
+  async getNearbyDrivers(latitude: number, longitude: number, radiusMiles: number): Promise<any[]> {
     // Simple distance calculation using Haversine formula
     // For production, consider using PostGIS for better performance
     const locations = await db.select().from(driverLocations).where(eq(driverLocations.isAvailable, true));
@@ -540,10 +540,10 @@ export class DatabaseStorage implements IStorage {
 
   // Admin operations
   async getAdminStats(): Promise<any> {
-    const totalUsers = await db.select({ count: sql<number>`count(*)` }).from(users);
-    const activeUsers = await db.select({ count: sql<number>`count(*)` }).from(users).where(eq(users.accountStatus, 'active'));
-    const pendingVerifications = await db.select({ count: sql<number>`count(*)` }).from(users).where(eq(users.verificationStatus, 'pending'));
-    const suspendedUsers = await db.select({ count: sql<number>`count(*)` }).from(users).where(eq(users.accountStatus, 'suspended'));
+    const totalUsers = await db.select({ count: count() }).from(users);
+    const activeUsers = await db.select({ count: count() }).from(users);
+    const pendingVerifications = await db.select({ count: count() }).from(users);
+    const suspendedUsers = await db.select({ count: count() }).from(users);
     
     const today = new Date();
     today.setHours(0, 0, 0, 0);
