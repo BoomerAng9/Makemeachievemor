@@ -22,6 +22,7 @@ import SitemapPage from "@/pages/sitemap";
 import RegisterPage from "@/pages/register";
 import RegisterContractorPage from "@/pages/register-contractor";
 import RegisterCompanyPage from "@/pages/register-company";
+import OpportunitiesPage from "@/pages/opportunities";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -37,6 +38,7 @@ function Router() {
       <Route path="/register" component={RegisterPage} />
       <Route path="/register/contractor" component={RegisterContractorPage} />
       <Route path="/register/company" component={RegisterCompanyPage} />
+      <Route path="/opportunities" component={OpportunitiesPage} />
       <Route path="/admin/setup" component={MasterSetup} />
       <Route path="/admin-access" component={AdminAccess} />
       <Route path="/onboarding" component={OnboardingPage} />
