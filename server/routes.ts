@@ -633,6 +633,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Maps API status and configuration check
+  app.get('/api/maps/status', async (req, res) => {
+    try {
+      const testUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=test&key=${process.env.GOOGLE_MAPS_API_KEY}`;
+      const response = await fetch(testUrl);
+      const data = await response.json();
+      
+      res.json({
+        status: data.status,
+        apiKeyValid: data.status !== 'REQUEST_DENIED',
+        error: data.error_message || null,
+        services: {
+          geocoding: data.status !== 'REQUEST_DENIED',
+          maps: !!process.env.GOOGLE_MAPS_API_KEY,
+          places: !!process.env.GOOGLE_MAPS_API_KEY,
+          directions: !!process.env.GOOGLE_MAPS_API_KEY
+        },
+        message: data.status === 'REQUEST_DENIED' 
+          ? 'Google Maps APIs need to be enabled in Google Cloud Console for this API key'
+          : 'Google Maps services are operational'
+      });
+    } catch (error) {
+      res.status(500).json({ 
+        status: 'ERROR',
+        apiKeyValid: false,
+        error: 'Failed to connect to Google Maps API',
+        services: { geocoding: false, maps: false, places: false, directions: false }
+      });
+    }
+  });
+
+  // Location services for contractors
+  app.post('/api/contractor/location', async (req, res) => {
+    try {
+      const { address, vehicleType, maxDistance } = req.body;
+      const userId = (req.session as any)?.userId;
+      
+      if (!userId) {
+        return res.status(401).json({ message: 'Authentication required' });
+      }
+
+      const location = await mapsService.updateDriverLocation(userId, address, vehicleType, maxDistance);
+      res.json(location);
+    } catch (error) {
+      console.error('Error updating location:', error);
+      res.status(500).json({ message: 'Failed to update location' });
+    }
+  });
+
+  app.get('/api/contractor/nearby-loads', async (req, res) => {
+    try {
+      const userId = (req.session as any)?.userId;
+      const maxDistance = parseInt(req.query.maxDistance as string) || 100;
+      
+      if (!userId) {
+        return res.status(401).json({ message: 'Authentication required' });
+      }
+
+      const loads = await mapsService.findNearbyLoads(userId, maxDistance);
+      res.json(loads);
+    } catch (error) {
+      console.error('Error finding nearby loads:', error);
+      res.status(500).json({ message: 'Failed to find nearby loads' });
+    }
+  });
+
   // Opportunities routes
   app.get('/api/opportunities', async (req, res) => {
     try {
