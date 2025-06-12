@@ -276,39 +276,26 @@ export default function Dashboard() {
         </CardContent>
       </Card>
 
-      {/* Recent Opportunities */}
+      {/* Vehicle Fleet Selection */}
       <Card>
         <CardHeader>
-          <CardTitle>Recent Opportunities</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Truck className="h-5 w-5" />
+            Vehicle Fleet Options
+          </CardTitle>
           <CardDescription>
-            Latest job opportunities matching your profile
+            Comprehensive fleet covering freight, passenger, medical, and specialized transport
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {opportunities && opportunities.length > 0 ? (
-            <div className="space-y-4">
-              {opportunities.slice(0, 5).map((opportunity, index) => (
-                <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div>
-                    <h4 className="font-medium">{opportunity.title}</h4>
-                    <p className="text-sm text-muted-foreground">
-                      {opportunity.origin} → {opportunity.destination}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {opportunity.miles} miles • ${opportunity.rate}
-                    </p>
-                  </div>
-                  <Badge variant="outline">{opportunity.status}</Badge>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">No opportunities available</p>
-            </div>
-          )}
+          <VehicleSelection />
         </CardContent>
       </Card>
+
+      {/* Enhanced Opportunities Display */}
+      <div className="col-span-full">
+        <OpportunitiesDisplay />
+      </div>
     </div>
   );
 }
