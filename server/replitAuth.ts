@@ -23,14 +23,21 @@ const getOidcConfig = memoize(
 
 export function getSession() {
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
-  
+  const pgStore = connectPg(session);
+  const sessionStore = new pgStore({
+    conString: process.env.DATABASE_URL,
+    createTableIfMissing: false,
+    ttl: sessionTtl,
+    tableName: "sessions",
+  });
   return session({
     secret: process.env.SESSION_SECRET!,
+    store: sessionStore,
     resave: false,
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: false, // Set to false for development
+      secure: true,
       maxAge: sessionTtl,
     },
   });
@@ -49,32 +56,29 @@ function updateUserSession(
 async function upsertUser(
   claims: any,
 ) {
-  try {
-    const user = await storage.upsertUser({
-      id: claims["sub"],
-      email: claims["email"],
-      firstName: claims["first_name"],
-      lastName: claims["last_name"],
-      profileImageUrl: claims["profile_image_url"],
-    });
+  const user = await storage.upsertUser({
+    id: claims["sub"],
+    email: claims["email"],
+    firstName: claims["first_name"],
+    lastName: claims["last_name"],
+    profileImageUrl: claims["profile_image_url"],
+    accountStatus: "active", // No waiting period - immediate access
+    verificationStatus: "unverified",
+    lastLoginAt: new Date(),
+  });
 
-    // Create contractor profile if it doesn't exist
-    await ensureContractorProfile(user);
+  // Create contractor profile if it doesn't exist
+  await ensureContractorProfile(user);
 
-    // Send registration notification to admin
-    await sendRegistrationNotification(user);
-    
-    return user;
-  } catch (error) {
-    console.error('Database operation failed during authentication:', error);
-    // Continue without database storage
-  }
+  // Send registration notification to admin
+  await sendRegistrationNotification(user);
+  
+  return user;
 }
 
 async function ensureContractorProfile(user: any) {
   try {
-    // Skip database operations if there are connection issues
-    return;
+    // Check if contractor profile exists
     const existingContractor = await storage.getContractor(user.id);
     
     if (!existingContractor) {
@@ -160,8 +164,7 @@ export async function setupAuth(app: Express) {
   ) => {
     const user = {};
     updateUserSession(user, tokens);
-    // Skip database operations during authentication to prevent crashes
-    console.log('User authenticated:', tokens.claims().sub);
+    await upsertUser(tokens.claims());
     verified(null, user);
   };
 
@@ -183,16 +186,14 @@ export async function setupAuth(app: Express) {
   passport.deserializeUser((user: Express.User, cb) => cb(null, user));
 
   app.get("/api/login", (req, res, next) => {
-    const domain = process.env.REPLIT_DOMAINS!.split(",")[0];
-    passport.authenticate(`replitauth:${domain}`, {
+    passport.authenticate(`replitauth:${req.hostname}`, {
       prompt: "login consent",
       scope: ["openid", "email", "profile", "offline_access"],
     })(req, res, next);
   });
 
   app.get("/api/callback", (req, res, next) => {
-    const domain = process.env.REPLIT_DOMAINS!.split(",")[0];
-    passport.authenticate(`replitauth:${domain}`, {
+    passport.authenticate(`replitauth:${req.hostname}`, {
       successReturnToOrRedirect: "/",
       failureRedirect: "/api/login",
     })(req, res, next);

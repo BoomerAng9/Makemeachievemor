@@ -64,7 +64,6 @@ export interface IStorage {
   
   // Contractor operations
   getContractor(id: number): Promise<Contractor | undefined>;
-  getContractorByUserId(userId: string): Promise<Contractor | undefined>;
   createContractor(data: InsertContractor): Promise<Contractor>;
   updateContractor(id: number, data: Partial<InsertContractor>): Promise<Contractor | undefined>;
   
@@ -125,15 +124,15 @@ export interface IStorage {
   updateDocumentNotes(id: number, userId: string, notes: string): Promise<Document | undefined>;
   
   // Document sharing operations
-  createDocumentShare(data: any): Promise<any>;
-  getDocumentShare(shareToken: string): Promise<any | undefined>;
-  getActiveDocumentShares(userId: string): Promise<any[]>;
+  createDocumentShare(data: InsertDocumentShare): Promise<DocumentShare>;
+  getDocumentShare(shareToken: string): Promise<DocumentShare | undefined>;
+  getActiveDocumentShares(userId: string): Promise<DocumentShare[]>;
   deactivateDocumentShare(id: number, userId: string): Promise<void>;
   
   // Driver location operations
-  upsertDriverLocation(data: any): Promise<any>;
-  getDriverLocation(userId: string): Promise<any | undefined>;
-  getNearbyDrivers(latitude: number, longitude: number, radiusMiles: number): Promise<any[]>;
+  upsertDriverLocation(data: InsertDriverLocation): Promise<DriverLocation>;
+  getDriverLocation(userId: string): Promise<DriverLocation | undefined>;
+  getNearbyDrivers(latitude: number, longitude: number, radiusMiles: number): Promise<DriverLocation[]>;
   
   // Admin operations
   getAdminStats(): Promise<any>;
@@ -215,11 +214,6 @@ export class DatabaseStorage implements IStorage {
   // Contractor operations
   async getContractor(id: number): Promise<Contractor | undefined> {
     const [contractor] = await db.select().from(contractors).where(eq(contractors.id, id));
-    return contractor;
-  }
-
-  async getContractorByUserId(userId: string): Promise<Contractor | undefined> {
-    const [contractor] = await db.select().from(contractors).where(eq(contractors.userId, userId));
     return contractor;
   }
 
@@ -469,17 +463,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Document sharing operations
-  async createDocumentShare(data: any): Promise<any> {
+  async createDocumentShare(data: InsertDocumentShare): Promise<DocumentShare> {
     const [share] = await db.insert(documentShares).values(data).returning();
     return share;
   }
 
-  async getDocumentShare(shareToken: string): Promise<any | undefined> {
+  async getDocumentShare(shareToken: string): Promise<DocumentShare | undefined> {
     const [share] = await db.select().from(documentShares).where(eq(documentShares.shareToken, shareToken));
     return share;
   }
 
-  async getActiveDocumentShares(userId: string): Promise<any[]> {
+  async getActiveDocumentShares(userId: string): Promise<DocumentShare[]> {
     return await db.select().from(documentShares)
       .where(and(eq(documentShares.userId, userId), eq(documentShares.isActive, true)))
       .orderBy(documentShares.createdAt);
@@ -492,7 +486,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Driver location operations
-  async upsertDriverLocation(data: any): Promise<any> {
+  async upsertDriverLocation(data: InsertDriverLocation): Promise<DriverLocation> {
     const existing = await db.select().from(driverLocations).where(eq(driverLocations.userId, data.userId));
     
     if (existing.length > 0) {
@@ -507,12 +501,12 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getDriverLocation(userId: string): Promise<any | undefined> {
+  async getDriverLocation(userId: string): Promise<DriverLocation | undefined> {
     const [location] = await db.select().from(driverLocations).where(eq(driverLocations.userId, userId));
     return location;
   }
 
-  async getNearbyDrivers(latitude: number, longitude: number, radiusMiles: number): Promise<any[]> {
+  async getNearbyDrivers(latitude: number, longitude: number, radiusMiles: number): Promise<DriverLocation[]> {
     // Simple distance calculation using Haversine formula
     // For production, consider using PostGIS for better performance
     const locations = await db.select().from(driverLocations).where(eq(driverLocations.isAvailable, true));
@@ -546,37 +540,47 @@ export class DatabaseStorage implements IStorage {
 
   // Admin operations
   async getAdminStats(): Promise<any> {
-    try {
-      const allUsers = await db.select().from(users);
-      
-      return {
-        totalUsers: allUsers.length,
-        activeUsers: allUsers.length,
-        pendingVerifications: 0,
-        suspendedUsers: 0,
-        newRegistrationsToday: 0,
-        newRegistrationsThisWeek: 0,
-      };
-    } catch (error) {
-      console.error('Error getting admin stats:', error);
-      return {
-        totalUsers: 0,
-        activeUsers: 0,
-        pendingVerifications: 0,
-        suspendedUsers: 0,
-        newRegistrationsToday: 0,
-        newRegistrationsThisWeek: 0,
-      };
-    }
+    const totalUsers = await db.select({ count: sql<number>`count(*)` }).from(users);
+    const activeUsers = await db.select({ count: sql<number>`count(*)` }).from(users).where(eq(users.accountStatus, 'active'));
+    const pendingVerifications = await db.select({ count: sql<number>`count(*)` }).from(users).where(eq(users.verificationStatus, 'pending'));
+    const suspendedUsers = await db.select({ count: sql<number>`count(*)` }).from(users).where(eq(users.accountStatus, 'suspended'));
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const newRegistrationsToday = await db.select({ count: sql<number>`count(*)` }).from(users).where(gte(users.createdAt, today));
+    
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    const newRegistrationsThisWeek = await db.select({ count: sql<number>`count(*)` }).from(users).where(gte(users.createdAt, weekAgo));
+    
+    return {
+      totalUsers: totalUsers[0]?.count || 0,
+      activeUsers: activeUsers[0]?.count || 0,
+      pendingVerifications: pendingVerifications[0]?.count || 0,
+      suspendedUsers: suspendedUsers[0]?.count || 0,
+      newRegistrationsToday: newRegistrationsToday[0]?.count || 0,
+      newRegistrationsThisWeek: newRegistrationsThisWeek[0]?.count || 0,
+    };
   }
 
   async getAllUsers(search?: string, status?: string): Promise<User[]> {
-    try {
-      return await db.select().from(users).orderBy(desc(users.createdAt));
-    } catch (error) {
-      console.error('Error getting all users:', error);
-      return [];
+    let query = db.select().from(users);
+    
+    if (status && status !== 'all') {
+      query = query.where(eq(users.accountStatus, status));
     }
+    
+    if (search) {
+      query = query.where(
+        or(
+          ilike(users.email, `%${search}%`),
+          ilike(users.firstName, `%${search}%`),
+          ilike(users.lastName, `%${search}%`)
+        )
+      );
+    }
+    
+    return await query.orderBy(desc(users.createdAt));
   }
 
   async updateUserRole(userId: string, role: string): Promise<User> {
