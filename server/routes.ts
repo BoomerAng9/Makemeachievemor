@@ -661,6 +661,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Contact form route
+  app.post('/api/contact', async (req, res) => {
+    try {
+      const { name, email, phone, note } = req.body;
+      
+      // Validate required fields
+      if (!name || !email || !note) {
+        return res.status(400).json({ message: "Name, email, and note are required" });
+      }
+
+      // Send email notification to admin
+      const { emailService } = await import("./emailService");
+      const adminEmail = 'contactus@achievemor.io';
+      
+      const emailSent = await emailService.sendContactFormNotification({
+        to: adminEmail,
+        name,
+        email,
+        phone: phone || 'Not provided',
+        note
+      });
+
+      if (emailSent) {
+        res.json({ message: "Contact form submitted successfully" });
+      } else {
+        res.status(500).json({ message: "Failed to send notification" });
+      }
+    } catch (error) {
+      console.error("Contact form error:", error);
+      res.status(500).json({ message: "Failed to submit contact form" });
+    }
+  });
+
   // Google Maps location services routes
   app.get('/api/location/driver', isAuthenticated, async (req: any, res) => {
     try {

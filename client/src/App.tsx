@@ -6,6 +6,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import NotFound from "@/pages/not-found";
 import LandingPage from "@/pages/landing";
+import HomePage from "@/pages/home";
+import LoginPage from "@/pages/login";
+import ProfilePage from "@/pages/profile";
 import AboutPage from "@/pages/about";
 import OnboardingPage from "@/pages/onboarding";
 import DashboardPage from "@/pages/dashboard";
@@ -24,30 +27,32 @@ function Router() {
 
   return (
     <Switch>
+      {/* Public routes - always accessible */}
+      <Route path="/home" component={HomePage} />
+      <Route path="/login" component={LoginPage} />
+      <Route path="/about" component={AboutPage} />
+      <Route path="/sitemap" component={SitemapPage} />
+      <Route path="/driver-checklist" component={DriverChecklistPage} />
+      <Route path="/register" component={RegisterContractorPage} />
+      <Route path="/register/contractor" component={RegisterContractorPage} />
+      <Route path="/register/company" component={RegisterCompanyPage} />
+      <Route path="/admin/setup" component={MasterSetup} />
+      <Route path="/admin-access" component={AdminAccess} />
+      <Route path="/onboarding" component={OnboardingPage} />
+      
       {isLoading || !isAuthenticated ? (
         <>
-          <Route path="/" component={LandingPage} />
-          <Route path="/about" component={AboutPage} />
-          <Route path="/sitemap" component={SitemapPage} />
-          <Route path="/driver-checklist" component={DriverChecklistPage} />
-          <Route path="/register/contractor" component={RegisterContractorPage} />
-          <Route path="/register/company" component={RegisterCompanyPage} />
-          <Route path="/admin/setup" component={MasterSetup} />
-          <Route path="/admin-access" component={AdminAccess} />
-          <Route path="/onboarding" component={OnboardingPage} />
+          <Route path="/" component={HomePage} />
         </>
       ) : (
         <>
-          <Route path="/" component={DashboardPage} />
-          <Route path="/about" component={AboutPage} />
-          <Route path="/sitemap" component={SitemapPage} />
+          <Route path="/" component={HomePage} />
+          <Route path="/dashboard" component={DashboardPage} />
           <Route path="/dashboard/:contractorId" component={DashboardPage} />
-          <Route path="/driver-checklist" component={DriverChecklistPage} />
+          <Route path="/profile" component={ProfilePage} />
           <Route path="/glovebox" component={GloveboxPage} />
           <Route path="/driver-location" component={DriverLocationPage} />
           <Route path="/admin" component={AdminDashboard} />
-          <Route path="/admin/setup" component={MasterSetup} />
-          <Route path="/onboarding" component={OnboardingPage} />
         </>
       )}
       <Route component={NotFound} />
