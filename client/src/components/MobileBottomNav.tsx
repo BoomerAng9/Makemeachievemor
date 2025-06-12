@@ -2,6 +2,7 @@ import { Home, FileText, MapPin, User, Briefcase } from "lucide-react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { useDeviceType } from "@/hooks/use-mobile";
+import { NetworkStatusIndicator } from "@/components/NetworkStatusIndicator";
 import { cn } from "@/lib/utils";
 
 interface NavItem {

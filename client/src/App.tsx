@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { useDeviceType } from "@/hooks/use-mobile";
+import { NetworkStatusBanner } from "@/components/NetworkStatusIndicator";
 import NotFound from "@/pages/not-found";
 import LandingPage from "@/pages/landing";
 import HomePage from "@/pages/home";
@@ -67,6 +68,9 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <div className="min-h-screen bg-background text-foreground">
+          {/* Network Status Banner */}
+          <NetworkStatusBanner />
+          
           {/* Main App Content */}
           <div className={isMobile ? "pb-20" : ""}>
             <Router />

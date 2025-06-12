@@ -11,6 +11,7 @@ import { PersonalizedWidgets } from "@/components/dashboard/PersonalizedWidgets"
 import { DocumentStatusWidget } from "@/components/dashboard/DocumentStatusWidget";
 import { Chatbot } from "@/components/ui/chatbot";
 import { UniversalNav } from "@/components/UniversalNav";
+import { NetworkStatusIndicator } from "@/components/NetworkStatusIndicator";
 import { Truck, Phone, Mail, MapPin, TrendingUp, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -63,6 +64,7 @@ export default function DashboardPage() {
               </div>
             </div>
             <div className="flex items-center space-x-2 sm:space-x-4">
+              <NetworkStatusIndicator compact className="hidden sm:flex" />
               <a 
                 href="tel:912-742-9459" 
                 className="text-accent hover:text-gray-900 dark:hover:text-white transition-colors flex items-center touch-manipulation min-h-[44px] px-2"
