@@ -24,6 +24,7 @@ import RegisterContractorPage from "@/pages/register-contractor";
 import RegisterCompanyPage from "@/pages/register-company";
 import LoginPage from "@/pages/login-page";
 import RegisterPage from "@/pages/register-page";
+import AccountSettingsPage from "@/pages/account-settings";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -64,6 +65,7 @@ function Router() {
           <Route path="/glovebox" component={GloveboxPage} />
           <Route path="/driver-location" component={DriverLocationPage} />
           <Route path="/admin" component={AdminDashboard} />
+          <Route path="/settings" component={AccountSettingsPage} />
         </>
       ) : (
         <Route path="/" component={LandingPage} />
