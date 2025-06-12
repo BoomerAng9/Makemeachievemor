@@ -9,6 +9,7 @@ import { useDeviceType } from "@/hooks/use-mobile";
 import { NetworkStatusBanner } from "@/components/NetworkStatusIndicator";
 import NotFound from "@/pages/not-found";
 import LandingPage from "@/pages/landing";
+import Landing from "@/pages/Landing";
 import HomePage from "@/pages/home";
 import AboutPage from "@/pages/about";
 import OnboardingPage from "@/pages/onboarding";
@@ -79,7 +80,7 @@ function RouterInner() {
           <Route path="/settings" component={AccountSettingsPage} />
         </>
       ) : (
-        <Route path="/" component={LandingPage} />
+        <Route path="/" component={Landing} />
       )}
       
       <Route component={NotFound} />
