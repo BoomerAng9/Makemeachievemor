@@ -58,13 +58,10 @@ export default function DriverChecklistPage() {
   // Save progress mutation
   const saveProgressMutation = useMutation({
     mutationFn: async (data: { checklistData: ChecklistSection[], completionPercentage: number, isCompleted: boolean, openQuestion?: string }) => {
-      return apiRequest('/api/driver-checklist/progress', {
-        method: 'POST',
-        body: JSON.stringify({
-          checklistData: data.checklistData,
-          completionPercentage: data.completionPercentage,
-          isCompleted: data.isCompleted,
-        }),
+      return apiRequest("POST", "/api/driver-checklist/progress", {
+        checklistData: data.checklistData,
+        completionPercentage: data.completionPercentage,
+        isCompleted: data.isCompleted,
       });
     },
     onSuccess: () => {
@@ -79,9 +76,7 @@ export default function DriverChecklistPage() {
   // Clear progress mutation
   const clearProgressMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest('/api/driver-checklist/progress', {
-        method: 'DELETE',
-      });
+      return apiRequest("DELETE", "/api/driver-checklist/progress");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/driver-checklist/progress'] });
@@ -241,19 +236,20 @@ export default function DriverChecklistPage() {
 
   // Load saved progress from backend or initialize
   useEffect(() => {
-    if (!progressLoading && !isLoading) {
-      if (savedProgress?.checklistData) {
+    if (!isLoading) {
+      if (isAuthenticated && !progressLoading && savedProgress?.checklistData) {
         setChecklistData(savedProgress.checklistData);
         // Load open question from local storage for now (can be moved to backend later)
         const savedQuestion = localStorage.getItem('achievemor-checklist-question');
         if (savedQuestion) {
           setOpenQuestion(savedQuestion);
         }
-      } else {
+      } else if (!isAuthenticated || !progressLoading) {
+        // Initialize checklist for unauthenticated users or when no saved progress
         initializeChecklist();
       }
     }
-  }, [savedProgress, progressLoading, isLoading]);
+  }, [savedProgress, progressLoading, isLoading, isAuthenticated]);
 
   // Auto-save progress when authenticated and data changes
   useEffect(() => {
