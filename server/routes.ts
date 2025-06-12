@@ -7,6 +7,7 @@ import { insertContractorSchema, insertVehicleSchema, insertDocumentSchema, inse
 import { z } from "zod";
 import { generateChatbotResponse } from "./chatbot";
 import { setupSimpleAuth, requireAuth } from "./simpleAuth";
+import { setupSSOAuth } from "./ssoAuth";
 
 // Configure multer for file uploads
 const upload = multer({
@@ -28,8 +29,9 @@ const upload = multer({
 const tempAuthMiddleware = requireAuth;
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Setup authentication system
+  // Setup authentication systems
   setupSimpleAuth(app);
+  setupSSOAuth(app);
   
   // Basic health check
   app.get('/api/health', (req, res) => {
