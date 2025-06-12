@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { useDeviceType } from "@/hooks/use-mobile";
 import { NetworkStatusBanner } from "@/components/NetworkStatusIndicator";
+import { UniversalNavigation } from "@/components/UniversalNavigation";
 import NotFound from "@/pages/not-found";
 import LandingPage from "@/pages/landing";
 import Landing from "@/pages/Landing";

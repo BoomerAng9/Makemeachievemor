@@ -14,7 +14,9 @@ import {
   LogOut,
   CheckCircle,
   Clock,
-  AlertTriangle
+  AlertTriangle,
+  Home,
+  ArrowLeft
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -103,14 +105,21 @@ export default function Dashboard() {
           </p>
         </div>
         <div className="flex items-center gap-4">
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={() => window.location.href = '/'}>
+            <Home className="h-4 w-4 mr-2" />
+            Home
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => window.location.href = '/settings'}>
             <Settings className="h-4 w-4 mr-2" />
             Settings
           </Button>
           <Button 
             variant="outline" 
             size="sm" 
-            onClick={() => logoutMutation.mutate()}
+            onClick={() => {
+              // Simple logout - clear session and redirect
+              window.location.href = '/api/logout';
+            }}
             disabled={logoutMutation.isPending}
           >
             <LogOut className="h-4 w-4 mr-2" />

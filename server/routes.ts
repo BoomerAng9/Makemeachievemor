@@ -80,6 +80,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Vehicle types endpoint
+  app.get('/api/vehicle-types', async (req: any, res) => {
+    try {
+      const vehicleTypes = [
+        // Freight & Cargo
+        { category: 'Freight & Cargo', vehicles: [
+          'Semi-truck (Dry Van)',
+          'Semi-truck (Refrigerated)',
+          'Semi-truck (Flatbed)',
+          'Semi-truck (Tanker)',
+          'Box Truck (26ft)',
+          'Box Truck (20ft)',
+          'Box Truck (16ft)',
+          'Cargo Van',
+          'Sprinter Van',
+          'Transit Van (Cargo)',
+          'Pickup Truck (Dual Axle)',
+          'Pickup Truck (Single Axle)',
+          'Straight Truck'
+        ]},
+        // Passenger Transport
+        { category: 'Passenger Transport', vehicles: [
+          'Sedan (4 passengers)',
+          'SUV (7 passengers)',
+          'Minivan (8 passengers)',
+          'Passenger Van (12 passengers)',
+          'Transit Van (Passenger)',
+          'Sprinter Van (Passenger)',
+          'Charter Bus (25 passengers)',
+          'Motor Coach (45+ passengers)',
+          'School Bus',
+          'Party Bus (20-40 passengers)'
+        ]},
+        // Medical Transport
+        { category: 'Medical Transport', vehicles: [
+          'Medical Transport Van',
+          'Wheelchair Accessible Vehicle',
+          'Ambulance (Non-Emergency)',
+          'Dialysis Transport Vehicle',
+          'Medical Sedan',
+          'Medical SUV'
+        ]},
+        // Specialized Services
+        { category: 'Specialized Services', vehicles: [
+          'Tow Truck (Light Duty)',
+          'Tow Truck (Heavy Duty)',
+          'Recovery Vehicle',
+          'Moving Truck (Small)',
+          'Moving Truck (Large)',
+          'Delivery Truck',
+          'Food Truck',
+          'Mobile Service Vehicle'
+        ]}
+      ];
+      
+      res.json(vehicleTypes);
+    } catch (error) {
+      console.error('Error fetching vehicle types:', error);
+      res.status(500).json({ message: 'Failed to fetch vehicle types' });
+    }
+  });
+
   // Opportunities endpoint
   app.get('/api/opportunities', async (req: any, res) => {
     try {
@@ -95,33 +157,84 @@ export async function registerRoutes(app: Express): Promise<Server> {
           description: 'Standard freight delivery',
           postedBy: 'TransCorp Logistics',
           deadline: '2025-06-15',
-          loadType: 'Dry Van'
+          loadType: 'Dry Van',
+          vehicleRequired: 'Semi-truck (Dry Van)',
+          serviceType: 'freight'
         },
         {
           id: 'opp-002',
-          title: 'Express Delivery - Austin to San Antonio',
-          origin: 'Austin, TX',
-          destination: 'San Antonio, TX',
-          miles: '80',
-          rate: '800',
+          title: 'Dialysis Patient Transport - Weekly Schedule',
+          origin: 'North Dallas',
+          destination: 'DaVita Dialysis Center',
+          miles: '15',
+          rate: '120',
           status: 'active',
-          description: 'Time-sensitive delivery',
-          postedBy: 'Express Logistics',
-          deadline: '2025-06-13',
-          loadType: 'Refrigerated'
+          description: 'Regular dialysis patient transport, 3x weekly',
+          postedBy: 'MedTransport Services',
+          deadline: '2025-06-20',
+          loadType: 'Medical Transport',
+          vehicleRequired: 'Medical Transport Van',
+          serviceType: 'medical'
         },
         {
           id: 'opp-003',
-          title: 'Return Load - Houston to Dallas',
-          origin: 'Houston, TX',
-          destination: 'Dallas, TX',
-          miles: '240',
-          rate: '2,200',
+          title: 'Family Airport Transfer - Party of 6',
+          origin: 'Plano, TX',
+          destination: 'DFW Airport',
+          miles: '25',
+          rate: '85',
           status: 'available',
-          description: 'Return trip opportunity',
-          postedBy: 'Lone Star Transport',
-          deadline: '2025-06-16',
-          loadType: 'Flatbed'
+          description: 'Family with luggage to airport',
+          postedBy: 'Premium Rides',
+          deadline: '2025-06-14',
+          loadType: 'Passenger',
+          vehicleRequired: 'SUV (7 passengers)',
+          serviceType: 'passenger'
+        },
+        {
+          id: 'opp-004',
+          title: 'Wedding Party Bus - Saturday Evening',
+          origin: 'Downtown Dallas',
+          destination: 'Various Locations',
+          miles: '50',
+          rate: '750',
+          status: 'available',
+          description: '6-hour party bus service for wedding celebration',
+          postedBy: 'Elite Events Transport',
+          deadline: '2025-06-21',
+          loadType: 'Party Service',
+          vehicleRequired: 'Party Bus (20-40 passengers)',
+          serviceType: 'entertainment'
+        },
+        {
+          id: 'opp-005',
+          title: 'Express Package Delivery - Same Day',
+          origin: 'Fort Worth, TX',
+          destination: 'Arlington, TX',
+          miles: '20',
+          rate: '65',
+          status: 'urgent',
+          description: 'Time-sensitive package delivery',
+          postedBy: 'QuickShip Express',
+          deadline: '2025-06-13',
+          loadType: 'Package',
+          vehicleRequired: 'Sprinter Van',
+          serviceType: 'delivery'
+        },
+        {
+          id: 'opp-006',
+          title: 'Equipment Transport - Construction Site',
+          origin: 'Houston, TX',
+          destination: 'Austin, TX',
+          miles: '165',
+          rate: '1,200',
+          status: 'available',
+          description: 'Heavy equipment transport',
+          postedBy: 'BuildTex Construction',
+          deadline: '2025-06-18',
+          loadType: 'Heavy Equipment',
+          vehicleRequired: 'Pickup Truck (Dual Axle)',
+          serviceType: 'specialized'
         }
       ];
       
@@ -129,6 +242,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error fetching opportunities:', error);
       res.status(500).json({ message: 'Failed to fetch opportunities' });
+    }
+  });
+
+  // Logout endpoint
+  app.post('/api/auth/logout', async (req: any, res) => {
+    try {
+      // Clear session
+      req.session.destroy((err: any) => {
+        if (err) {
+          console.error('Session destruction error:', err);
+          return res.status(500).json({ message: 'Logout failed' });
+        }
+        res.clearCookie('connect.sid'); // Clear session cookie
+        res.json({ message: 'Logged out successfully' });
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+      res.status(500).json({ message: 'Logout failed' });
+    }
+  });
+
+  // Universal back navigation endpoint
+  app.get('/api/navigation/back', async (req: any, res) => {
+    try {
+      // Store navigation history in session
+      const referer = req.get('Referer') || '/';
+      res.json({ previousPage: referer });
+    } catch (error) {
+      res.status(500).json({ message: 'Navigation failed' });
     }
   });
 
