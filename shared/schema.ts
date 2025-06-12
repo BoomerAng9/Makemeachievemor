@@ -16,7 +16,8 @@ export const sessions = pgTable(
 // User authentication table - following outlined structure
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().notNull(),
-  email: varchar("email").unique(),
+  email: varchar("email").unique().notNull(),
+  password: varchar("password").notNull(),
   name: varchar("name").notNull(), // Combined name field as per outline
   role: varchar("role").notNull().default("driver"), // driver | company | admin
   status: varchar("status").notNull().default("pending_verification"), // pending_verification | active | suspended
