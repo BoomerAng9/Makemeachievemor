@@ -192,6 +192,15 @@ export default function DashboardPage() {
                   <FileText className="h-4 w-4" />
                   Authority Checklist
                 </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="flex items-center gap-2 hover:bg-purple-50"
+                  onClick={() => window.location.href = '/glovebox'}
+                >
+                  <FileText className="h-4 w-4" />
+                  My Glovebox
+                </Button>
                 <ConsultationButton type="contractor" />
               </div>
             </CardContent>

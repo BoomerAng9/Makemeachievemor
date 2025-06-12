@@ -27,7 +27,13 @@ import {
   Filter,
   Clock,
   CheckCircle,
-  XCircle
+  XCircle,
+  Facebook,
+  Twitter,
+  Linkedin,
+  Instagram,
+  Copy,
+  Award
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -107,6 +113,7 @@ export default function Glovebox() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
+  const [isSocialShareOpen, setIsSocialShareOpen] = useState(false);
   const [selectedDocs, setSelectedDocs] = useState<number[]>([]);
 
   // Fetch user documents
@@ -124,10 +131,12 @@ export default function Glovebox() {
   // Upload document mutation
   const uploadMutation = useMutation({
     mutationFn: async (data: FormData) => {
-      return apiRequest("/api/glovebox/upload", {
+      const response = await fetch("/api/glovebox/upload", {
         method: "POST",
         body: data,
       });
+      if (!response.ok) throw new Error('Upload failed');
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/glovebox/documents"] });
@@ -140,6 +149,7 @@ export default function Glovebox() {
     mutationFn: async (data: any) => {
       return apiRequest("/api/glovebox/share", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
     },
