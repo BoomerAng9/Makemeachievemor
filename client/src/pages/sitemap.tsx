@@ -1,7 +1,7 @@
 import { Link } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { UniversalNav } from "@/components/UniversalNav";
+
 import { 
   Home, 
   FileText, 
@@ -69,8 +69,7 @@ export default function Sitemap() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
-      <UniversalNav />
-      <div className="container mx-auto px-4 pt-20 pb-8">
+      <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
           <div className="text-center mb-12">
