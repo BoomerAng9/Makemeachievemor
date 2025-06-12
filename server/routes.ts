@@ -661,8 +661,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Contact form route
-  app.post('/api/contact', async (req, res) => {
+  // Import security middleware
+  const { 
+    apiRateLimit, 
+    contactRateLimit, 
+    chatbotRateLimit,
+    privacyProtection
+  } = await import("./securityMiddleware");
+
+  // Contact form route with rate limiting
+  app.post('/api/contact', contactRateLimit, async (req, res) => {
     try {
       const { name, email, phone, note } = req.body;
       
@@ -694,8 +702,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Enhanced chatbot endpoint with lead notification
-  app.post('/api/chatbot', async (req, res) => {
+  // Enhanced chatbot endpoint with lead notification and rate limiting
+  app.post('/api/chatbot', chatbotRateLimit, async (req, res) => {
     try {
       const { message, context } = req.body;
       const { generateChatbotResponse } = await import("./chatbot");

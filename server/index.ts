@@ -1,10 +1,22 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { 
+  securityHeaders, 
+  sanitizeInput, 
+  sqlInjectionProtection, 
+  securityLogger 
+} from "./securityMiddleware";
 
 const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+
+// Apply security middleware first
+app.use(securityHeaders);
+app.use(securityLogger);
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: false, limit: '10mb' }));
+app.use(sanitizeInput);
+app.use(sqlInjectionProtection);
 
 app.use((req, res, next) => {
   const start = Date.now();
