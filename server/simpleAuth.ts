@@ -62,6 +62,7 @@ export function setupSimpleAuth(app: Express) {
       const hashedPassword = await hashPassword(validatedData.password);
       const user = await storage.createUser({
         id: `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        username: validatedData.email, // Use email as username for now
         email: validatedData.email,
         password: hashedPassword,
         name: `${validatedData.firstName} ${validatedData.lastName}`,
