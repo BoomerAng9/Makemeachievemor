@@ -18,6 +18,8 @@ import {
   driverChecklistProgress,
   userRegistrationNotifications,
   adminActivityLog,
+  dashboardWidgets,
+  widgetTemplates,
   type Contractor, 
   type InsertContractor,
   type Vehicle,
@@ -47,7 +49,11 @@ import {
   type BackgroundCheckAuditLog,
   type InsertBackgroundCheckAuditLog,
   type DriverChecklistProgress,
-  type InsertDriverChecklistProgress
+  type InsertDriverChecklistProgress,
+  type DashboardWidget,
+  type InsertDashboardWidget,
+  type WidgetTemplate,
+  type InsertWidgetTemplate
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
@@ -140,6 +146,15 @@ export interface IStorage {
   logAdminActivity(data: any): Promise<any>;
   getAdminActivityLog(): Promise<any[]>;
   createRegistrationNotification(data: any): Promise<any>;
+
+  // Dashboard widget operations
+  getUserWidgets(userId: string): Promise<DashboardWidget[]>;
+  createWidget(data: InsertDashboardWidget): Promise<DashboardWidget>;
+  updateWidget(id: number, data: Partial<InsertDashboardWidget>): Promise<DashboardWidget | undefined>;
+  deleteWidget(id: number, userId: string): Promise<void>;
+  reorderWidgets(userId: string, widgetIds: number[]): Promise<void>;
+  getWidgetTemplates(): Promise<WidgetTemplate[]>;
+  createWidgetTemplate(data: InsertWidgetTemplate): Promise<WidgetTemplate>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -720,6 +735,76 @@ export class DatabaseStorage implements IStorage {
     // For now, just log the notification - can be enhanced with actual notification system
     console.log('Job Notification:', notificationData);
     return notificationData;
+  }
+
+  // Dashboard widget operations
+  async getUserWidgets(userId: string): Promise<DashboardWidget[]> {
+    const widgets = await db
+      .select()
+      .from(dashboardWidgets)
+      .where(eq(dashboardWidgets.userId, userId))
+      .orderBy(dashboardWidgets.position);
+    return widgets;
+  }
+
+  async createWidget(data: InsertDashboardWidget): Promise<DashboardWidget> {
+    const [widget] = await db
+      .insert(dashboardWidgets)
+      .values({
+        ...data,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+    return widget;
+  }
+
+  async updateWidget(id: number, data: Partial<InsertDashboardWidget>): Promise<DashboardWidget | undefined> {
+    const [widget] = await db
+      .update(dashboardWidgets)
+      .set({
+        ...data,
+        updatedAt: new Date(),
+      })
+      .where(eq(dashboardWidgets.id, id))
+      .returning();
+    return widget;
+  }
+
+  async deleteWidget(id: number, userId: string): Promise<void> {
+    await db
+      .delete(dashboardWidgets)
+      .where(and(eq(dashboardWidgets.id, id), eq(dashboardWidgets.userId, userId)));
+  }
+
+  async reorderWidgets(userId: string, widgetIds: number[]): Promise<void> {
+    // Update positions in bulk
+    for (let i = 0; i < widgetIds.length; i++) {
+      await db
+        .update(dashboardWidgets)
+        .set({ position: i, updatedAt: new Date() })
+        .where(and(eq(dashboardWidgets.id, widgetIds[i]), eq(dashboardWidgets.userId, userId)));
+    }
+  }
+
+  async getWidgetTemplates(): Promise<WidgetTemplate[]> {
+    const templates = await db
+      .select()
+      .from(widgetTemplates)
+      .where(eq(widgetTemplates.isActive, true));
+    return templates;
+  }
+
+  async createWidgetTemplate(data: InsertWidgetTemplate): Promise<WidgetTemplate> {
+    const [template] = await db
+      .insert(widgetTemplates)
+      .values({
+        ...data,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+    return template;
   }
 }
 

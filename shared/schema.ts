@@ -526,6 +526,24 @@ export const insertUserSchema = createInsertSchema(users).omit({
   updatedAt: true,
 });
 
+export const insertDashboardWidgetSchema = createInsertSchema(dashboardWidgets).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertWidgetTemplateSchema = createInsertSchema(widgetTemplates).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Type exports for dashboard widgets
+export type DashboardWidget = typeof dashboardWidgets.$inferSelect;
+export type InsertDashboardWidget = typeof dashboardWidgets.$inferInsert;
+export type WidgetTemplate = typeof widgetTemplates.$inferSelect;
+export type InsertWidgetTemplate = typeof widgetTemplates.$inferInsert;
+
 export const insertFileStorageSchema = createInsertSchema(fileStorage).omit({
   id: true,
   uploadedAt: true,
