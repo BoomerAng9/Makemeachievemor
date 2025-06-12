@@ -18,8 +18,10 @@ import {
   Trash2, 
   Save,
   AlertTriangle,
-  CheckCircle
+  CheckCircle,
+  ArrowLeft
 } from "lucide-react";
+import { Link } from "wouter";
 import {
   Form,
   FormControl,
@@ -161,13 +163,32 @@ export default function AccountSettingsPage() {
   ];
 
   return (
-    <div className="container max-w-4xl mx-auto py-8 px-4">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">Account Settings</h1>
-        <p className="text-muted-foreground mt-2">
-          Manage your account preferences and security settings
-        </p>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      {/* Header with Back Button */}
+      <div className="bg-white dark:bg-gray-800 shadow-sm border-b">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center gap-4">
+              <Link href="/dashboard">
+                <Button variant="ghost" size="sm" className="gap-2">
+                  <ArrowLeft className="h-4 w-4" />
+                  Back to Dashboard
+                </Button>
+              </Link>
+              <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
+                Account Settings
+              </h1>
+            </div>
+          </div>
+        </div>
       </div>
+
+      <div className="container max-w-4xl mx-auto py-8 px-4">
+        <div className="mb-8">
+          <p className="text-muted-foreground">
+            Manage your account preferences and security settings
+          </p>
+        </div>
 
       {/* Tab Navigation */}
       <div className="flex border-b mb-8">
@@ -471,6 +492,7 @@ export default function AccountSettingsPage() {
           </Card>
         </div>
       )}
+      </div>
     </div>
   );
 }
