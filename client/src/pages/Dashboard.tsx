@@ -108,7 +108,7 @@ export default function Dashboard() {
       
       <div className="flex justify-end items-center mb-6">
         <div className="flex items-center gap-4">
-          <Button variant="outline" size="sm" onClick={() => window.location.href = '/'}>
+          <Button variant="outline" size="sm" onClick={() => window.location.href = '/home'}>
             <Home className="h-4 w-4 mr-2" />
             Home
           </Button>

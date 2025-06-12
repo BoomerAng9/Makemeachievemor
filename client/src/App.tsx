@@ -10,7 +10,6 @@ import { NetworkStatusBanner } from "@/components/NetworkStatusIndicator";
 import { UniversalNavigation } from "@/components/UniversalNavigation";
 import NotFound from "@/pages/not-found";
 import LandingPage from "@/pages/landing";
-import Landing from "@/pages/Landing";
 import HomePage from "@/pages/home";
 import AboutPage from "@/pages/about";
 import OnboardingPage from "@/pages/onboarding";
@@ -61,7 +60,7 @@ function RouterInner() {
           <Route path="/register" component={RegisterPage} />
           
           {/* Public pages */}
-          <Route path="/home" component={HomePage} />
+          <Route path="/home" component={LandingPage} />
           <Route path="/about" component={AboutPage} />
           <Route path="/sitemap" component={SitemapPage} />
           <Route path="/driver-checklist" component={DriverChecklistPage} />
@@ -84,7 +83,7 @@ function RouterInner() {
               <Route path="/settings" component={AccountSettingsPage} />
             </>
           ) : (
-            <Route path="/" component={Landing} />
+            <Route path="/" component={LandingPage} />
           )}
           
           <Route component={NotFound} />
