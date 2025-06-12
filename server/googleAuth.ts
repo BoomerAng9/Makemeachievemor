@@ -17,8 +17,7 @@ export function setupGoogleAuth(app: Express) {
   passport.use(new GoogleStrategy({
     clientID: clientID,
     clientSecret: clientSecret,
-    callbackURL: "/api/auth/google/callback",
-    scope: ['profile', 'email']
+    callbackURL: "/api/auth/google/callback"
   }, async (accessToken, refreshToken, profile, done) => {
     try {
       // Check if user exists
@@ -68,6 +67,18 @@ export function setupGoogleAuth(app: Express) {
       done(error, null);
     }
   });
+
+  // Google OAuth routes
+  app.get('/api/auth/google', 
+    passport.authenticate('google', { scope: ['profile', 'email'] })
+  );
+
+  app.get('/api/auth/google/callback',
+    passport.authenticate('google', { 
+      failureRedirect: '/?error=oauth_failed',
+      successRedirect: '/dashboard'
+    })
+  );
 }
 
 export function isGoogleOAuthConfigured(): boolean {

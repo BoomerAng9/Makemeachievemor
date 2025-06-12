@@ -39,6 +39,10 @@ export function setupAuthenticationSystem(app: Express) {
         redirectUri: `${req.protocol}://${req.get('host')}/api/auth/google/callback`
       });
     });
+    
+    app.get('/api/auth/google/callback', (req, res) => {
+      res.redirect('/?error=oauth_not_configured');
+    });
   }
 
   // Simple authentication fallback

@@ -24,6 +24,7 @@ import RegisterContractorPage from "@/pages/register-contractor";
 import RegisterCompanyPage from "@/pages/register-company";
 import LoginPage from "@/pages/login-page";
 import RegisterPage from "@/pages/register-page";
+import Login from "@/pages/Login";
 import AccountSettingsPage from "@/pages/account-settings";
 
 function Router() {
@@ -48,7 +49,8 @@ function RouterInner() {
   return (
     <Switch>
       {/* Authentication pages - always available */}
-      <Route path="/login" component={LoginPage} />
+      <Route path="/login" component={Login} />
+      <Route path="/auth" component={Login} />
       <Route path="/register" component={RegisterPage} />
       
       {/* Public pages */}
