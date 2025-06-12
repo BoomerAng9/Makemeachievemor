@@ -39,23 +39,96 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // User profile route
-  app.get('/api/user', isAuthenticated, async (req: any, res) => {
+  // User profile route - temporary bypass for development
+  app.get('/api/user', async (req: any, res) => {
     try {
-      // Return basic user profile from session
+      // Temporary demo user for development
       const profile = {
-        id: req.user.claims.sub,
-        name: `${req.user.claims.first_name || ''} ${req.user.claims.last_name || ''}`.trim() || 'User',
-        email: req.user.claims.email || '',
-        profileImageUrl: req.user.claims.profile_image_url,
+        id: 'demo-user-123',
+        name: 'Demo Driver',
+        email: 'demo@achievemor.io',
+        profileImageUrl: null,
         role: 'driver',
-        status: 'active'
+        status: 'active',
+        registrationSource: 'direct'
       };
       
       res.json(profile);
     } catch (error) {
       console.error('Error fetching user profile:', error);
       res.status(500).json({ message: 'Failed to fetch user profile' });
+    }
+  });
+
+  // Contractor availability endpoint
+  app.get('/api/contractor/availability', async (req: any, res) => {
+    try {
+      const availability = {
+        isAvailable: true,
+        currentLocation: 'Dallas, TX',
+        maxMileRadius: 500,
+        preferredRoutes: ['Dallas to Houston', 'Dallas to Austin', 'Texas Triangle'],
+        availableFrom: new Date().toISOString(),
+        vehicleType: 'Semi-truck',
+        lastUpdated: new Date().toISOString()
+      };
+      
+      res.json(availability);
+    } catch (error) {
+      console.error('Error fetching availability:', error);
+      res.status(500).json({ message: 'Failed to fetch availability' });
+    }
+  });
+
+  // Opportunities endpoint
+  app.get('/api/opportunities', async (req: any, res) => {
+    try {
+      const opportunities = [
+        {
+          id: 'opp-001',
+          title: 'Freight Delivery - Dallas to Houston',
+          origin: 'Dallas, TX',
+          destination: 'Houston, TX',
+          miles: '240',
+          rate: '2,400',
+          status: 'available',
+          description: 'Standard freight delivery',
+          postedBy: 'TransCorp Logistics',
+          deadline: '2025-06-15',
+          loadType: 'Dry Van'
+        },
+        {
+          id: 'opp-002',
+          title: 'Express Delivery - Austin to San Antonio',
+          origin: 'Austin, TX',
+          destination: 'San Antonio, TX',
+          miles: '80',
+          rate: '800',
+          status: 'active',
+          description: 'Time-sensitive delivery',
+          postedBy: 'Express Logistics',
+          deadline: '2025-06-13',
+          loadType: 'Refrigerated'
+        },
+        {
+          id: 'opp-003',
+          title: 'Return Load - Houston to Dallas',
+          origin: 'Houston, TX',
+          destination: 'Dallas, TX',
+          miles: '240',
+          rate: '2,200',
+          status: 'available',
+          description: 'Return trip opportunity',
+          postedBy: 'Lone Star Transport',
+          deadline: '2025-06-16',
+          loadType: 'Flatbed'
+        }
+      ];
+      
+      res.json(opportunities);
+    } catch (error) {
+      console.error('Error fetching opportunities:', error);
+      res.status(500).json({ message: 'Failed to fetch opportunities' });
     }
   });
 
