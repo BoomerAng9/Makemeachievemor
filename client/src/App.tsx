@@ -4,6 +4,8 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
+import { MobileBottomNav } from "@/components/MobileBottomNav";
+import { useDeviceType } from "@/hooks/use-mobile";
 import NotFound from "@/pages/not-found";
 import LandingPage from "@/pages/landing";
 import AboutPage from "@/pages/about";
@@ -56,11 +58,23 @@ function Router() {
 }
 
 function App() {
+  const { isMobile } = useDeviceType();
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Toaster />
-        <Router />
+        <div className="min-h-screen bg-background text-foreground">
+          {/* Main App Content */}
+          <div className={isMobile ? "pb-20" : ""}>
+            <Router />
+          </div>
+          
+          {/* Mobile Bottom Navigation */}
+          <MobileBottomNav />
+          
+          {/* Toast Notifications */}
+          <Toaster />
+        </div>
       </TooltipProvider>
     </QueryClientProvider>
   );
