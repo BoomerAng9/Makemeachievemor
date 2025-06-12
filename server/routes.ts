@@ -1307,7 +1307,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   if (isGoogleOAuthConfigured()) {
     console.log("Setting up Google OAuth");
     setupGoogleAuth(app);
+  } else {
+    console.log("Google OAuth not configured - using fallback authentication");
+    
+    // Fallback Google auth route that returns error
+    app.get('/api/auth/google', (req, res) => {
+      res.status(500).json({ 
+        message: "Google OAuth not configured",
+        instructions: "Please configure GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET environment variables and add the correct redirect URI in Google Cloud Console: http://localhost:5000/api/auth/google/callback"
+      });
+    });
   }
+
+  // GitHub OAuth fallback (not configured)
+  app.get('/api/auth/github', (req, res) => {
+    res.status(500).json({ 
+      message: "GitHub OAuth not configured",
+      instructions: "GitHub OAuth is not currently set up. Please use Google OAuth or the simple authentication system."
+    });
+  });
 
   const httpServer = createServer(app);
   return httpServer;

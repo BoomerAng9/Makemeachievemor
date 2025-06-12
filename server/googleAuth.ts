@@ -5,11 +5,20 @@ import { storage } from "./storage";
 import { emailService } from "./emailService";
 
 export function setupGoogleAuth(app: Express) {
+  const clientID = process.env.GOOGLE_CLIENT_ID;
+  const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+  
+  if (!clientID || !clientSecret) {
+    console.log('Google OAuth credentials not found');
+    return;
+  }
+
   // Google OAuth Strategy
   passport.use(new GoogleStrategy({
-    clientID: process.env.GOOGLE_CLIENT_ID || '',
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
-    callbackURL: "/api/auth/google/callback"
+    clientID: clientID,
+    clientSecret: clientSecret,
+    callbackURL: "/api/auth/google/callback",
+    scope: ['profile', 'email']
   }, async (accessToken, refreshToken, profile, done) => {
     try {
       // Check if user exists
