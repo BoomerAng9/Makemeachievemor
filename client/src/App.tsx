@@ -12,7 +12,7 @@ import LandingPage from "@/pages/landing";
 import HomePage from "@/pages/home";
 import AboutPage from "@/pages/about";
 import OnboardingPage from "@/pages/onboarding";
-import DashboardPage from "@/pages/dashboard";
+import DashboardPage from "@/pages/dashboard-page";
 import DriverChecklistPage from "@/pages/driver-checklist";
 import GloveboxPage from "@/pages/glovebox";
 import DriverLocationPage from "@/pages/driver-location";
