@@ -32,6 +32,7 @@ export function UniversalNavigation() {
     const titles: Record<string, string> = {
       '/': 'Dashboard',
       '/dashboard': 'Dashboard',
+      '/home': 'Home',
       '/settings': 'Settings',
       '/location': 'Location Services',
       '/glovebox': 'Glovebox',

@@ -97,17 +97,18 @@ export default function Dashboard() {
   return (
     <div className="container mx-auto px-4 py-8 space-y-8">
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Welcome back, {user.name || user.username}
-          </h1>
-          <p className="text-muted-foreground">
-            Contractor Dashboard - Manage your availability and opportunities
-          </p>
-        </div>
+      <div className="text-center mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+          Welcome back, {user.name || user.username}
+        </h1>
+        <p className="text-muted-foreground">
+          Contractor Dashboard - Manage your availability and opportunities
+        </p>
+      </div>
+      
+      <div className="flex justify-end items-center mb-6">
         <div className="flex items-center gap-4">
-          <Button variant="outline" size="sm" onClick={() => window.location.href = '/'}>
+          <Button variant="outline" size="sm" onClick={() => window.location.href = '/home'}>
             <Home className="h-4 w-4 mr-2" />
             Home
           </Button>
