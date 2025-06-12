@@ -23,6 +23,7 @@ import { z } from "zod";
 import { generateChatbotResponse } from "./chatbot";
 import { setupSimpleAuth, requireAuth } from "./simpleAuth";
 import { setupSSOAuth } from "./ssoAuth";
+import { setupGoogleAuth, isGoogleOAuthConfigured } from "./googleAuth";
 import { zeroTrustMiddleware, enhancedAuth, trackComplianceEvent } from "./zeroTrustSecurity";
 import { db } from "./db";
 import { eq, and, desc, or, gte, lt, sql, asc, count, sum, avg, ilike } from "drizzle-orm";
