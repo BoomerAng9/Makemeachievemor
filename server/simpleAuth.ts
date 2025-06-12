@@ -17,7 +17,7 @@ const registerSchema = z.object({
 });
 
 const loginSchema = z.object({
-  email: z.string().email(),
+  username: z.string().min(1),
   password: z.string().min(1)
 });
 
@@ -94,9 +94,9 @@ export function setupSimpleAuth(app: Express) {
     try {
       const validatedData = loginSchema.parse(req.body);
       
-      const user = await storage.getUserByEmail(validatedData.email);
+      const user = await storage.getUserByUsername(validatedData.username);
       if (!user || !(await comparePasswords(validatedData.password, user.password))) {
-        return res.status(401).json({ message: "Invalid email or password" });
+        return res.status(401).json({ message: "Invalid username or password" });
       }
 
       // Store user in session

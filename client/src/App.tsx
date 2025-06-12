@@ -27,6 +27,11 @@ import RegisterPage from "@/pages/register-page";
 import AccountSettingsPage from "@/pages/account-settings";
 
 function Router() {
+  // Move the useAuth hook inside the AuthProvider by creating an inner component
+  return <RouterInner />;
+}
+
+function RouterInner() {
   const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
