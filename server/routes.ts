@@ -6,7 +6,7 @@ import path from "path";
 import { insertContractorSchema, insertVehicleSchema, insertDocumentSchema, insertOpportunitySchema, insertMessageSchema, insertJobAssignmentSchema } from "@shared/schema";
 import { z } from "zod";
 import { generateChatbotResponse } from "./chatbot";
-// Authentication will be added separately
+import { setupSimpleAuth, requireAuth } from "./simpleAuth";
 
 // Configure multer for file uploads
 const upload = multer({
@@ -32,14 +32,12 @@ const tempAuthMiddleware = (req: any, res: any, next: any) => {
 };
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Setup authentication system
+  setupSimpleAuth(app);
+  
   // Basic health check
   app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
-  });
-
-  // Temporary user endpoint without auth
-  app.get('/api/user', (req, res) => {
-    res.status(401).json({ message: "Unauthorized" });
   });
 
   // Helper function to ensure contractor profile exists
