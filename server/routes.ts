@@ -1302,6 +1302,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
 
+  // Setup Google OAuth authentication
+  if (isGoogleOAuthConfigured()) {
+    console.log("Setting up Google OAuth");
+    setupGoogleAuth(app);
+    
+    // Override the SSO Google route with proper Passport.js implementation
+    app.get('/api/auth/google', (req, res, next) => {
+      passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next);
+    });
+
+    app.get('/api/auth/google/callback', 
+      passport.authenticate('google', { failureRedirect: '/' }),
+      (req, res) => {
+        res.redirect('/dashboard');
+      }
+    );
+  }
+
   const httpServer = createServer(app);
   return httpServer;
 }

@@ -850,15 +850,7 @@ export const insertContractorCompanyRelationshipSchema = createInsertSchema(cont
 
 
 
-export const insertDriverLocationSchema = createInsertSchema(driverLocations).omit({
-  id: true,
-  createdAt: true,
-});
 
-export const insertDocumentShareSchema = createInsertSchema(documentShares).omit({
-  id: true,
-  createdAt: true,
-});
 
 // Types
 export type User = typeof users.$inferSelect;
