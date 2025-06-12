@@ -163,6 +163,118 @@ Please review these documents within 48 hours for verification.
     return await this.sendEmail(emailData);
   }
 
+  async sendContactFormNotification(data: { to: string; name: string; email: string; phone: string; note: string }): Promise<boolean> {
+    const emailData: EmailNotificationData = {
+      to: data.to,
+      subject: `New Contact Form Submission - ACHIEVEMOR`,
+      text: `
+New Contact Form Submission - ACHIEVEMOR Platform
+
+Contact Details:
+- Name: ${data.name}
+- Email: ${data.email}
+- Phone: ${data.phone}
+- Submission Date: ${new Date().toLocaleString()}
+
+Message:
+${data.note}
+
+This is a potential lead for partnership opportunities.
+Please respond to the inquirer at: ${data.email}
+      `,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+            <h1 style="margin: 0; font-size: 28px;">ACHIEVEMOR</h1>
+            <p style="margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">New Contact Form Submission</p>
+          </div>
+          
+          <div style="background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px;">
+            <div style="background: #e8f5e8; border-left: 4px solid #28a745; padding: 15px; margin-bottom: 20px; border-radius: 4px;">
+              <h3 style="margin: 0; color: #155724;">Potential Lead Alert</h3>
+              <p style="margin: 5px 0 0 0; color: #155724;">This contact form submission represents a potential partnership opportunity.</p>
+            </div>
+            
+            <h2 style="color: #333; margin-top: 0;">Contact Information</h2>
+            <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+              <p><strong>Name:</strong> ${data.name}</p>
+              <p><strong>Email:</strong> <a href="mailto:${data.email}" style="color: #007bff;">${data.email}</a></p>
+              <p><strong>Phone:</strong> ${data.phone}</p>
+              <p><strong>Submitted:</strong> ${new Date().toLocaleString()}</p>
+            </div>
+            
+            <h2 style="color: #333;">Message</h2>
+            <div style="background: white; padding: 20px; border-radius: 8px; border-left: 4px solid #007bff;">
+              <p style="margin: 0; line-height: 1.6; white-space: pre-wrap;">${data.note}</p>
+            </div>
+            
+            <div style="text-align: center; margin-top: 30px;">
+              <a href="mailto:${data.email}" style="background: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">Reply to Lead</a>
+            </div>
+          </div>
+        </div>
+      `
+    };
+
+    return await this.sendEmail(emailData);
+  }
+
+  async sendChatbotLeadNotification(data: { to: string; userMessage: string; userContext?: string; timestamp: Date }): Promise<boolean> {
+    const emailData: EmailNotificationData = {
+      to: data.to,
+      subject: `Chatbot Lead Alert - ACHIEVEMOR`,
+      text: `
+Chatbot Lead Alert - ACHIEVEMOR Platform
+
+A user has engaged with the chatbot and may be interested in partnership opportunities.
+
+User Message:
+${data.userMessage}
+
+${data.userContext ? `User Context:\n${data.userContext}` : ''}
+
+Timestamp: ${data.timestamp.toLocaleString()}
+
+This interaction indicates potential interest in ACHIEVEMOR services.
+Consider reaching out for follow-up engagement.
+      `,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+            <h1 style="margin: 0; font-size: 28px;">ACHIEVEMOR</h1>
+            <p style="margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">Chatbot Lead Alert</p>
+          </div>
+          
+          <div style="background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px;">
+            <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin-bottom: 20px; border-radius: 4px;">
+              <h3 style="margin: 0; color: #856404;">Chatbot Engagement</h3>
+              <p style="margin: 5px 0 0 0; color: #856404;">A user has shown interest through chatbot interaction.</p>
+            </div>
+            
+            <h2 style="color: #333; margin-top: 0;">User Interaction</h2>
+            <div style="background: white; padding: 20px; border-radius: 8px; border-left: 4px solid #17a2b8;">
+              <p style="margin: 0; line-height: 1.6; white-space: pre-wrap;">${data.userMessage}</p>
+            </div>
+            
+            ${data.userContext ? `
+            <h2 style="color: #333; margin-top: 20px;">Additional Context</h2>
+            <div style="background: white; padding: 20px; border-radius: 8px;">
+              <p style="margin: 0; line-height: 1.6; white-space: pre-wrap;">${data.userContext}</p>
+            </div>
+            ` : ''}
+            
+            <div style="background: white; padding: 20px; border-radius: 8px; margin-top: 20px;">
+              <p><strong>Timestamp:</strong> ${data.timestamp.toLocaleString()}</p>
+              <p style="color: #666; font-size: 14px;">This interaction indicates potential interest in ACHIEVEMOR services. Consider reaching out for follow-up engagement.</p>
+            </div>
+          </div>
+        </div>
+      `
+    };
+
+    return await this.sendEmail(emailData);
+  }
+
   private async sendEmail(emailData: EmailNotificationData): Promise<boolean> {
     try {
       if (!this.mailService) {

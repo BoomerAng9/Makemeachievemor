@@ -694,6 +694,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Enhanced chatbot endpoint with lead notification
+  app.post('/api/chatbot', async (req, res) => {
+    try {
+      const { message, context } = req.body;
+      const { generateChatbotResponse } = await import("./chatbot");
+      const response = await generateChatbotResponse(message, context);
+      
+      // Check if message indicates potential lead interest
+      const leadKeywords = [
+        'partnership', 'partner', 'business', 'opportunity', 'contact',
+        'interested', 'help me start', 'setup', 'authority', 'DOT number',
+        'MC authority', 'trucking business', 'owner operator', 'pricing',
+        'cost', 'quote', 'service', 'consultation', 'get started',
+        'need help', 'how much', 'what does it cost', 'sign up'
+      ];
+      
+      const isLead = leadKeywords.some(keyword => 
+        message.toLowerCase().includes(keyword.toLowerCase())
+      );
+      
+      if (isLead) {
+        // Send lead notification email
+        const { emailService } = await import("./emailService");
+        await emailService.sendChatbotLeadNotification({
+          to: 'contactus@achievemor.io',
+          userMessage: message,
+          userContext: context,
+          timestamp: new Date()
+        });
+      }
+      
+      res.json({ response });
+    } catch (error) {
+      console.error("Chatbot error:", error);
+      res.status(500).json({ message: "Failed to generate chatbot response" });
+    }
+  });
+
   // Google Maps location services routes
   app.get('/api/location/driver', isAuthenticated, async (req: any, res) => {
     try {
