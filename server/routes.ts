@@ -22,10 +22,7 @@ import {
 } from "@shared/schema";
 import { z } from "zod";
 import { generateChatbotResponse } from "./chatbot";
-import { setupSimpleAuth, requireAuth } from "./simpleAuth";
-import { setupSSOAuth } from "./ssoAuth";
-import { setupGoogleAuth, isGoogleOAuthConfigured } from "./googleAuth";
-import passport from "passport";
+import { setupAuth, isAuthenticated } from "./replitAuth";
 import { zeroTrustMiddleware, enhancedAuth, trackComplianceEvent } from "./zeroTrustSecurity";
 import { db } from "./db";
 import { eq, and, desc, or, gte, lt, sql, asc, count, sum, avg, ilike } from "drizzle-orm";
@@ -63,16 +60,14 @@ const upload = multer({
   },
 });
 
-// Use the proper authentication middleware
-const tempAuthMiddleware = requireAuth;
+// Authentication middleware provided by Replit Auth
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Apply Zero Trust security middleware to all routes
   app.use(zeroTrustMiddleware);
   
-  // Setup authentication systems
-  setupSimpleAuth(app);
-  setupSSOAuth(app);
+  // Setup Replit authentication
+  await setupAuth(app);
   
   // Basic health check
   app.get('/api/health', (req, res) => {
@@ -84,7 +79,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ============================================================================
 
   // Create/Update contractor availability
-  app.post('/api/contractor/availability', enhancedAuth, async (req, res) => {
+  app.post('/api/contractor/availability', isAuthenticated, async (req, res) => {
     try {
       const userId = req.user!.id;
       const validatedData = insertContractorAvailabilitySchema.parse(req.body);
