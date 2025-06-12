@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { UniversalNav } from "./UniversalNav";
+
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 
@@ -39,12 +39,11 @@ export function Layout({
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {showNav && <UniversalNav />}
       <main className={cn(
         "mx-auto",
         maxWidthClasses[maxWidth] || "max-w-7xl",
         paddingClasses[padding],
-        showNav && "pt-16 sm:pt-20",
+        "py-8",
         isMobile ? "pb-safe-area-inset-bottom" : "pb-8",
         className
       )}>

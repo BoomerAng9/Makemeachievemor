@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { OnboardingWizard } from "@/components/onboarding/OnboardingWizard";
-import { UniversalNav } from "@/components/UniversalNav";
+
 import { Truck, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
