@@ -152,17 +152,26 @@ export async function zeroTrustMiddleware(
         })
         .where(eq(deviceTrust.id, deviceRecord.id));
     } else {
-      // New device - create record
-      await db.insert(deviceTrust).values({
-        deviceId,
-        deviceFingerprint,
-        deviceType: detectDeviceType(userAgent),
-        browser: detectBrowser(userAgent),
-        operatingSystem: detectOS(userAgent),
-        trustLevel: 'unknown',
-        isActive: true,
-        accessCount: 1
-      });
+      // New device - create record with conflict handling
+      try {
+        await db.insert(deviceTrust).values({
+          deviceId,
+          deviceFingerprint,
+          deviceType: detectDeviceType(userAgent),
+          browser: detectBrowser(userAgent),
+          operatingSystem: detectOS(userAgent),
+          trustLevel: 'unknown',
+          isActive: true,
+          accessCount: 1
+        });
+      } catch (error: any) {
+        if (error.code === '23505') {
+          // Device already exists, just continue
+          console.log('Device already registered');
+        } else {
+          throw error;
+        }
+      }
     }
     
     // High risk - require additional verification
