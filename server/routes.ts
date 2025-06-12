@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import Stripe from "stripe";
 import { storage } from "./storage";
+import { mapsService } from "./mapsService";
 import multer from "multer";
 import path from "path";
 import { 

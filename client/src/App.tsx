@@ -26,6 +26,7 @@ import LoginPage from "@/pages/login-page";
 import RegisterPage from "@/pages/register-page";
 import Login from "@/pages/Login";
 import Dashboard from "@/pages/Dashboard";
+import LocationServices from "@/pages/LocationServices";
 import AccountSettingsPage from "@/pages/account-settings";
 
 function Router() {
