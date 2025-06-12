@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -7,13 +7,17 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Separator } from "@/components/ui/separator";
 import { Loader2, Mail, Lock, ArrowLeft } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/contexts/AuthContext";
+import { SiGoogle, SiGithub } from "react-icons/si";
 
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
   password: z.string().min(1, "Password is required"),
+  rememberMe: z.boolean().default(false),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
@@ -24,13 +28,35 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Load saved credentials from localStorage
+  const loadSavedCredentials = () => {
+    try {
+      const savedUsername = localStorage.getItem('achievemor_saved_username');
+      const savedPassword = localStorage.getItem('achievemor_saved_password');
+      const rememberMe = localStorage.getItem('achievemor_remember_me') === 'true';
+      
+      return {
+        username: savedUsername || "",
+        password: savedPassword || "",
+        rememberMe: rememberMe,
+      };
+    } catch {
+      return { username: "", password: "", rememberMe: false };
+    }
+  };
+
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
-    defaultValues: {
-      username: "",
-      password: "",
-    },
+    defaultValues: loadSavedCredentials(),
   });
+
+  // Load saved credentials on component mount
+  useEffect(() => {
+    const savedCredentials = loadSavedCredentials();
+    if (savedCredentials.username || savedCredentials.password) {
+      form.reset(savedCredentials);
+    }
+  }, [form]);
 
   const onSubmit = async (data: LoginFormData) => {
     setError(null);
@@ -38,12 +64,31 @@ export default function LoginPage() {
     
     try {
       await login(data.username, data.password);
+      
+      // Save credentials if Remember Me is checked
+      if (data.rememberMe) {
+        localStorage.setItem('achievemor_saved_username', data.username);
+        localStorage.setItem('achievemor_saved_password', data.password);
+        localStorage.setItem('achievemor_remember_me', 'true');
+      } else {
+        // Clear saved credentials if Remember Me is unchecked
+        localStorage.removeItem('achievemor_saved_username');
+        localStorage.removeItem('achievemor_saved_password');
+        localStorage.removeItem('achievemor_remember_me');
+      }
+      
       setLocation("/"); // Redirect to home page
     } catch (error: any) {
       setError(error.message || "Login failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // SSO login handlers
+  const handleSSOLogin = (provider: string) => {
+    const baseUrl = window.location.origin;
+    window.location.href = `${baseUrl}/api/auth/${provider}`;
   };
 
   return (
@@ -116,6 +161,26 @@ export default function LoginPage() {
                 )}
               />
 
+              <FormField
+                control={form.control}
+                name="rememberMe"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel className="text-sm font-normal">
+                        Remember my username and password
+                      </FormLabel>
+                    </div>
+                  </FormItem>
+                )}
+              />
+
               <Button
                 type="submit"
                 className="w-full"
@@ -132,6 +197,39 @@ export default function LoginPage() {
               </Button>
             </form>
           </Form>
+
+          {/* SSO Options */}
+          <div className="mt-6">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <Separator className="w-full" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+              </div>
+            </div>
+
+            <div className="mt-6 grid grid-cols-2 gap-3">
+              <Button
+                variant="outline"
+                type="button"
+                onClick={() => handleSSOLogin('google')}
+                className="w-full"
+              >
+                <SiGoogle className="mr-2 h-4 w-4" />
+                Google
+              </Button>
+              <Button
+                variant="outline"
+                type="button"
+                onClick={() => handleSSOLogin('github')}
+                className="w-full"
+              >
+                <SiGithub className="mr-2 h-4 w-4" />
+                GitHub
+              </Button>
+            </div>
+          </div>
 
           <div className="mt-6 text-center text-sm">
             <span className="text-muted-foreground">Don't have an account? </span>
