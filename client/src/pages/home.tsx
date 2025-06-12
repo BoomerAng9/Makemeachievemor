@@ -97,12 +97,7 @@ export default function HomePage() {
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
-            <Link href="/driver-checklist">
-              <Button variant="outline" size="lg" className="px-8 py-4 text-lg font-semibold">
-                <CheckCircle className="mr-2 h-5 w-5" />
-                Authority Setup Checklist
-              </Button>
-            </Link>
+
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
@@ -407,12 +402,7 @@ export default function HomePage() {
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
-            <Link href="/driver-checklist">
-              <Button size="lg" variant="outline" className="px-8 py-4 text-lg font-semibold border-white text-white hover:bg-white hover:text-blue-600">
-                <CheckCircle className="mr-2 h-5 w-5" />
-                Start Authority Setup
-              </Button>
-            </Link>
+
           </div>
         </div>
       </section>

@@ -19,6 +19,7 @@ import AdminDashboard from "@/pages/admin/AdminDashboard";
 import MasterSetup from "@/pages/admin/MasterSetup";
 import AdminAccess from "@/pages/AdminAccess";
 import SitemapPage from "@/pages/sitemap";
+import RegisterPage from "@/pages/register";
 import RegisterContractorPage from "@/pages/register-contractor";
 import RegisterCompanyPage from "@/pages/register-company";
 
@@ -33,7 +34,7 @@ function Router() {
       <Route path="/about" component={AboutPage} />
       <Route path="/sitemap" component={SitemapPage} />
       <Route path="/driver-checklist" component={DriverChecklistPage} />
-      <Route path="/register" component={RegisterContractorPage} />
+      <Route path="/register" component={RegisterPage} />
       <Route path="/register/contractor" component={RegisterContractorPage} />
       <Route path="/register/company" component={RegisterCompanyPage} />
       <Route path="/admin/setup" component={MasterSetup} />
