@@ -661,85 +661,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Import security middleware
-  const { 
-    apiRateLimit, 
-    contactRateLimit, 
-    chatbotRateLimit,
-    privacyProtection
-  } = await import("./securityMiddleware");
-
-  // Contact form route with rate limiting
-  app.post('/api/contact', contactRateLimit, async (req, res) => {
-    try {
-      const { name, email, phone, note } = req.body;
-      
-      // Validate required fields
-      if (!name || !email || !note) {
-        return res.status(400).json({ message: "Name, email, and note are required" });
-      }
-
-      // Send email notification to admin
-      const { emailService } = await import("./emailService");
-      const adminEmail = 'contactus@achievemor.io';
-      
-      const emailSent = await emailService.sendContactFormNotification({
-        to: adminEmail,
-        name,
-        email,
-        phone: phone || 'Not provided',
-        note
-      });
-
-      if (emailSent) {
-        res.json({ message: "Contact form submitted successfully" });
-      } else {
-        res.status(500).json({ message: "Failed to send notification" });
-      }
-    } catch (error) {
-      console.error("Contact form error:", error);
-      res.status(500).json({ message: "Failed to submit contact form" });
-    }
-  });
-
-  // Enhanced chatbot endpoint with lead notification and rate limiting
-  app.post('/api/chatbot', chatbotRateLimit, async (req, res) => {
-    try {
-      const { message, context } = req.body;
-      const { generateChatbotResponse } = await import("./chatbot");
-      const response = await generateChatbotResponse(message, context);
-      
-      // Check if message indicates potential lead interest
-      const leadKeywords = [
-        'partnership', 'partner', 'business', 'opportunity', 'contact',
-        'interested', 'help me start', 'setup', 'authority', 'DOT number',
-        'MC authority', 'trucking business', 'owner operator', 'pricing',
-        'cost', 'quote', 'service', 'consultation', 'get started',
-        'need help', 'how much', 'what does it cost', 'sign up'
-      ];
-      
-      const isLead = leadKeywords.some(keyword => 
-        message.toLowerCase().includes(keyword.toLowerCase())
-      );
-      
-      if (isLead) {
-        // Send lead notification email
-        const { emailService } = await import("./emailService");
-        await emailService.sendChatbotLeadNotification({
-          to: 'contactus@achievemor.io',
-          userMessage: message,
-          userContext: context,
-          timestamp: new Date()
-        });
-      }
-      
-      res.json({ response });
-    } catch (error) {
-      console.error("Chatbot error:", error);
-      res.status(500).json({ message: "Failed to generate chatbot response" });
-    }
-  });
-
   // Google Maps location services routes
   app.get('/api/location/driver', isAuthenticated, async (req: any, res) => {
     try {
@@ -919,6 +840,103 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching activity log:", error);
       res.status(500).json({ message: "Failed to fetch activity log" });
+    }
+  });
+
+  // Contact form submission
+  app.post('/api/contact', async (req, res) => {
+    try {
+      const { name, email, phone, note } = req.body;
+      
+      if (!name || !email || !note) {
+        return res.status(400).json({ message: "Name, email, and message are required" });
+      }
+
+      // Send email notification to ACHIEVEMOR
+      const { emailService } = await import('./emailService');
+      await emailService.sendContactNotification({
+        name,
+        email,
+        phone,
+        note
+      });
+      
+      res.json({ message: "Contact form submitted successfully" });
+    } catch (error) {
+      console.error("Error submitting contact form:", error);
+      res.status(500).json({ message: "Failed to submit contact form" });
+    }
+  });
+
+  // Enhanced chatbot API with email functionality
+  app.post('/api/chatbot', async (req, res) => {
+    try {
+      const { message, userEmail, userName, isLead = false, isIssue = false } = req.body;
+      
+      if (!message) {
+        return res.status(400).json({ message: "Message is required" });
+      }
+
+      // Generate AI response
+      const aiResponse = await generateChatbotResponse(message);
+
+      // If this is a lead or issue, send email notification
+      if (isLead || isIssue) {
+        const { emailService } = await import('./emailService');
+        await emailService.sendChatbotNotification({
+          userName,
+          userEmail,
+          message,
+          aiResponse,
+          isLead,
+          isIssue
+        });
+      }
+
+      res.json({ response: aiResponse });
+    } catch (error) {
+      console.error("Error processing chatbot request:", error);
+      res.status(500).json({ message: "Failed to process chatbot request" });
+    }
+  });
+
+  // Opportunities API
+  app.get('/api/opportunities', async (req, res) => {
+    try {
+      // Get real opportunities from storage
+      const opportunities = await storage.getOpportunities();
+      res.json(opportunities);
+    } catch (error) {
+      console.error("Error fetching opportunities:", error);
+      res.status(500).json({ message: "Failed to fetch opportunities" });
+    }
+  });
+
+  app.get('/api/opportunities/applied', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const appliedJobs = await storage.getAppliedJobs(userId);
+      res.json(appliedJobs);
+    } catch (error) {
+      console.error("Error fetching applied jobs:", error);
+      res.status(500).json({ message: "Failed to fetch applied jobs" });
+    }
+  });
+
+  app.post('/api/opportunities/apply', isAuthenticated, async (req: any, res) => {
+    try {
+      const { jobId } = req.body;
+      const userId = req.user.claims.sub;
+      
+      if (!jobId) {
+        return res.status(400).json({ message: "Job ID is required" });
+      }
+
+      await storage.applyToJob(userId, jobId);
+      res.json({ message: "Application submitted successfully" });
+    } catch (error) {
+      console.error("Error applying to job:", error);
+      res.status(500).json({ message: "Failed to apply to job" });
     }
   });
 
