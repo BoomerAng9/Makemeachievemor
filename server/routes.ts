@@ -407,6 +407,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Stripe subscription routes
+  app.post('/api/create-subscription', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user!.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      if (!user || !user.email) {
+        return res.status(400).json({ message: 'User email required for subscription' });
+      }
+
+      // Create or retrieve Stripe customer
+      let stripeCustomerId = user.stripeCustomerId;
+      if (!stripeCustomerId) {
+        const customer = await stripe.customers.create({
+          email: user.email,
+          name: `${user.firstName} ${user.lastName}`,
+        });
+        stripeCustomerId = customer.id;
+        await storage.updateUser(userId, { stripeCustomerId });
+      }
+
+      // Create subscription
+      const subscription = await stripe.subscriptions.create({
+        customer: stripeCustomerId,
+        items: [{
+          price_data: {
+            currency: 'usd',
+            product_data: {
+              name: 'Choose 2 ACHIEVEMOR Pro',
+              description: 'Premium contractor platform access',
+            },
+            unit_amount: 2999, // $29.99
+            recurring: {
+              interval: 'month',
+            },
+          },
+        }],
+        payment_behavior: 'default_incomplete',
+        payment_settings: { save_default_payment_method: 'on_subscription' },
+        expand: ['latest_invoice.payment_intent'],
+      });
+
+      res.json({
+        subscriptionId: subscription.id,
+        clientSecret: subscription.latest_invoice?.payment_intent?.client_secret,
+      });
+    } catch (error) {
+      console.error('Subscription creation error:', error);
+      res.status(500).json({ message: 'Failed to create subscription' });
+    }
+  });
+
+  app.post('/api/cancel-subscription', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user!.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      if (!user?.stripeSubscriptionId) {
+        return res.status(400).json({ message: 'No active subscription found' });
+      }
+
+      const subscription = await stripe.subscriptions.update(
+        user.stripeSubscriptionId,
+        { cancel_at_period_end: true }
+      );
+
+      res.json({ message: 'Subscription cancelled', subscription });
+    } catch (error) {
+      console.error('Subscription cancellation error:', error);
+      res.status(500).json({ message: 'Failed to cancel subscription' });
+    }
+  });
+
   // User profile management routes
   app.put('/api/user/profile', isAuthenticated, async (req, res) => {
     try {

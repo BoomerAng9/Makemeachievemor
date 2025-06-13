@@ -126,7 +126,7 @@ export function OnboardingWizard() {
           <EnhancedLocationSettings 
             onLocationUpdate={(data) => setLocationData(data)}
             initialData={locationData}
-            isOptional={false}
+            isRequired={true}
           />
         )}
         {currentStep === 5 && (
