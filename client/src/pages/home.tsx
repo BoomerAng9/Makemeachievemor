@@ -1,188 +1,252 @@
-import { useState } from "react";
+import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { UniversalNav } from "@/components/UniversalNav";
+import { useAuth } from "@/hooks/useAuth";
+import { useQuery } from "@tanstack/react-query";
+import { 
+  Truck, 
+  MapPin, 
+  Clock, 
+  Star, 
+  Users, 
+  DollarSign,
+  Building2,
+  Calendar,
+  Shield,
+  Phone,
+  Plus
+} from "lucide-react";
 
 export default function HomePage() {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    note: ""
+  const { user } = useAuth();
+  
+  // Fetch contractor profile
+  const { data: contractor } = useQuery({
+    queryKey: ['/api/contractors/profile'],
+    enabled: !!user,
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Handle form submission
-    console.log("Form submitted:", formData);
-  };
+  // Fetch available opportunities  
+  const { data: opportunities } = useQuery({
+    queryKey: ['/api/opportunities'],
+    enabled: !!user,
+  });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-  };
+  // Fetch recent messages
+  const { data: messages } = useQuery({
+    queryKey: ['/api/messages'],
+    enabled: !!user,
+  });
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gray-50">
       <UniversalNav />
       
-      <main className="container mx-auto px-4 py-8">
-        {/* Services Section */}
-        <div className="grid md:grid-cols-3 gap-8 mb-12">
-          <Card className="text-center">
-            <CardContent className="p-6">
-              <img 
-                src="https://byachievemor.com/images/s-boxtruck.jpg" 
-                alt="RELIABLE TRANSPORTATION"
-                className="w-full h-48 object-cover rounded-lg mb-4"
-              />
-              <h5 className="text-lg font-bold mb-4 text-gray-900">RELIABLE TRANSPORTATION</h5>
-              <p className="text-gray-600">
-                Trust is paramount in our industry, and our commitment is steadfast. We're committed to providing dependable transportation, ensuring your cargo is safe and on time. Every journey, every load, we prioritize reliability.
+      <main className="container mx-auto px-4 py-6">
+        {/* Welcome Header */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">
+                Welcome to Choose 2 ACHIEVEMOR
+              </h1>
+              <p className="text-gray-600 mt-2">
+                Your contractor platform for connecting with opportunities
               </p>
-            </CardContent>
-          </Card>
-
-          <Card className="text-center">
-            <CardContent className="p-6">
-              <img 
-                src="https://byachievemor.com/images/s-phone.jpg" 
-                alt="DEDICATED CUSTOMER SUPPORT"
-                className="w-full h-48 object-cover rounded-lg mb-4"
-              />
-              <h5 className="text-lg font-bold mb-4 text-gray-900">DEDICATED CUSTOMER SUPPORT</h5>
-              <p className="text-gray-600">
-                Our customers are the backbone of our business. That's why we're dedicated to providing professional and responsive support. Whether you have a query, need an update, or face any unforeseen challenges, we're just a call away.
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="text-center">
-            <CardContent className="p-6">
-              <img 
-                src="https://byachievemor.com/images/s-charts.jpg" 
-                alt="COST-EFFECTIVE SOLUTIONS"
-                className="w-full h-48 object-cover rounded-lg mb-4"
-              />
-              <h5 className="text-lg font-bold mb-4 text-gray-900">COST-EFFECTIVE SOLUTIONS</h5>
-              <p className="text-gray-600">
-                Quality service doesn't have to break the bank. We pride ourselves on offering transportation that is both dependable and affordable. Our strategic approach allows us to provide top-tier services at competitive prices.
-              </p>
-            </CardContent>
-          </Card>
+            </div>
+            {!contractor && (
+              <Link href="/onboarding">
+                <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Complete Setup
+                </Button>
+              </Link>
+            )}
+          </div>
         </div>
 
-        {/* Contact Form Section */}
-        <div className="max-w-2xl mx-auto mb-12">
-          <h2 className="text-2xl font-bold text-center mb-8">Drop Us A Line</h2>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                Your Name * Required
-              </label>
-              <Input
-                id="name"
-                name="name"
-                type="text"
-                required
-                value={formData.name}
-                onChange={handleChange}
-                placeholder="This field is required"
-              />
-            </div>
+        {/* Quick Stats */}
+        {contractor && (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center">
+                  <Star className="h-8 w-8 text-yellow-500" />
+                  <div className="ml-4">
+                    <p className="text-sm font-medium text-gray-600">Trust Rating</p>
+                    <p className="text-2xl font-bold">
+                      {contractor.trustRating || 0}%
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                Email * Required
-              </label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                required
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="Please enter a valid email address."
-              />
-            </div>
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center">
+                  <DollarSign className="h-8 w-8 text-green-500" />
+                  <div className="ml-4">
+                    <p className="text-sm font-medium text-gray-600">Earnings</p>
+                    <p className="text-2xl font-bold">
+                      ${contractor.totalEarnings || 0}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-            <div>
-              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
-                Phone
-              </label>
-              <Input
-                id="phone"
-                name="phone"
-                type="tel"
-                value={formData.phone}
-                onChange={handleChange}
-                placeholder="Please enter a valid 10 digit phone number"
-              />
-            </div>
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center">
+                  <Truck className="h-8 w-8 text-blue-500" />
+                  <div className="ml-4">
+                    <p className="text-sm font-medium text-gray-600">Jobs Completed</p>
+                    <p className="text-2xl font-bold">
+                      {contractor.completedJobs || 0}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-            <div>
-              <label htmlFor="note" className="block text-sm font-medium text-gray-700 mb-2">
-                Note * Required
-              </label>
-              <Textarea
-                id="note"
-                name="note"
-                required
-                value={formData.note}
-                onChange={handleChange}
-                placeholder="This field is required"
-                rows={4}
-              />
-            </div>
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center">
+                  <Users className="h-8 w-8 text-purple-500" />
+                  <div className="ml-4">
+                    <p className="text-sm font-medium text-gray-600">Active Partners</p>
+                    <p className="text-2xl font-bold">
+                      {contractor.activePartners || 0}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
-            <Button type="submit" className="w-full">
-              Submit
-            </Button>
-          </form>
-        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Available Opportunities */}
+          <div className="lg:col-span-2">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Building2 className="w-5 h-5 mr-2" />
+                  Available Opportunities
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {opportunities && opportunities.length > 0 ? (
+                  <div className="space-y-4">
+                    {opportunities.slice(0, 5).map((opportunity: any) => (
+                      <div key={opportunity.id} className="border rounded-lg p-4">
+                        <div className="flex justify-between items-start mb-2">
+                          <h3 className="font-semibold">{opportunity.title}</h3>
+                          <Badge variant="secondary">
+                            ${opportunity.payRate}/hr
+                          </Badge>
+                        </div>
+                        <div className="flex items-center text-sm text-gray-600 space-x-4">
+                          <div className="flex items-center">
+                            <MapPin className="w-4 h-4 mr-1" />
+                            {opportunity.location}
+                          </div>
+                          <div className="flex items-center">
+                            <Clock className="w-4 h-4 mr-1" />
+                            {opportunity.schedule}
+                          </div>
+                        </div>
+                        <p className="text-sm text-gray-700 mt-2">
+                          {opportunity.description}
+                        </p>
+                        <div className="flex justify-between items-center mt-3">
+                          <Badge variant="outline">
+                            {opportunity.vehicleType}
+                          </Badge>
+                          <Button size="sm">Apply Now</Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <Building2 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-600">No opportunities available</p>
+                    <p className="text-sm text-gray-500">
+                      Complete your profile to see matching opportunities
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
 
-        {/* Company Information */}
-        <div className="grid md:grid-cols-3 gap-8">
-          <Card>
-            <CardContent className="p-6">
-              <h4 className="text-xl font-bold mb-4">ACHIEVEMOR LLC</h4>
-              <p className="text-gray-600">
-                Your trusted partner in transportation. We're committed to excellent customer service and getting your cargo to its destination safely and on time.
-              </p>
-            </CardContent>
-          </Card>
+          {/* Quick Actions & Messages */}
+          <div className="space-y-6">
+            {/* Quick Actions */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Quick Actions</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Link href="/dashboard">
+                  <Button variant="outline" className="w-full justify-start">
+                    <Shield className="w-4 h-4 mr-2" />
+                    Manage Profile
+                  </Button>
+                </Link>
+                <Link href="/driver-location">
+                  <Button variant="outline" className="w-full justify-start">
+                    <MapPin className="w-4 h-4 mr-2" />
+                    Update Location
+                  </Button>
+                </Link>
+                <Link href="/glovebox">
+                  <Button variant="outline" className="w-full justify-start">
+                    <Calendar className="w-4 h-4 mr-2" />
+                    Schedule & Docs
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardContent className="p-6">
-              <h4 className="text-xl font-bold mb-4">By The Numbers</h4>
-              <div className="space-y-2 text-gray-600">
-                <p><strong>DOT Number:</strong> 4398142</p>
-                <p><strong>MC #:</strong> 1726115</p>
-                <p><strong>BOC-3 #:</strong> EVILSIZOR PROCESS SERVERS LLC</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <h4 className="text-xl font-bold mb-4">Get In Touch</h4>
-              <div className="space-y-2 text-gray-600">
-                <p>275 LONGLEAF CIR</p>
-                <p>POOLER, GA 31322</p>
-                <p>(912) 742-9459</p>
-                <p>Delivered@byachievemor.com</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Footer */}
-        <div className="text-center mt-12 py-8 border-t border-gray-200">
-          <p className="text-gray-600 font-medium">ACHIEVEMOR LLC</p>
+            {/* Recent Messages */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Phone className="w-5 h-5 mr-2" />
+                  Recent Messages
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {messages && messages.length > 0 ? (
+                  <div className="space-y-3">
+                    {messages.slice(0, 3).map((message: any) => (
+                      <div key={message.id} className="border-b pb-3 last:border-b-0">
+                        <div className="flex justify-between items-start">
+                          <p className="font-medium text-sm">{message.fromCompany}</p>
+                          <span className="text-xs text-gray-500">
+                            {new Date(message.createdAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-600 mt-1">
+                          {message.content.substring(0, 100)}...
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-4">
+                    <Phone className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                    <p className="text-sm text-gray-600">No messages yet</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </main>
     </div>
