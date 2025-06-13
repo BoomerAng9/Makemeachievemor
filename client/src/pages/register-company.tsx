@@ -63,13 +63,13 @@ function CompanySubscriptionForm({ onComplete }: { onComplete: () => void }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="bg-green-50 p-4 rounded-lg">
-        <h3 className="font-semibold text-green-900 mb-2">Choose 2 ACHIEVEMOR Business - $199.99/month</h3>
+        <h3 className="font-semibold text-green-900 mb-2">Buy the office coffee - $3.48/month</h3>
         <ul className="text-sm text-green-800 space-y-1">
-          <li>• Access to verified contractor network</li>
-          <li>• Advanced job posting and matching</li>
-          <li>• Real-time tracking and communications</li>
-          <li>• Priority support and account management</li>
-          <li>• Custom integration capabilities</li>
+          <li>• Access to contractor network</li>
+          <li>• Basic job posting capabilities</li>
+          <li>• Standard communications</li>
+          <li>• Essential business features</li>
+          <li>• Community support</li>
         </ul>
       </div>
       

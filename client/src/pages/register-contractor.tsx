@@ -8,9 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { UniversalNav } from "@/components/UniversalNav";
-import { EnhancedVehicleSelection } from "@/components/EnhancedVehicleSelection";
-import { EnhancedLocationSettings } from "@/components/EnhancedLocationSettings";
-import { AvailabilityScheduler } from "@/components/AvailabilityScheduler";
+// Remove problematic imports for now and create simple inline components
 import { Truck, Shield, FileText, ArrowLeft, CreditCard, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
@@ -353,11 +351,38 @@ export default function RegisterContractorPage() {
         return (
           <div className="space-y-6">
             <h3 className="text-lg font-semibold">Vehicle Information</h3>
-            <EnhancedVehicleSelection 
-              onVehicleSelect={(vehicle) => setVehicleData(prev => ({ ...prev, ...vehicle }))}
-              initialData={vehicleData}
-              isOptional={false}
-            />
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="vehicleType">Vehicle Type *</Label>
+                <Select value={vehicleData.vehicleType} onValueChange={(value) => setVehicleData(prev => ({ ...prev, vehicleType: value }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select vehicle type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="standard-van">Standard Van</SelectItem>
+                    <SelectItem value="cargo-van">Cargo Van</SelectItem>
+                    <SelectItem value="box-truck">Box Truck</SelectItem>
+                    <SelectItem value="wheelchair-van">Wheelchair Accessible Van</SelectItem>
+                    <SelectItem value="ambulette">Ambulette</SelectItem>
+                    <SelectItem value="refrigerated">Refrigerated Vehicle</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="capacity">Vehicle Capacity</Label>
+                <Select value={vehicleData.capacity} onValueChange={(value) => setVehicleData(prev => ({ ...prev, capacity: value }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select capacity" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1-2">1-2 passengers</SelectItem>
+                    <SelectItem value="3-6">3-6 passengers</SelectItem>
+                    <SelectItem value="7-12">7-12 passengers</SelectItem>
+                    <SelectItem value="cargo">Cargo only</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </div>
         );
 
@@ -365,11 +390,49 @@ export default function RegisterContractorPage() {
         return (
           <div className="space-y-6">
             <h3 className="text-lg font-semibold">Service Area & Location</h3>
-            <EnhancedLocationSettings 
-              onLocationUpdate={setLocationData}
-              initialData={locationData}
-              isRequired={true}
-            />
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="serviceZip">Service ZIP Code *</Label>
+                  <Input
+                    id="serviceZip"
+                    value={locationData.zipCode}
+                    onChange={(e) => setLocationData(prev => ({ ...prev, zipCode: e.target.value }))}
+                    placeholder="Primary service ZIP code"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="serviceState">State *</Label>
+                  <Select value={locationData.state} onValueChange={(value) => setLocationData(prev => ({ ...prev, state: value }))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select state" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="GA">Georgia</SelectItem>
+                      <SelectItem value="FL">Florida</SelectItem>
+                      <SelectItem value="SC">South Carolina</SelectItem>
+                      <SelectItem value="NC">North Carolina</SelectItem>
+                      <SelectItem value="TN">Tennessee</SelectItem>
+                      <SelectItem value="AL">Alabama</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="serviceRadius">Service Radius: {locationData.serviceRadius} miles</Label>
+                <input
+                  type="range"
+                  id="serviceRadius"
+                  min="10"
+                  max="100"
+                  step="5"
+                  value={locationData.serviceRadius}
+                  onChange={(e) => setLocationData(prev => ({ ...prev, serviceRadius: parseInt(e.target.value) }))}
+                  className="w-full mt-2"
+                />
+              </div>
+            </div>
           </div>
         );
 
@@ -377,11 +440,87 @@ export default function RegisterContractorPage() {
         return (
           <div className="space-y-6">
             <h3 className="text-lg font-semibold">Availability Schedule</h3>
-            <AvailabilityScheduler 
-              onAvailabilityUpdate={setAvailabilityData}
-              initialData={availabilityData}
-              isRequired={true}
-            />
+            <div className="space-y-4">
+              <div>
+                <Label className="text-base font-medium">Weekly Availability</Label>
+                <div className="grid grid-cols-1 gap-3 mt-2">
+                  {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((day) => (
+                    <div key={day} className="flex items-center space-x-4 p-3 border rounded-lg">
+                      <Checkbox
+                        id={day}
+                        checked={availabilityData.schedule[day]?.available || false}
+                        onCheckedChange={(checked) => {
+                          setAvailabilityData(prev => ({
+                            ...prev,
+                            schedule: {
+                              ...prev.schedule,
+                              [day]: {
+                                available: checked as boolean,
+                                startTime: prev.schedule[day]?.startTime || "09:00",
+                                endTime: prev.schedule[day]?.endTime || "17:00"
+                              }
+                            }
+                          }));
+                        }}
+                      />
+                      <Label htmlFor={day} className="font-medium w-20">{day}</Label>
+                      {availabilityData.schedule[day]?.available && (
+                        <div className="flex items-center space-x-2">
+                          <Input
+                            type="time"
+                            value={availabilityData.schedule[day]?.startTime || "09:00"}
+                            onChange={(e) => {
+                              setAvailabilityData(prev => ({
+                                ...prev,
+                                schedule: {
+                                  ...prev.schedule,
+                                  [day]: {
+                                    ...prev.schedule[day],
+                                    startTime: e.target.value
+                                  }
+                                }
+                              }));
+                            }}
+                            className="w-24"
+                          />
+                          <span>to</span>
+                          <Input
+                            type="time"
+                            value={availabilityData.schedule[day]?.endTime || "17:00"}
+                            onChange={(e) => {
+                              setAvailabilityData(prev => ({
+                                ...prev,
+                                schedule: {
+                                  ...prev.schedule,
+                                  [day]: {
+                                    ...prev.schedule[day],
+                                    endTime: e.target.value
+                                  }
+                                }
+                              }));
+                            }}
+                            className="w-24"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="weeklyCommitment">Weekly Hours Commitment: {availabilityData.weeklyCommitment} hours</Label>
+                <input
+                  type="range"
+                  id="weeklyCommitment"
+                  min="10"
+                  max="60"
+                  step="5"
+                  value={availabilityData.weeklyCommitment}
+                  onChange={(e) => setAvailabilityData(prev => ({ ...prev, weeklyCommitment: parseInt(e.target.value) }))}
+                  className="w-full mt-2"
+                />
+              </div>
+            </div>
           </div>
         );
 
