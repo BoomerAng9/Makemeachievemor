@@ -35,6 +35,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 
 // Subscription pricing configuration
 const SUBSCRIPTION_PRICES = {
+  office_coffee: { price: 348, name: "Buy the office coffee" }, // $3.48/month
   contractor_basic: { price: 2900, name: "Basic Driver" },
   contractor_professional: { price: 7900, name: "Professional Driver" },
   contractor_premium: { price: 14900, name: "Elite Driver" },
@@ -882,6 +883,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error fetching contractor stats:', error);
       res.status(500).json({ message: 'Failed to fetch contractor stats' });
+    }
+  });
+
+  // Stripe payment intent endpoint for $3.48 subscription
+  app.post('/api/create-payment-intent', async (req, res) => {
+    try {
+      const { amount } = req.body;
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: Math.round(amount * 100), // Convert to cents
+        currency: "usd",
+      });
+      res.json({ clientSecret: paymentIntent.client_secret });
+    } catch (error: any) {
+      res.status(500).json({ message: "Error creating payment intent: " + error.message });
     }
   });
 

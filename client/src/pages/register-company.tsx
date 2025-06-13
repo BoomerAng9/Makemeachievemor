@@ -160,10 +160,10 @@ export default function RegisterCompanyPage() {
 
   const initializeSubscription = async () => {
     try {
-      const response = await fetch('/api/create-subscription', {
+      const response = await fetch('/api/create-payment-intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan: 'business' })
+        body: JSON.stringify({ amount: 3.48 })
       });
       const data = await response.json();
       setClientSecret(data.clientSecret);
