@@ -144,6 +144,59 @@ export default function DashboardPage() {
           activeJobsCount={jobs?.filter(job => job.status === 'in_progress').length || 0}
         />
 
+        {/* Authority Setup Checklist - Prominent Feature */}
+        <div className="mb-8">
+          <Card className="border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                    <FileText className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100">Authority Setup Checklist</h3>
+                    <p className="text-sm text-blue-700 dark:text-blue-300">Complete your DOT and MC Authority requirements</p>
+                  </div>
+                </div>
+                <Badge variant="outline" className="bg-white text-blue-800 border-blue-300">
+                  Essential
+                </Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-4 sm:space-y-0">
+                <div className="flex-1">
+                  <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">
+                    Access your interactive checklist covering all federal authority requirements, permits, and compliance items needed to operate legally.
+                  </p>
+                  <div className="flex flex-wrap gap-2 text-xs text-blue-700 dark:text-blue-300">
+                    <span className="bg-blue-100 dark:bg-blue-900 px-2 py-1 rounded">• USDOT Registration</span>
+                    <span className="bg-blue-100 dark:bg-blue-900 px-2 py-1 rounded">• MC Authority</span>
+                    <span className="bg-blue-100 dark:bg-blue-900 px-2 py-1 rounded">• Insurance Requirements</span>
+                    <span className="bg-blue-100 dark:bg-blue-900 px-2 py-1 rounded">• Permits & Taxes</span>
+                  </div>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Button 
+                    onClick={() => window.open('/authority-checklist', '_blank')}
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    Open Checklist
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    onClick={() => setIsChatbotOpen(true)}
+                    className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                  >
+                    Get Help
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Job Opportunities with State Machine Flow */}
         <div className="mb-8">
           <JobOpportunities

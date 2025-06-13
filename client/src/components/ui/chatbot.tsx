@@ -25,7 +25,7 @@ export function Chatbot({ isOpen, onToggle, mode = 'floating', position = 'botto
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: "Hi! I'm your ACHIEVEMOR assistant. I can help you with questions about DOT requirements, MC Authority, trucking regulations, and getting started as an owner-operator. How can I help you today?",
+      text: "Hi! I'm your CHOOSE 2 ACHIEVEMOR assistant. I can help you with:\n\n• DOT and MC Authority setup\n• Trucking regulations and compliance\n• Authority Setup Checklist\n• Insurance requirements\n• Getting started as an owner-operator\n\nTry asking: 'show authority checklist' or 'help with DOT requirements'",
       isUser: false,
       timestamp: new Date()
     }
@@ -240,8 +240,172 @@ export function Chatbot({ isOpen, onToggle, mode = 'floating', position = 'botto
             </ScrollArea>
           </div>
           
-          {/* Input Area */}
+          {/* Quick Actions */}
           <div className="flex-shrink-0 p-4 border-t bg-gray-50/50">
+            <div className="grid grid-cols-2 gap-2 mb-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  const message = "show authority checklist";
+                  setInputValue(message);
+                  
+                  const userMessage: Message = {
+                    id: Date.now().toString(),
+                    text: message,
+                    isUser: true,
+                    timestamp: new Date()
+                  };
+                  
+                  setMessages(prev => [...prev, userMessage]);
+                  setInputValue("");
+                  setIsLoading(true);
+                  
+                  try {
+                    const response = await apiRequest('POST', '/api/chatbot', { message });
+                    const data = await response.json();
+                    
+                    const botMessage: Message = {
+                      id: (Date.now() + 1).toString(),
+                      text: data.response,
+                      isUser: false,
+                      timestamp: new Date()
+                    };
+                    
+                    setMessages(prev => [...prev, botMessage]);
+                  } catch (error) {
+                    console.error('Error sending message:', error);
+                  } finally {
+                    setIsLoading(false);
+                  }
+                }}
+                className="text-xs"
+              >
+                Authority Checklist
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  const message = "DOT requirements";
+                  setInputValue(message);
+                  
+                  const userMessage: Message = {
+                    id: Date.now().toString(),
+                    text: message,
+                    isUser: true,
+                    timestamp: new Date()
+                  };
+                  
+                  setMessages(prev => [...prev, userMessage]);
+                  setInputValue("");
+                  setIsLoading(true);
+                  
+                  try {
+                    const response = await apiRequest('POST', '/api/chatbot', { message });
+                    const data = await response.json();
+                    
+                    const botMessage: Message = {
+                      id: (Date.now() + 1).toString(),
+                      text: data.response,
+                      isUser: false,
+                      timestamp: new Date()
+                    };
+                    
+                    setMessages(prev => [...prev, botMessage]);
+                  } catch (error) {
+                    console.error('Error sending message:', error);
+                  } finally {
+                    setIsLoading(false);
+                  }
+                }}
+                className="text-xs"
+              >
+                DOT Requirements
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  const message = "MC authority";
+                  setInputValue(message);
+                  
+                  const userMessage: Message = {
+                    id: Date.now().toString(),
+                    text: message,
+                    isUser: true,
+                    timestamp: new Date()
+                  };
+                  
+                  setMessages(prev => [...prev, userMessage]);
+                  setInputValue("");
+                  setIsLoading(true);
+                  
+                  try {
+                    const response = await apiRequest('POST', '/api/chatbot', { message });
+                    const data = await response.json();
+                    
+                    const botMessage: Message = {
+                      id: (Date.now() + 1).toString(),
+                      text: data.response,
+                      isUser: false,
+                      timestamp: new Date()
+                    };
+                    
+                    setMessages(prev => [...prev, botMessage]);
+                  } catch (error) {
+                    console.error('Error sending message:', error);
+                  } finally {
+                    setIsLoading(false);
+                  }
+                }}
+                className="text-xs"
+              >
+                MC Authority
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  const message = "insurance requirements";
+                  setInputValue(message);
+                  
+                  const userMessage: Message = {
+                    id: Date.now().toString(),
+                    text: message,
+                    isUser: true,
+                    timestamp: new Date()
+                  };
+                  
+                  setMessages(prev => [...prev, userMessage]);
+                  setInputValue("");
+                  setIsLoading(true);
+                  
+                  try {
+                    const response = await apiRequest('POST', '/api/chatbot', { message });
+                    const data = await response.json();
+                    
+                    const botMessage: Message = {
+                      id: (Date.now() + 1).toString(),
+                      text: data.response,
+                      isUser: false,
+                      timestamp: new Date()
+                    };
+                    
+                    setMessages(prev => [...prev, botMessage]);
+                  } catch (error) {
+                    console.error('Error sending message:', error);
+                  } finally {
+                    setIsLoading(false);
+                  }
+                }}
+                className="text-xs"
+              >
+                Insurance Info
+              </Button>
+            </div>
+            
+            {/* Input Area */}
             <div className="flex space-x-2 mb-2">
               <Input
                 value={inputValue}
