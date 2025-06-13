@@ -113,14 +113,14 @@ export function OnboardingWizard() {
         )}
         {currentStep === 3 && (
           <EnhancedVehicleSelection 
-            onVehicleUpdate={(data) => setVehicleData(data)}
+            onUpdate={(data) => setVehicleData(data)}
             initialData={vehicleData}
             isRequired={false}
           />
         )}
         {currentStep === 4 && (
           <EnhancedLocationSettings 
-            onLocationUpdate={(data) => setLocationData(data)}
+            onUpdate={(data) => setLocationData(data)}
             initialData={locationData}
             isRequired={false}
           />
