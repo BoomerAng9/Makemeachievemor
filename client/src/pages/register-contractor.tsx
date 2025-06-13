@@ -186,10 +186,25 @@ export default function RegisterContractorPage() {
     setIsSubmitting(true);
     try {
       const registrationData = {
-        personal: formData,
-        vehicle: vehicleData,
-        location: locationData,
-        availability: availabilityData
+        firstName: formData.firstName || '',
+        lastName: formData.lastName || '',
+        phone: formData.phone || '',
+        dateOfBirth: formData.dateOfBirth || '',
+        city: locationData.city || formData.city || '',
+        zipCode: locationData.zipCode || formData.zipCode || '',
+        state: locationData.state || '',
+        dotNumber: formData.dotNumber || '',
+        mcNumber: formData.mcNumber || '',
+        cdlClass: formData.cdlClass || '',
+        yearsExperience: formData.yearsExperience || '',
+        specialEndorsements: formData.specialEndorsements || [],
+        vehicleType: vehicleData.vehicleType || '',
+        category: vehicleData.category || '',
+        subType: vehicleData.subType || '',
+        capacity: vehicleData.capacity || '',
+        specialFeatures: vehicleData.specialFeatures || [],
+        agreedToTerms: formData.agreedToTerms,
+        agreedToBackground: formData.agreedToBackground
       };
 
       const response = await fetch('/api/contractors', {
@@ -325,30 +340,77 @@ export default function RegisterContractorPage() {
               <p className="text-gray-600">Subscribe to access contractor features</p>
             </div>
             
-            <div className="bg-blue-50 p-6 rounded-lg">
-              <h3 className="font-semibold text-blue-900 mb-2">Buy the office coffee - $3.48/month</h3>
-              <ul className="text-sm text-blue-800 space-y-2 mb-4">
-                <li>• Access to job opportunities</li>
-                <li>• Basic contractor profile</li>
-                <li>• Standard support</li>
-                <li>• Essential platform features</li>
-              </ul>
+            <div className="space-y-4">
+              {/* Basic Plan */}
+              <div className="bg-blue-50 p-6 rounded-lg border-2 border-blue-200">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold text-blue-900">Buy the office coffee - $3.48/month</h3>
+                  <input type="radio" name="plan" value="basic" className="text-blue-600" defaultChecked />
+                </div>
+                <ul className="text-sm text-blue-800 space-y-1 mb-3">
+                  <li>• Access to job opportunities</li>
+                  <li>• Basic contractor profile</li>
+                  <li>• Standard support</li>
+                  <li>• Essential platform features</li>
+                </ul>
+              </div>
+
+              {/* Professional Plan */}
+              <div className="bg-green-50 p-6 rounded-lg border-2 border-green-200">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold text-green-900">Professional - $15.99/month</h3>
+                  <input type="radio" name="plan" value="professional" className="text-green-600" />
+                </div>
+                <ul className="text-sm text-green-800 space-y-1 mb-3">
+                  <li>• Priority job matching</li>
+                  <li>• Enhanced profile visibility</li>
+                  <li>• Advanced analytics</li>
+                  <li>• Priority customer support</li>
+                  <li>• Route optimization tools</li>
+                </ul>
+              </div>
+
+              {/* Premium Plan */}
+              <div className="bg-purple-50 p-6 rounded-lg border-2 border-purple-200">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold text-purple-900">Premium - $29.99/month</h3>
+                  <input type="radio" name="plan" value="premium" className="text-purple-600" />
+                </div>
+                <ul className="text-sm text-purple-800 space-y-1 mb-3">
+                  <li>• All Professional features</li>
+                  <li>• Dedicated account manager</li>
+                  <li>• Advanced training resources</li>
+                  <li>• Insurance discounts</li>
+                  <li>• Exclusive high-paying opportunities</li>
+                </ul>
+              </div>
+
+              {/* Complete Later Option */}
+              <div className="bg-gray-50 p-6 rounded-lg border-2 border-gray-200">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold text-gray-900">Complete Later</h3>
+                  <input type="radio" name="plan" value="later" className="text-gray-600" />
+                </div>
+                <p className="text-sm text-gray-700">
+                  Skip subscription for now and complete your registration. You can upgrade your plan anytime from your dashboard.
+                </p>
+              </div>
               
-              <div className="flex items-center space-x-3 mb-4">
+              <div className="flex items-center space-x-3 mt-4">
                 <Checkbox
                   id="agreeSubscription"
                   checked={subscriptionComplete}
                   onCheckedChange={(checked) => setSubscriptionComplete(checked as boolean)}
                 />
                 <Label htmlFor="agreeSubscription" className="text-sm">
-                  I agree to the monthly subscription of $3.48 (billed monthly, cancel anytime)
+                  I understand the subscription terms (payment collected after registration)
                 </Label>
               </div>
               
               {subscriptionComplete && (
-                <div className="flex items-center space-x-2 text-green-700">
+                <div className="flex items-center space-x-2 text-green-700 mt-3">
                   <CheckCircle className="w-5 h-5" />
-                  <span className="text-sm font-medium">Ready to proceed! Payment will be collected after registration.</span>
+                  <span className="text-sm font-medium">Ready to proceed!</span>
                 </div>
               )}
             </div>
