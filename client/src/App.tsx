@@ -25,6 +25,7 @@ import RegisterCompanyPage from "@/pages/register-company";
 import LoginPage from "@/pages/login-page";
 import RegisterPage from "@/pages/register-page";
 import AccountSettingsPage from "@/pages/account-settings";
+import AuthorityChecklistPage from "@/pages/authority-checklist";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -51,6 +52,7 @@ function Router() {
       <Route path="/about" component={AboutPage} />
       <Route path="/sitemap" component={SitemapPage} />
       <Route path="/driver-checklist" component={DriverChecklistPage} />
+      <Route path="/authority-checklist" component={AuthorityChecklistPage} />
       <Route path="/register/contractor" component={RegisterContractorPage} />
       <Route path="/register/company" component={RegisterCompanyPage} />
       <Route path="/admin/setup" component={MasterSetup} />

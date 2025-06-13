@@ -21,6 +21,7 @@ import {
 } from "@shared/schema";
 import { z } from "zod";
 import { generateChatbotResponse } from "./chatbot";
+import { knowledgeBaseService } from "./knowledgeBaseService";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { zeroTrustMiddleware, enhancedAuth, trackComplianceEvent } from "./zeroTrustSecurity";
 import { db } from "./db";
@@ -939,6 +940,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Authority checklist API endpoint
+  app.get('/api/authority-checklist', async (req, res) => {
+    try {
+      await knowledgeBaseService.initialize();
+      const checklist = knowledgeBaseService.getAuthorityChecklist();
+      
+      if (!checklist) {
+        return res.status(404).json({ message: 'Authority checklist not found' });
+      }
+      
+      res.json(checklist);
+    } catch (error) {
+      console.error('Error fetching authority checklist:', error);
+      res.status(500).json({ message: 'Failed to fetch authority checklist' });
+    }
+  });
+
+  // Knowledge base search API endpoint
+  app.get('/api/knowledge-base/search', async (req, res) => {
+    try {
+      const { q } = req.query;
+      
+      if (!q || typeof q !== 'string') {
+        return res.status(400).json({ message: 'Query parameter "q" is required' });
+      }
+      
+      await knowledgeBaseService.initialize();
+      const results = knowledgeBaseService.searchKnowledgeBase(q);
+      res.json({ results });
+    } catch (error) {
+      console.error('Error searching knowledge base:', error);
+      res.status(500).json({ message: 'Failed to search knowledge base' });
+    }
+  });
+
   // Chatbot route
   app.post('/api/chatbot', async (req, res) => {
     try {
@@ -954,7 +990,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error('Error in chatbot:', error);
       res.status(500).json({ 
         message: 'Chatbot service unavailable',
-        response: "I'm experiencing technical difficulties. Please contact ACHIEVEMOR directly at (912) 742-9459 or delivered@byachievemor.com for assistance."
+        response: "I'm experiencing technical difficulties. Please contact CHOOSE 2 ACHIEVEMOR directly at (920) 347-8919 or info@choose2achievemor.us for assistance."
       });
     }
   });
