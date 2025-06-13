@@ -60,10 +60,12 @@ function Router() {
       {/* Public routes - accessible to all users */}
       <Route path="/landing" component={LandingPage} />
       
+      {/* Root route - always show landing page */}
+      <Route path="/" component={LandingPage} />
+      
       {/* Protected routes */}
-      {isAuthenticated ? (
+      {isAuthenticated && (
         <>
-          <Route path="/" component={HomePage} />
           <Route path="/dashboard" component={DashboardPage} />
           <Route path="/dashboard/:contractorId" component={DashboardPage} />
           <Route path="/glovebox" component={GloveboxPage} />
@@ -71,8 +73,6 @@ function Router() {
           <Route path="/admin" component={AdminDashboard} />
           <Route path="/settings" component={AccountSettingsPage} />
         </>
-      ) : (
-        <Route path="/" component={LandingPage} />
       )}
       
       <Route component={NotFound} />

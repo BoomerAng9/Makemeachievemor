@@ -14,11 +14,7 @@ export default function LandingPage() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isChatbotOpen, setIsChatbotOpen] = useState(false);
 
-  useEffect(() => {
-    if (!isLoading && isAuthenticated) {
-      setLocation("/dashboard");
-    }
-  }, [isAuthenticated, isLoading, setLocation]);
+  // Remove automatic redirect - let users stay on landing page
 
   if (isLoading) {
     return (
