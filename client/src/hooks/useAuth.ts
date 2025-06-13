@@ -8,6 +8,20 @@ export function useAuth() {
     refetchOnMount: true,
     refetchInterval: false,
     staleTime: 5 * 60 * 1000, // 5 minutes
+    queryFn: async () => {
+      const response = await fetch('/api/auth/user', {
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        if (response.status === 401) {
+          return null; // Return null for unauthorized instead of throwing
+        }
+        throw new Error(`${response.status}: ${response.statusText}`);
+      }
+      
+      return response.json();
+    },
   });
 
   return {

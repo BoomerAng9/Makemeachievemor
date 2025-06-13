@@ -138,9 +138,7 @@ export function Header() {
                 >
                   <Icon className="h-4 w-4" />
                   {item.label}
-                  {item.isNew && (
-                    <Badge variant="secondary" className="text-xs">New</Badge>
-                  )}
+
                 </Button>
               </Link>
             );
@@ -211,18 +209,21 @@ export function Header() {
                 <Button variant="ghost" size="sm" className="flex items-center gap-2">
                   <div className="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center">
                     <span className="text-xs font-medium text-primary">
-                      {user?.firstName?.charAt(0) || 'U'}
+                      {user?.firstName?.charAt(0) || user?.email?.charAt(0)?.toUpperCase() || 'U'}
                     </span>
                   </div>
                   <span className="hidden md:inline">
-                    {user?.firstName || 'User'}
+                    {user?.firstName || user?.email?.split('@')[0] || 'User'}
                   </span>
                   <ChevronDown className="h-3 w-3" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
                 <DropdownMenuLabel>
-                  {user?.firstName} {user?.lastName}
+                  {user?.firstName && user?.lastName 
+                    ? `${user.firstName} ${user.lastName}` 
+                    : user?.email || 'User'
+                  }
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
@@ -322,9 +323,7 @@ export function Header() {
                         >
                           <Icon className="h-5 w-5" />
                           {item.label}
-                          {item.isNew && (
-                            <Badge variant="secondary" className="ml-auto text-xs">New</Badge>
-                          )}
+
                         </Button>
                       </Link>
                     );
