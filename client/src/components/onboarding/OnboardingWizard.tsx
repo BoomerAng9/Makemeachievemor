@@ -3,6 +3,9 @@ import { PersonalInfoStep } from "./PersonalInfoStep";
 import { IdentityVerificationStep } from "./IdentityVerificationStep";
 import { VehicleInfoStep } from "./VehicleInfoStep";
 import { ComplianceStep } from "./ComplianceStep";
+import { EnhancedVehicleSelection } from "@/components/EnhancedVehicleSelection";
+import { EnhancedLocationSettings } from "@/components/EnhancedLocationSettings";
+import { AvailabilityScheduler } from "@/components/AvailabilityScheduler";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -12,13 +15,18 @@ import { useLocation } from "wouter";
 export function OnboardingWizard() {
   const [currentStep, setCurrentStep] = useState(1);
   const [contractorData, setContractorData] = useState<Partial<InsertContractor>>({});
+  const [vehicleData, setVehicleData] = useState<any>({});
+  const [locationData, setLocationData] = useState<any>({});
+  const [availabilityData, setAvailabilityData] = useState<any>({});
   const [, setLocation] = useLocation();
   
-  const totalSteps = 5;
+  const totalSteps = 7;
   const steps = [
     "Personal Info",
     "Identity",
-    "Vehicle",
+    "Vehicle Selection",
+    "Location Setup",
+    "Availability",
     "Compliance",
     "Complete"
   ];
@@ -30,8 +38,12 @@ export function OnboardingWizard() {
       case 2:
         return true; // Identity verification can be completed later
       case 3:
-        return true; // Vehicle info can be completed later
+        return true; // Vehicle selection can be completed later
       case 4:
+        return true; // Location setup can be completed later
+      case 5:
+        return true; // Availability can be completed later
+      case 6:
         return contractorData.dotNumber; // DOT number is required
       default:
         return true;
@@ -100,18 +112,33 @@ export function OnboardingWizard() {
           />
         )}
         {currentStep === 3 && (
-          <VehicleInfoStep 
-            contractorId={1} // Mock ID for now
-            onComplete={handleStepComplete}
+          <EnhancedVehicleSelection 
+            onVehicleUpdate={(data) => setVehicleData(data)}
+            initialData={vehicleData}
+            isRequired={false}
           />
         )}
         {currentStep === 4 && (
+          <EnhancedLocationSettings 
+            onLocationUpdate={(data) => setLocationData(data)}
+            initialData={locationData}
+            isRequired={false}
+          />
+        )}
+        {currentStep === 5 && (
+          <AvailabilityScheduler 
+            onAvailabilityUpdate={(data) => setAvailabilityData(data)}
+            initialData={availabilityData}
+            isRequired={false}
+          />
+        )}
+        {currentStep === 6 && (
           <ComplianceStep 
             data={contractorData}
             onComplete={handleStepComplete}
           />
         )}
-        {currentStep === 5 && (
+        {currentStep === 7 && (
           <div className="text-center py-12">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <ChevronRight className="h-8 w-8 text-green-600" />
