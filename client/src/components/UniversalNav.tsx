@@ -11,7 +11,7 @@ export function UniversalNav() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const goHome = () => {
-    navigate("/");
+    navigate("/landing");
     setIsMenuOpen(false);
   };
 
@@ -25,8 +25,8 @@ export function UniversalNav() {
     setIsMenuOpen(false);
   }, [location]);
 
-  // Don't show navigation on the home page
-  if (location === "/") {
+  // Don't show navigation on the home pages
+  if (location === "/" || location === "/landing") {
     return null;
   }
 

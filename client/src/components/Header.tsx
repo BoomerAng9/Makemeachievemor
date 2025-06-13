@@ -52,12 +52,12 @@ export function Header() {
   };
 
   const handleHome = () => {
-    setLocation(isAuthenticated ? "/" : "/");
+    setLocation("/landing");
   };
 
-  const showBackButton = location !== "/" && location !== "";
-  const showHomeButton = location !== "/";
-  const isHomePage = location === "/" || location === "";
+  const showBackButton = location !== "/" && location !== "" && location !== "/landing";
+  const showHomeButton = location !== "/landing";
+  const isHomePage = location === "/" || location === "" || location === "/landing";
 
   const authMenuItems = [
     { href: "/", label: "Dashboard", icon: Home },

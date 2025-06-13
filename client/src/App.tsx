@@ -57,6 +57,9 @@ function Router() {
       <Route path="/admin-access" component={AdminAccess} />
       <Route path="/onboarding" component={OnboardingPage} />
       
+      {/* Public routes - accessible to all users */}
+      <Route path="/landing" component={LandingPage} />
+      
       {/* Protected routes */}
       {isAuthenticated ? (
         <>
