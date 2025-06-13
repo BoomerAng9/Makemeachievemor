@@ -71,19 +71,63 @@ export const contractors = pgTable("contractors", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Vehicles table
+// Vehicles table - expanded for medical transport, caregiving, and delivery services
 export const vehicles = pgTable("vehicles", {
   id: serial("id").primaryKey(),
   contractorId: integer("contractor_id").notNull().references(() => contractors.id),
-  vehicleType: text("vehicle_type").notNull(), // van, box_truck, semi_truck, pickup_truck
+  
+  // Vehicle classification
+  vehicleType: text("vehicle_type").notNull(), // sedan, suv, van, box_truck, semi_truck, pickup_truck, wheelchair_van, ambulette, party_bus, delivery_van
+  serviceCategory: text("service_category").notNull(), // freight, medical_transport, passenger, caregiving, delivery, party_events
+  
+  // Basic vehicle info
   year: integer("year").notNull(),
   make: text("make").notNull(),
   model: text("model"),
   licensePlate: text("license_plate"),
   vinNumber: text("vin_number"),
+  
+  // Documentation
   insuranceExpiry: text("insurance_expiry"),
   registrationExpiry: text("registration_expiry"),
+  commercialInsurance: boolean("commercial_insurance").default(false),
+  
+  // Medical transport specific
+  wheelchairAccessible: boolean("wheelchair_accessible").default(false),
+  stretcherCapable: boolean("stretcher_capable").default(false),
+  oxygenCapable: boolean("oxygen_capable").default(false),
+  medicalEquipment: text("medical_equipment").array(), // wheelchair_lift, oxygen_tanks, first_aid, aed
+  
+  // Passenger capacity and features
+  passengerCapacity: integer("passenger_capacity"),
+  childSafetySeats: integer("child_safety_seats").default(0),
+  entertainmentSystem: boolean("entertainment_system").default(false),
+  wifiAvailable: boolean("wifi_available").default(false),
+  
+  // Cargo and delivery capabilities
+  cargoVolume: decimal("cargo_volume", { precision: 8, scale: 2 }), // cubic feet
+  maxWeight: integer("max_weight"), // pounds
+  liftGate: boolean("lift_gate").default(false),
+  refrigerated: boolean("refrigerated").default(false),
+  
+  // Special certifications and compliance
+  dotCompliant: boolean("dot_compliant").default(false),
+  medicaidCertified: boolean("medicaid_certified").default(false),
+  insuranceVerified: boolean("insurance_verified").default(false),
+  
+  // Vehicle condition and features
+  condition: text("condition").default("good"), // excellent, good, fair, needs_attention
+  airConditioning: boolean("air_conditioning").default(true),
+  heating: boolean("heating").default(true),
+  gpsTracking: boolean("gps_tracking").default(false),
+  
+  isActive: boolean("is_active").default(true),
+  lastInspection: timestamp("last_inspection"),
+  nextMaintenanceDue: timestamp("next_maintenance_due"),
+  notes: text("notes"),
+  
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // Documents table for storing uploaded files (Glovebox system)
@@ -108,22 +152,76 @@ export const documents = pgTable("documents", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Driver locations for load matching
+// Driver locations for load matching - enhanced with state/zip system
 export const driverLocations = pgTable("driver_locations", {
   id: serial("id").primaryKey(),
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   contractorId: integer("contractor_id").references(() => contractors.id),
+  
+  // Location details - no street address required, zip-based location
   latitude: decimal("latitude", { precision: 10, scale: 8 }).notNull(),
   longitude: decimal("longitude", { precision: 11, scale: 8 }).notNull(),
-  address: text("address"),
-  city: text("city"),
-  state: text("state"),
-  zipCode: text("zip_code"),
-  isAvailable: boolean("is_available").notNull().default(true),
+  city: text("city").notNull(),
+  state: text("state").notNull(), // Full state name from dropdown
+  zipCode: text("zip_code").notNull(), // Primary location identifier
+  
+  // Service area configuration
+  serviceRadius: integer("service_radius").default(25), // miles from zip code
+  maxDistance: integer("max_distance").default(100), // miles willing to travel
+  
+  // Vehicle and service info
   vehicleType: text("vehicle_type"), // For load matching
-  maxDistance: integer("max_distance").default(100), // Miles willing to travel
+  serviceTypes: text("service_types").array(), // medical_transport, caregiving, delivery, freight, passenger
+  
+  isAvailable: boolean("is_available").notNull().default(true),
   lastUpdated: timestamp("last_updated").defaultNow(),
   createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Driver availability system with trust rating analytics
+export const driverAvailability = pgTable("driver_availability", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  
+  // Weekly availability schedule (locked for 1 week after setting)
+  schedule: jsonb("schedule").notNull(), // {monday: {start: "08:00", end: "17:00", available: true}, ...}
+  scheduleSetAt: timestamp("schedule_set_at").defaultNow(),
+  scheduleLockedUntil: timestamp("schedule_locked_until").notNull(), // Cannot change for 1 week
+  
+  // Current availability status
+  isCurrentlyAvailable: boolean("is_currently_available").default(true),
+  temporaryUnavailableUntil: timestamp("temporary_unavailable_until"), // Short-term unavailability
+  
+  // Trust rating and analytics
+  trustRating: decimal("trust_rating", { precision: 3, scale: 1 }).default("100.0"), // 0-100 scale
+  totalJobs: integer("total_jobs").default(0),
+  completedJobs: integer("completed_jobs").default(0),
+  cancelledJobs: integer("cancelled_jobs").default(0),
+  noShowJobs: integer("no_show_jobs").default(0),
+  
+  // Performance metrics
+  onTimeRate: decimal("on_time_rate", { precision: 3, scale: 1 }).default("100.0"), // percentage
+  customerRating: decimal("customer_rating", { precision: 3, scale: 2 }).default("5.00"), // 1-5 scale
+  responseTime: integer("response_time").default(15), // average minutes to respond to jobs
+  
+  // Risk factors that affect trust rating
+  lateArrivals: integer("late_arrivals").default(0),
+  communicationIssues: integer("communication_issues").default(0),
+  vehicleProblems: integer("vehicle_problems").default(0),
+  customerComplaints: integer("customer_complaints").default(0),
+  
+  // Account status based on trust rating
+  accountStatus: varchar("account_status").default("active"), // active, warning, probation, suspended
+  warningIssuedAt: timestamp("warning_issued_at"),
+  probationStartedAt: timestamp("probation_started_at"),
+  suspensionReason: text("suspension_reason"),
+  
+  // Performance improvement tracking
+  lastRatingUpdate: timestamp("last_rating_update").defaultNow(),
+  improvementPlan: jsonb("improvement_plan"), // Action items for rating improvement
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // Document sharing sessions for fast credential sharing
@@ -855,6 +953,12 @@ export const insertDriverLocationSchema = createInsertSchema(driverLocations).om
   createdAt: true,
 });
 
+export const insertDriverAvailabilitySchema = createInsertSchema(driverAvailability).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertDocumentShareSchema = createInsertSchema(documentShares).omit({
   id: true,
   createdAt: true,
@@ -903,6 +1007,8 @@ export type BackgroundCheckAuditLog = typeof backgroundCheckAuditLog.$inferSelec
 export type InsertBackgroundCheckAuditLog = z.infer<typeof insertBackgroundCheckAuditLogSchema>;
 export type DriverLocation = typeof driverLocations.$inferSelect;
 export type InsertDriverLocation = z.infer<typeof insertDriverLocationSchema>;
+export type DriverAvailability = typeof driverAvailability.$inferSelect;
+export type InsertDriverAvailability = z.infer<typeof insertDriverAvailabilitySchema>;
 export type DocumentShare = typeof documentShares.$inferSelect;
 export type InsertDocumentShare = z.infer<typeof insertDocumentShareSchema>;
 
