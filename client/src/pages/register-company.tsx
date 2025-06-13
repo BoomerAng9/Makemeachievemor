@@ -7,9 +7,84 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Progress } from "@/components/ui/progress";
 import { UniversalNav } from "@/components/UniversalNav";
-import { Building2, Users, MapPin, ArrowLeft, Package } from "lucide-react";
+import { Building2, Users, MapPin, ArrowLeft, Package, CreditCard, CheckCircle, Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import { loadStripe } from '@stripe/stripe-js';
+
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY!);
+
+function CompanySubscriptionForm({ onComplete }: { onComplete: () => void }) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const { toast } = useToast();
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!stripe || !elements) return;
+
+    setIsProcessing(true);
+    try {
+      const { error } = await stripe.confirmPayment({
+        elements,
+        confirmParams: {
+          return_url: window.location.origin + '/register/company',
+        },
+        redirect: 'if_required',
+      });
+
+      if (error) {
+        toast({
+          title: "Payment Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Subscription Active",
+          description: "Your Choose 2 ACHIEVEMOR Business subscription is now active!",
+        });
+        onComplete();
+      }
+    } catch (error) {
+      toast({
+        title: "Payment Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="bg-green-50 p-4 rounded-lg">
+        <h3 className="font-semibold text-green-900 mb-2">Choose 2 ACHIEVEMOR Business - $199.99/month</h3>
+        <ul className="text-sm text-green-800 space-y-1">
+          <li>• Access to verified contractor network</li>
+          <li>• Advanced job posting and matching</li>
+          <li>• Real-time tracking and communications</li>
+          <li>• Priority support and account management</li>
+          <li>• Custom integration capabilities</li>
+        </ul>
+      </div>
+      
+      <PaymentElement />
+      
+      <Button 
+        type="submit" 
+        disabled={!stripe || isProcessing} 
+        className="w-full"
+      >
+        {isProcessing ? "Processing..." : "Subscribe & Continue"}
+      </Button>
+    </form>
+  );
+}
 
 export default function RegisterCompanyPage() {
   const [formData, setFormData] = useState({
@@ -34,10 +109,33 @@ export default function RegisterCompanyPage() {
     agreedToTerms: false,
     agreedToCredit: false
   });
-  
+
+  const [jobRequirements, setJobRequirements] = useState({
+    vehicleTypes: [] as string[],
+    serviceTypes: [] as string[],
+    minTrustRating: 80,
+    maxDistance: 100,
+    preferredSchedule: [] as string[],
+    paymentTerms: "",
+    insuranceMinimum: "1000000"
+  });
+
+  const [serviceCustomization, setServiceCustomization] = useState({
+    automatedMatching: true,
+    realTimeTracking: true,
+    customerNotifications: true,
+    routeOptimization: false,
+    bulkJobPosting: false,
+    apiIntegration: false
+  });
+
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [subscriptionComplete, setSubscriptionComplete] = useState(false);
+  const [clientSecret, setClientSecret] = useState("");
   const { toast } = useToast();
+
+  const totalSteps = 6;
 
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -52,6 +150,43 @@ export default function RegisterCompanyPage() {
     }));
   };
 
+  const handleJobRequirementChange = (field: string, value: any) => {
+    setJobRequirements(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleServiceCustomizationChange = (field: string, value: boolean) => {
+    setServiceCustomization(prev => ({ ...prev, [field]: value }));
+  };
+
+  const initializeSubscription = async () => {
+    try {
+      const response = await fetch('/api/create-subscription', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan: 'business' })
+      });
+      const data = await response.json();
+      setClientSecret(data.clientSecret);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to initialize subscription. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleNext = async () => {
+    if (currentStep === 2 && !subscriptionComplete) {
+      await initializeSubscription();
+    }
+    setCurrentStep(prev => Math.min(prev + 1, totalSteps));
+  };
+
+  const handleBack = () => {
+    setCurrentStep(prev => Math.max(prev - 1, 1));
+  };
+
   const handleSubmit = async () => {
     if (!formData.agreedToTerms || !formData.agreedToCredit) {
       toast({
@@ -64,46 +199,47 @@ export default function RegisterCompanyPage() {
 
     setIsSubmitting(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      toast({
-        title: "Partnership Application Submitted!",
-        description: "Your application has been received. Our partnership team will contact you within 24 hours to discuss next steps."
+      const registrationData = {
+        company: formData,
+        jobRequirements,
+        serviceCustomization
+      };
+
+      const response = await fetch('/api/companies', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(registrationData)
       });
 
-      // Reset form
-      setFormData({
-        companyName: "",
-        contactFirstName: "",
-        contactLastName: "",
-        contactTitle: "",
-        email: "",
-        phone: "",
-        website: "",
-        industry: "",
-        companySize: "",
-        street: "",
-        city: "",
-        state: "",
-        zipCode: "",
-        serviceAreas: [],
-        deliveryVolume: "",
-        deliveryTypes: [],
-        specialRequirements: "",
-        integrationType: "",
-        agreedToTerms: false,
-        agreedToCredit: false
-      });
-      setCurrentStep(1);
+      if (response.ok) {
+        toast({
+          title: "Registration Complete!",
+          description: "Welcome to Choose 2 ACHIEVEMOR! You can now start posting jobs and connecting with contractors."
+        });
+        window.location.href = '/admin';
+      } else {
+        throw new Error('Registration failed');
+      }
     } catch (error) {
       toast({
-        title: "Submission Failed",
-        description: "There was an error submitting your application. Please try again.",
+        title: "Registration Error",
+        description: "Failed to complete registration. Please try again.",
         variant: "destructive"
       });
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const getStepTitle = () => {
+    switch (currentStep) {
+      case 1: return "Company Information";
+      case 2: return "Subscription Plan";
+      case 3: return "Service Requirements";
+      case 4: return "Job Requirements";
+      case 5: return "Service Customization";
+      case 6: return "Final Agreement";
+      default: return "Registration";
     }
   };
 
@@ -112,27 +248,73 @@ export default function RegisterCompanyPage() {
       case 1:
         return (
           <div className="space-y-6">
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="companyName">Company Name *</Label>
-                <Input
-                  id="companyName"
-                  value={formData.companyName}
-                  onChange={(e) => handleInputChange("companyName", e.target.value)}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="website">Company Website</Label>
-                <Input
-                  id="website"
-                  type="url"
-                  value={formData.website}
-                  onChange={(e) => handleInputChange("website", e.target.value)}
-                  placeholder="https://yourcompany.com"
-                />
-              </div>
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Company Details</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                  <Label htmlFor="companyName">Company Name *</Label>
+                  <Input
+                    id="companyName"
+                    value={formData.companyName}
+                    onChange={(e) => handleInputChange("companyName", e.target.value)}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="contactFirstName">Contact First Name *</Label>
+                  <Input
+                    id="contactFirstName"
+                    value={formData.contactFirstName}
+                    onChange={(e) => handleInputChange("contactFirstName", e.target.value)}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="contactLastName">Contact Last Name *</Label>
+                  <Input
+                    id="contactLastName"
+                    value={formData.contactLastName}
+                    onChange={(e) => handleInputChange("contactLastName", e.target.value)}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="contactTitle">Contact Title</Label>
+                  <Input
+                    id="contactTitle"
+                    value={formData.contactTitle}
+                    onChange={(e) => handleInputChange("contactTitle", e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="email">Email *</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange("email", e.target.value)}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="phone">Phone *</Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => handleInputChange("phone", e.target.value)}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="website">Website</Label>
+                  <Input
+                    id="website"
+                    type="url"
+                    value={formData.website}
+                    onChange={(e) => handleInputChange("website", e.target.value)}
+                  />
+                </div>
                 <div>
                   <Label htmlFor="industry">Industry *</Label>
                   <Select value={formData.industry} onValueChange={(value) => handleInputChange("industry", value)}>
@@ -140,13 +322,12 @@ export default function RegisterCompanyPage() {
                       <SelectValue placeholder="Select industry" />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="healthcare">Healthcare & Medical</SelectItem>
+                      <SelectItem value="logistics">Logistics & Transportation</SelectItem>
                       <SelectItem value="retail">Retail & E-commerce</SelectItem>
                       <SelectItem value="manufacturing">Manufacturing</SelectItem>
                       <SelectItem value="food">Food & Beverage</SelectItem>
-                      <SelectItem value="healthcare">Healthcare</SelectItem>
-                      <SelectItem value="automotive">Automotive</SelectItem>
                       <SelectItem value="construction">Construction</SelectItem>
-                      <SelectItem value="technology">Technology</SelectItem>
                       <SelectItem value="other">Other</SelectItem>
                     </SelectContent>
                   </Select>
@@ -169,62 +350,8 @@ export default function RegisterCompanyPage() {
               </div>
             </div>
 
-            <div className="space-y-4">
-              <h4 className="font-semibold text-gray-900">Primary Contact Information</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="contactFirstName">Contact First Name *</Label>
-                  <Input
-                    id="contactFirstName"
-                    value={formData.contactFirstName}
-                    onChange={(e) => handleInputChange("contactFirstName", e.target.value)}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="contactLastName">Contact Last Name *</Label>
-                  <Input
-                    id="contactLastName"
-                    value={formData.contactLastName}
-                    onChange={(e) => handleInputChange("contactLastName", e.target.value)}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="contactTitle">Job Title *</Label>
-                  <Input
-                    id="contactTitle"
-                    value={formData.contactTitle}
-                    onChange={(e) => handleInputChange("contactTitle", e.target.value)}
-                    placeholder="e.g., Operations Manager, CEO"
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="email">Business Email *</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => handleInputChange("email", e.target.value)}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="phone">Business Phone *</Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) => handleInputChange("phone", e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <h4 className="font-semibold text-gray-900">Business Address</h4>
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Company Address</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
                   <Label htmlFor="street">Street Address *</Label>
@@ -277,25 +404,71 @@ export default function RegisterCompanyPage() {
       case 2:
         return (
           <div className="space-y-6">
+            <div className="text-center">
+              <CreditCard className="w-16 h-16 text-green-600 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Business Subscription</h3>
+              <p className="text-gray-600">Access our complete contractor network and business tools</p>
+            </div>
+            
+            {clientSecret && !subscriptionComplete ? (
+              <Elements stripe={stripePromise} options={{ clientSecret }}>
+                <CompanySubscriptionForm onComplete={() => setSubscriptionComplete(true)} />
+              </Elements>
+            ) : subscriptionComplete ? (
+              <div className="text-center py-8">
+                <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-green-700">Subscription Active!</h3>
+                <p className="text-gray-600">You now have access to all business features.</p>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto mb-4"></div>
+                <p className="text-gray-600">Setting up your business subscription...</p>
+              </div>
+            )}
+          </div>
+        );
+
+      case 3:
+        return (
+          <div className="space-y-6">
+            <h3 className="text-lg font-semibold mb-4">Service Requirements</h3>
+            
             <div>
-              <Label>Service Areas Needed (Select all that apply)</Label>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-2">
-                {["Atlanta Metro", "Savannah", "Augusta", "Macon", "Columbus", "Southeast Region", "Florida", "South Carolina", "North Carolina", "Tennessee", "Alabama", "Nationwide"].map(area => (
+              <Label className="text-base font-medium">Service Areas</Label>
+              <div className="grid grid-cols-2 gap-3 mt-2">
+                {["Georgia", "Florida", "South Carolina", "North Carolina", "Tennessee", "Alabama"].map((area) => (
                   <div key={area} className="flex items-center space-x-2">
                     <Checkbox
                       id={area}
                       checked={formData.serviceAreas.includes(area)}
-                      onCheckedChange={(checked) => handleArrayChange("serviceAreas", area, !!checked)}
+                      onCheckedChange={(checked) => handleArrayChange("serviceAreas", area, checked as boolean)}
                     />
-                    <Label htmlFor={area} className="text-sm">{area}</Label>
+                    <Label htmlFor={area}>{area}</Label>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <Label className="text-base font-medium">Delivery Types</Label>
+              <div className="grid grid-cols-2 gap-3 mt-2">
+                {["Medical Transport", "Package Delivery", "Freight Transport", "Food Delivery", "Caregiving Services", "Special Transport"].map((type) => (
+                  <div key={type} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={type}
+                      checked={formData.deliveryTypes.includes(type)}
+                      onCheckedChange={(checked) => handleArrayChange("deliveryTypes", type, checked as boolean)}
+                    />
+                    <Label htmlFor={type}>{type}</Label>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="deliveryVolume">Expected Monthly Delivery Volume *</Label>
+                <Label htmlFor="deliveryVolume">Expected Monthly Volume *</Label>
                 <Select value={formData.deliveryVolume} onValueChange={(value) => handleInputChange("deliveryVolume", value)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select volume" />
@@ -304,142 +477,214 @@ export default function RegisterCompanyPage() {
                     <SelectItem value="1-50">1-50 deliveries</SelectItem>
                     <SelectItem value="51-200">51-200 deliveries</SelectItem>
                     <SelectItem value="201-500">201-500 deliveries</SelectItem>
-                    <SelectItem value="501-1000">501-1000 deliveries</SelectItem>
-                    <SelectItem value="1000+">1000+ deliveries</SelectItem>
+                    <SelectItem value="500+">500+ deliveries</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-
               <div>
-                <Label htmlFor="integrationType">Integration Preference</Label>
+                <Label htmlFor="integrationType">Integration Needs</Label>
                 <Select value={formData.integrationType} onValueChange={(value) => handleInputChange("integrationType", value)}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select integration type" />
+                    <SelectValue placeholder="Select integration" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="manual">Manual Order Entry</SelectItem>
-                    <SelectItem value="api">API Integration</SelectItem>
-                    <SelectItem value="webhook">Webhook Integration</SelectItem>
-                    <SelectItem value="custom">Custom Solution</SelectItem>
-                    <SelectItem value="discuss">Discuss Later</SelectItem>
+                    <SelectItem value="none">No integration needed</SelectItem>
+                    <SelectItem value="api">API integration</SelectItem>
+                    <SelectItem value="webhook">Webhook notifications</SelectItem>
+                    <SelectItem value="full">Full system integration</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
 
             <div>
-              <Label>Types of Deliveries (Select all that apply)</Label>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-2">
-                {["Standard Packages", "Large Items", "Fragile Items", "Food & Beverage", "Medical Supplies", "Construction Materials", "Automotive Parts", "Electronics", "Documents", "Time-Critical", "White Glove", "Assembly Required"].map(type => (
-                  <div key={type} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={type}
-                      checked={formData.deliveryTypes.includes(type)}
-                      onCheckedChange={(checked) => handleArrayChange("deliveryTypes", type, !!checked)}
-                    />
-                    <Label htmlFor={type} className="text-sm">{type}</Label>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="specialRequirements">Special Requirements or Notes</Label>
+              <Label htmlFor="specialRequirements">Special Requirements</Label>
               <Textarea
                 id="specialRequirements"
                 value={formData.specialRequirements}
                 onChange={(e) => handleInputChange("specialRequirements", e.target.value)}
-                placeholder="Please describe any special handling requirements, delivery windows, or other specific needs..."
+                placeholder="Describe any special requirements, equipment needs, or service specifications..."
                 rows={4}
               />
             </div>
           </div>
         );
 
-      case 3:
+      case 4:
         return (
           <div className="space-y-6">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-              <h4 className="font-semibold text-blue-900 mb-4">Partnership Benefits</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-3 text-blue-800">
-                  <div className="flex items-center space-x-2">
-                    <Users className="h-4 w-4" />
-                    <span>Access to verified driver network</span>
+            <h3 className="text-lg font-semibold mb-4">Job Requirements & Preferences</h3>
+            
+            <div>
+              <Label className="text-base font-medium">Required Vehicle Types</Label>
+              <div className="grid grid-cols-2 gap-3 mt-2">
+                {["Standard Van", "Cargo Van", "Box Truck", "Wheelchair Van", "Refrigerated Vehicle", "Ambulette"].map((vehicle) => (
+                  <div key={vehicle} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={vehicle}
+                      checked={jobRequirements.vehicleTypes.includes(vehicle)}
+                      onCheckedChange={(checked) => {
+                        const newTypes = checked 
+                          ? [...jobRequirements.vehicleTypes, vehicle]
+                          : jobRequirements.vehicleTypes.filter(v => v !== vehicle);
+                        handleJobRequirementChange("vehicleTypes", newTypes);
+                      }}
+                    />
+                    <Label htmlFor={vehicle}>{vehicle}</Label>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <MapPin className="h-4 w-4" />
-                    <span>Real-time tracking & updates</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Package className="h-4 w-4" />
-                    <span>Flexible delivery options</span>
-                  </div>
-                </div>
-                <div className="space-y-3 text-blue-800">
-                  <div className="flex items-center space-x-2">
-                    <Building2 className="h-4 w-4" />
-                    <span>Dedicated account management</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Users className="h-4 w-4" />
-                    <span>24/7 customer support</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Package className="h-4 w-4" />
-                    <span>Competitive pricing</span>
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
 
-            <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-              <h4 className="font-semibold text-green-900 mb-4">Partnership Process</h4>
-              <ol className="list-decimal list-inside space-y-2 text-green-800 text-sm">
-                <li>Application review and initial consultation call</li>
-                <li>Custom pricing proposal based on your needs</li>
-                <li>Integration planning and setup</li>
-                <li>Driver network allocation in your service areas</li>
-                <li>Testing phase with sample deliveries</li>
-                <li>Full partnership activation and ongoing support</li>
-              </ol>
+            <div>
+              <Label className="text-base font-medium">Service Types</Label>
+              <div className="grid grid-cols-2 gap-3 mt-2">
+                {["Medical Transport", "Caregiving", "Package Delivery", "Freight Transport", "Emergency Services"].map((service) => (
+                  <div key={service} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={service}
+                      checked={jobRequirements.serviceTypes.includes(service)}
+                      onCheckedChange={(checked) => {
+                        const newTypes = checked 
+                          ? [...jobRequirements.serviceTypes, service]
+                          : jobRequirements.serviceTypes.filter(s => s !== service);
+                        handleJobRequirementChange("serviceTypes", newTypes);
+                      }}
+                    />
+                    <Label htmlFor={service}>{service}</Label>
+                  </div>
+                ))}
+              </div>
             </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="minTrustRating">Minimum Trust Rating: {jobRequirements.minTrustRating}%</Label>
+                <input
+                  type="range"
+                  id="minTrustRating"
+                  min="50"
+                  max="100"
+                  step="5"
+                  value={jobRequirements.minTrustRating}
+                  onChange={(e) => handleJobRequirementChange("minTrustRating", parseInt(e.target.value))}
+                  className="w-full mt-2"
+                />
+              </div>
+              <div>
+                <Label htmlFor="maxDistance">Maximum Distance: {jobRequirements.maxDistance} miles</Label>
+                <input
+                  type="range"
+                  id="maxDistance"
+                  min="25"
+                  max="500"
+                  step="25"
+                  value={jobRequirements.maxDistance}
+                  onChange={(e) => handleJobRequirementChange("maxDistance", parseInt(e.target.value))}
+                  className="w-full mt-2"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="paymentTerms">Payment Terms *</Label>
+                <Select value={jobRequirements.paymentTerms} onValueChange={(value) => handleJobRequirementChange("paymentTerms", value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select payment terms" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="immediate">Immediate payment</SelectItem>
+                    <SelectItem value="weekly">Weekly payment</SelectItem>
+                    <SelectItem value="biweekly">Bi-weekly payment</SelectItem>
+                    <SelectItem value="net30">Net 30 days</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="insuranceMinimum">Minimum Insurance Coverage</Label>
+                <Select value={jobRequirements.insuranceMinimum} onValueChange={(value) => handleJobRequirementChange("insuranceMinimum", value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select coverage" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1000000">$1,000,000</SelectItem>
+                    <SelectItem value="2000000">$2,000,000</SelectItem>
+                    <SelectItem value="5000000">$5,000,000</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 5:
+        return (
+          <div className="space-y-6">
+            <h3 className="text-lg font-semibold mb-4">Service Customization</h3>
+            
+            <div className="space-y-4">
+              {[
+                { key: "automatedMatching", label: "Automated Contractor Matching", description: "Automatically match jobs with qualified contractors" },
+                { key: "realTimeTracking", label: "Real-time Job Tracking", description: "Live updates on job progress and location" },
+                { key: "customerNotifications", label: "Customer Notifications", description: "Automated notifications to your customers" },
+                { key: "routeOptimization", label: "Route Optimization", description: "Optimize delivery routes for efficiency" },
+                { key: "bulkJobPosting", label: "Bulk Job Posting", description: "Upload multiple jobs via CSV or API" },
+                { key: "apiIntegration", label: "API Integration", description: "Connect with your existing systems" }
+              ].map(({ key, label, description }) => (
+                <div key={key} className="flex items-start space-x-3 p-4 border rounded-lg">
+                  <Checkbox
+                    id={key}
+                    checked={serviceCustomization[key as keyof typeof serviceCustomization]}
+                    onCheckedChange={(checked) => handleServiceCustomizationChange(key, checked as boolean)}
+                  />
+                  <div className="flex-1">
+                    <Label htmlFor={key} className="font-medium">{label}</Label>
+                    <p className="text-sm text-gray-600">{description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+      case 6:
+        return (
+          <div className="space-y-6">
+            <h3 className="text-lg font-semibold mb-4">Terms and Agreements</h3>
+            
             <div className="space-y-4">
               <div className="flex items-start space-x-3">
                 <Checkbox
-                  id="agreedToTerms"
+                  id="terms"
                   checked={formData.agreedToTerms}
-                  onCheckedChange={(checked) => handleInputChange("agreedToTerms", !!checked)}
+                  onCheckedChange={(checked) => handleInputChange("agreedToTerms", checked as boolean)}
                 />
-                <Label htmlFor="agreedToTerms" className="text-sm leading-relaxed">
-                  I agree to the <span className="text-primary underline cursor-pointer">Partnership Terms</span> and 
-                  <span className="text-primary underline cursor-pointer"> Service Agreement</span>. I understand that 
-                  pricing will be customized based on delivery volume, service areas, and specific requirements.
-                </Label>
+                <div className="grid gap-1.5 leading-none">
+                  <Label htmlFor="terms" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    I agree to the Business Terms of Service and Privacy Policy *
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    You agree to our business terms of service and privacy policy.
+                  </p>
+                </div>
               </div>
-
+              
               <div className="flex items-start space-x-3">
                 <Checkbox
-                  id="agreedToCredit"
+                  id="credit"
                   checked={formData.agreedToCredit}
-                  onCheckedChange={(checked) => handleInputChange("agreedToCredit", !!checked)}
+                  onCheckedChange={(checked) => handleInputChange("agreedToCredit", checked as boolean)}
                 />
-                <Label htmlFor="agreedToCredit" className="text-sm leading-relaxed">
-                  I authorize ACHIEVEMOR to conduct credit checks and business verification as part of the 
-                  partnership approval process. This information will be used solely for partnership evaluation.
-                </Label>
+                <div className="grid gap-1.5 leading-none">
+                  <Label htmlFor="credit" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    I authorize credit and business verification *
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    You authorize us to conduct credit and business verification checks as required.
+                  </p>
+                </div>
               </div>
-            </div>
-
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-6">
-              <h4 className="font-semibold text-amber-900 mb-2">Partnership Requirements</h4>
-              <ul className="list-disc list-inside space-y-1 text-amber-800 text-sm">
-                <li>Established business with valid business license</li>
-                <li>Minimum monthly delivery volume requirements may apply</li>
-                <li>Net 30 payment terms (negotiable for high-volume partners)</li>
-                <li>Compliance with all applicable shipping and handling regulations</li>
-              </ul>
             </div>
           </div>
         );
@@ -449,119 +694,91 @@ export default function RegisterCompanyPage() {
     }
   };
 
+  const canProceed = () => {
+    switch (currentStep) {
+      case 1:
+        return formData.companyName && formData.contactFirstName && formData.contactLastName && formData.email && formData.phone && formData.industry && formData.companySize;
+      case 2:
+        return subscriptionComplete;
+      case 3:
+        return formData.serviceAreas.length > 0 && formData.deliveryTypes.length > 0 && formData.deliveryVolume;
+      case 4:
+        return jobRequirements.vehicleTypes.length > 0 && jobRequirements.serviceTypes.length > 0 && jobRequirements.paymentTerms;
+      case 5:
+        return true; // Service customization is optional
+      case 6:
+        return formData.agreedToTerms && formData.agreedToCredit;
+      default:
+        return true;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <UniversalNav />
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-3">
-              <Button variant="ghost" size="sm" asChild>
-                <Link href="/">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back to Home
-                </Link>
-              </Button>
-            </div>
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <Building2 className="text-white h-4 w-4" />
-              </div>
-              <span className="text-lg font-bold text-gray-900">ACHIEVEMOR</span>
-            </div>
+      
+      <main className="container mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <Link href="/" className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-4">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Home
+            </Link>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Partner with Us</h1>
+            <p className="text-gray-600">Join Choose 2 ACHIEVEMOR's network and connect with verified contractors</p>
           </div>
-        </div>
-      </header>
 
-      {/* Main Content */}
-      <main className="max-w-4xl mx-auto px-4 py-8">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6 leading-tight">
-            Partner with ACHIEVEMOR
-          </h1>
-          <p className="text-lg md:text-xl text-gray-600 leading-relaxed max-w-3xl mx-auto">
-            Access our verified driver network for your delivery needs and scale your logistics operations
-          </p>
-        </div>
-
-        {/* Progress Indicator */}
-        <div className="mb-8">
-          <div className="flex items-center justify-center space-x-8">
-            {[1, 2, 3].map((step) => (
-              <div key={step} className="flex items-center">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold ${
-                  currentStep >= step ? 'bg-accent text-white' : 'bg-gray-200 text-gray-600'
-                }`}>
-                  {step}
-                </div>
-                <span className={`ml-2 text-sm ${currentStep >= step ? 'text-accent' : 'text-gray-500'}`}>
-                  {step === 1 ? 'Company Details' : step === 2 ? 'Service Requirements' : 'Partnership Terms'}
-                </span>
-                {step < 3 && <div className="w-16 h-0.5 bg-gray-300 ml-4" />}
-              </div>
-            ))}
+          {/* Progress Bar */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
+              <span>Step {currentStep} of {totalSteps}</span>
+              <span>{Math.round((currentStep / totalSteps) * 100)}% Complete</span>
+            </div>
+            <Progress value={(currentStep / totalSteps) * 100} className="h-2" />
           </div>
-        </div>
 
-        {/* Form Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Building2 className="h-5 w-5 mr-2 text-accent" />
-              {currentStep === 1 ? 'Company Information' : 
-               currentStep === 2 ? 'Service Requirements' : 
-               'Partnership Agreement'}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-8">
-            {renderStepContent()}
-
-            {/* Navigation Buttons */}
-            <div className="flex justify-between mt-8 pt-6 border-t border-gray-200">
-              <Button
-                variant="outline"
-                onClick={() => setCurrentStep(Math.max(1, currentStep - 1))}
-                disabled={currentStep === 1}
-              >
-                Previous
-              </Button>
+          {/* Main Form */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Building2 className="w-5 h-5 mr-2" />
+                {getStepTitle()}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {renderStepContent()}
               
-              {currentStep < 3 ? (
+              {/* Navigation Buttons */}
+              <div className="flex justify-between mt-8 pt-6 border-t">
                 <Button
-                  onClick={() => setCurrentStep(currentStep + 1)}
-                  className="bg-accent hover:bg-accent/90"
-                  disabled={
-                    (currentStep === 1 && (!formData.companyName || !formData.contactFirstName || !formData.contactLastName || !formData.email || !formData.phone)) ||
-                    (currentStep === 2 && (!formData.deliveryVolume || formData.serviceAreas.length === 0))
-                  }
+                  type="button"
+                  variant="outline"
+                  onClick={handleBack}
+                  disabled={currentStep === 1}
                 >
-                  Next Step
+                  Previous
                 </Button>
-              ) : (
-                <Button
-                  onClick={handleSubmit}
-                  disabled={isSubmitting || !formData.agreedToTerms || !formData.agreedToCredit}
-                  className="bg-accent hover:bg-accent/90"
-                >
-                  {isSubmitting ? 'Submitting...' : 'Submit Partnership Application'}
-                </Button>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Contact Support */}
-        <div className="text-center mt-8">
-          <p className="text-gray-600">
-            Questions about partnerships? 
-            <a href="tel:912-742-9459" className="text-accent hover:underline ml-1">
-              Call (912) 742-9459
-            </a> or 
-            <a href="mailto:delivered@byachievemor.com" className="text-accent hover:underline ml-1">
-              email our partnership team
-            </a>
-          </p>
+                
+                {currentStep === totalSteps ? (
+                  <Button
+                    onClick={handleSubmit}
+                    disabled={!canProceed() || isSubmitting}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    {isSubmitting ? "Submitting..." : "Complete Registration"}
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={handleNext}
+                    disabled={!canProceed()}
+                  >
+                    Next
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </main>
     </div>

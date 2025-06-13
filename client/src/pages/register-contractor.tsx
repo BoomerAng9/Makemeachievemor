@@ -4,12 +4,88 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Progress } from "@/components/ui/progress";
 import { UniversalNav } from "@/components/UniversalNav";
-import { Truck, Shield, FileText, ArrowLeft } from "lucide-react";
+import { EnhancedVehicleSelection } from "@/components/EnhancedVehicleSelection";
+import { EnhancedLocationSettings } from "@/components/EnhancedLocationSettings";
+import { AvailabilityScheduler } from "@/components/AvailabilityScheduler";
+import { Truck, Shield, FileText, ArrowLeft, CreditCard, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import { loadStripe } from '@stripe/stripe-js';
+
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY!);
+
+function SubscriptionForm({ onComplete }: { onComplete: () => void }) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const { toast } = useToast();
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!stripe || !elements) return;
+
+    setIsProcessing(true);
+    try {
+      const { error } = await stripe.confirmPayment({
+        elements,
+        confirmParams: {
+          return_url: window.location.origin + '/register/contractor',
+        },
+        redirect: 'if_required',
+      });
+
+      if (error) {
+        toast({
+          title: "Payment Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Subscription Active",
+          description: "Your Choose 2 ACHIEVEMOR Pro subscription is now active!",
+        });
+        onComplete();
+      }
+    } catch (error) {
+      toast({
+        title: "Payment Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="bg-blue-50 p-4 rounded-lg">
+        <h3 className="font-semibold text-blue-900 mb-2">Choose 2 ACHIEVEMOR Pro - $29.99/month</h3>
+        <ul className="text-sm text-blue-800 space-y-1">
+          <li>• Access to premium job opportunities</li>
+          <li>• Advanced matching algorithms</li>
+          <li>• Priority customer support</li>
+          <li>• Enhanced profile features</li>
+        </ul>
+      </div>
+      
+      <PaymentElement />
+      
+      <Button 
+        type="submit" 
+        disabled={!stripe || isProcessing} 
+        className="w-full"
+      >
+        {isProcessing ? "Processing..." : "Subscribe & Continue"}
+      </Button>
+    </form>
+  );
+}
 
 export default function RegisterContractorPage() {
   const [formData, setFormData] = useState({
@@ -24,17 +100,43 @@ export default function RegisterContractorPage() {
     zipCode: "",
     dotNumber: "",
     mcNumber: "",
-    vehicleType: "",
     cdlClass: "",
     yearsExperience: "",
     specialEndorsements: [] as string[],
     agreedToTerms: false,
     agreedToBackground: false
   });
-  
+
+  const [vehicleData, setVehicleData] = useState({
+    vehicleType: "",
+    category: "",
+    subType: "",
+    capacity: "",
+    specialFeatures: [] as string[]
+  });
+
+  const [locationData, setLocationData] = useState({
+    zipCode: "",
+    city: "",
+    state: "",
+    serviceRadius: 25,
+    maxDistance: 100,
+    serviceTypes: [] as string[]
+  });
+
+  const [availabilityData, setAvailabilityData] = useState({
+    schedule: {} as Record<string, { available: boolean; startTime: string; endTime: string }>,
+    trustRating: 0,
+    weeklyCommitment: 0
+  });
+
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [subscriptionComplete, setSubscriptionComplete] = useState(false);
+  const [clientSecret, setClientSecret] = useState("");
   const { toast } = useToast();
+
+  const totalSteps = 7;
 
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -49,6 +151,34 @@ export default function RegisterContractorPage() {
     }));
   };
 
+  const initializeSubscription = async () => {
+    try {
+      const response = await fetch('/api/create-subscription', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const data = await response.json();
+      setClientSecret(data.clientSecret);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to initialize subscription. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleNext = async () => {
+    if (currentStep === 2 && !subscriptionComplete) {
+      await initializeSubscription();
+    }
+    setCurrentStep(prev => Math.min(prev + 1, totalSteps));
+  };
+
+  const handleBack = () => {
+    setCurrentStep(prev => Math.max(prev - 1, 1));
+  };
+
   const handleSubmit = async () => {
     if (!formData.agreedToTerms || !formData.agreedToBackground) {
       toast({
@@ -61,43 +191,49 @@ export default function RegisterContractorPage() {
 
     setIsSubmitting(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      toast({
-        title: "Registration Submitted!",
-        description: "Your application has been received. We'll contact you within 24 hours to begin the verification process."
+      const registrationData = {
+        personal: formData,
+        vehicle: vehicleData,
+        location: locationData,
+        availability: availabilityData
+      };
+
+      const response = await fetch('/api/contractors', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(registrationData)
       });
 
-      // Reset form
-      setFormData({
-        firstName: "",
-        lastName: "",
-        email: "",
-        phone: "",
-        dateOfBirth: "",
-        street: "",
-        city: "",
-        state: "",
-        zipCode: "",
-        dotNumber: "",
-        mcNumber: "",
-        vehicleType: "",
-        cdlClass: "",
-        yearsExperience: "",
-        specialEndorsements: [],
-        agreedToTerms: false,
-        agreedToBackground: false
-      });
-      setCurrentStep(1);
+      if (response.ok) {
+        toast({
+          title: "Registration Complete!",
+          description: "Welcome to Choose 2 ACHIEVEMOR! You can now access your dashboard."
+        });
+        window.location.href = '/dashboard';
+      } else {
+        throw new Error('Registration failed');
+      }
     } catch (error) {
       toast({
-        title: "Submission Failed",
-        description: "There was an error submitting your application. Please try again.",
+        title: "Registration Error",
+        description: "Failed to complete registration. Please try again.",
         variant: "destructive"
       });
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const getStepTitle = () => {
+    switch (currentStep) {
+      case 1: return "Personal Information";
+      case 2: return "Subscription";
+      case 3: return "Vehicle Selection";
+      case 4: return "Location Settings";
+      case 5: return "Availability Schedule";
+      case 6: return "Professional Details";
+      case 7: return "Final Agreement";
+      default: return "Registration";
     }
   };
 
@@ -106,59 +242,62 @@ export default function RegisterContractorPage() {
       case 1:
         return (
           <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <Label htmlFor="firstName">First Name *</Label>
-                <Input
-                  id="firstName"
-                  value={formData.firstName}
-                  onChange={(e) => handleInputChange("firstName", e.target.value)}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="lastName">Last Name *</Label>
-                <Input
-                  id="lastName"
-                  value={formData.lastName}
-                  onChange={(e) => handleInputChange("lastName", e.target.value)}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="email">Email Address *</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => handleInputChange("email", e.target.value)}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="phone">Phone Number *</Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  value={formData.phone}
-                  onChange={(e) => handleInputChange("phone", e.target.value)}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="dateOfBirth">Date of Birth *</Label>
-                <Input
-                  id="dateOfBirth"
-                  type="date"
-                  value={formData.dateOfBirth}
-                  onChange={(e) => handleInputChange("dateOfBirth", e.target.value)}
-                  required
-                />
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Personal Information</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="firstName">First Name *</Label>
+                  <Input
+                    id="firstName"
+                    value={formData.firstName}
+                    onChange={(e) => handleInputChange("firstName", e.target.value)}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="lastName">Last Name *</Label>
+                  <Input
+                    id="lastName"
+                    value={formData.lastName}
+                    onChange={(e) => handleInputChange("lastName", e.target.value)}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="email">Email *</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange("email", e.target.value)}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="phone">Phone *</Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => handleInputChange("phone", e.target.value)}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="dateOfBirth">Date of Birth *</Label>
+                  <Input
+                    id="dateOfBirth"
+                    type="date"
+                    value={formData.dateOfBirth}
+                    onChange={(e) => handleInputChange("dateOfBirth", e.target.value)}
+                    required
+                  />
+                </div>
               </div>
             </div>
-
-            <div className="space-y-4">
-              <h4 className="font-semibold text-gray-900">Address Information</h4>
+            
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Address</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
                   <Label htmlFor="street">Street Address *</Label>
@@ -211,14 +350,78 @@ export default function RegisterContractorPage() {
       case 2:
         return (
           <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="text-center">
+              <CreditCard className="w-16 h-16 text-blue-600 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Choose Your Plan</h3>
+              <p className="text-gray-600">Subscribe to access premium contractor features</p>
+            </div>
+            
+            {clientSecret && !subscriptionComplete ? (
+              <Elements stripe={stripePromise} options={{ clientSecret }}>
+                <SubscriptionForm onComplete={() => setSubscriptionComplete(true)} />
+              </Elements>
+            ) : subscriptionComplete ? (
+              <div className="text-center py-8">
+                <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-green-700">Subscription Active!</h3>
+                <p className="text-gray-600">You now have access to all premium features.</p>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <p className="text-gray-600">Setting up your subscription...</p>
+              </div>
+            )}
+          </div>
+        );
+
+      case 3:
+        return (
+          <div className="space-y-6">
+            <h3 className="text-lg font-semibold">Vehicle Information</h3>
+            <EnhancedVehicleSelection 
+              onVehicleSelect={setVehicleData}
+              initialData={vehicleData}
+              isOptional={false}
+            />
+          </div>
+        );
+
+      case 4:
+        return (
+          <div className="space-y-6">
+            <h3 className="text-lg font-semibold">Service Area & Location</h3>
+            <EnhancedLocationSettings 
+              onLocationUpdate={setLocationData}
+              initialData={locationData}
+              isRequired={true}
+            />
+          </div>
+        );
+
+      case 5:
+        return (
+          <div className="space-y-6">
+            <h3 className="text-lg font-semibold">Availability Schedule</h3>
+            <AvailabilityScheduler 
+              onAvailabilityUpdate={setAvailabilityData}
+              initialData={availabilityData}
+              isRequired={true}
+            />
+          </div>
+        );
+
+      case 6:
+        return (
+          <div className="space-y-6">
+            <h3 className="text-lg font-semibold mb-4">Professional Information</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="dotNumber">DOT Number</Label>
                 <Input
                   id="dotNumber"
                   value={formData.dotNumber}
                   onChange={(e) => handleInputChange("dotNumber", e.target.value)}
-                  placeholder="Optional if not yet obtained"
                 />
               </div>
               <div>
@@ -227,7 +430,6 @@ export default function RegisterContractorPage() {
                   id="mcNumber"
                   value={formData.mcNumber}
                   onChange={(e) => handleInputChange("mcNumber", e.target.value)}
-                  placeholder="Optional if not yet obtained"
                 />
               </div>
               <div>
@@ -240,6 +442,7 @@ export default function RegisterContractorPage() {
                     <SelectItem value="A">Class A</SelectItem>
                     <SelectItem value="B">Class B</SelectItem>
                     <SelectItem value="C">Class C</SelectItem>
+                    <SelectItem value="none">No CDL</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -258,34 +461,18 @@ export default function RegisterContractorPage() {
                 </Select>
               </div>
             </div>
-
+            
             <div>
-              <Label htmlFor="vehicleType">Primary Vehicle Type *</Label>
-              <Select value={formData.vehicleType} onValueChange={(value) => handleInputChange("vehicleType", value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select vehicle type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="van">Cargo Van</SelectItem>
-                  <SelectItem value="box_truck">Box Truck</SelectItem>
-                  <SelectItem value="semi_truck">Semi Truck</SelectItem>
-                  <SelectItem value="pickup_truck">Pickup Truck</SelectItem>
-                  <SelectItem value="flatbed">Flatbed</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label>Special Endorsements (Select all that apply)</Label>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-2">
-                {["Hazmat", "Passenger", "School Bus", "Double/Triple", "Tank Vehicle", "Motorcycle"].map(endorsement => (
+              <Label className="text-base font-medium">Special Endorsements</Label>
+              <div className="grid grid-cols-2 gap-3 mt-2">
+                {["Hazmat", "Passenger", "School Bus", "Double/Triple", "Tanker"].map((endorsement) => (
                   <div key={endorsement} className="flex items-center space-x-2">
                     <Checkbox
                       id={endorsement}
                       checked={formData.specialEndorsements.includes(endorsement)}
-                      onCheckedChange={(checked) => handleEndorsementChange(endorsement, !!checked)}
+                      onCheckedChange={(checked) => handleEndorsementChange(endorsement, checked as boolean)}
                     />
-                    <Label htmlFor={endorsement} className="text-sm">{endorsement}</Label>
+                    <Label htmlFor={endorsement}>{endorsement}</Label>
                   </div>
                 ))}
               </div>
@@ -293,76 +480,43 @@ export default function RegisterContractorPage() {
           </div>
         );
 
-      case 3:
+      case 7:
         return (
           <div className="space-y-6">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-              <h4 className="font-semibold text-blue-900 mb-4">Required Documentation</h4>
-              <div className="space-y-3 text-blue-800">
-                <div className="flex items-center space-x-2">
-                  <FileText className="h-4 w-4" />
-                  <span>Valid Commercial Driver's License (CDL)</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <FileText className="h-4 w-4" />
-                  <span>DOT Medical Certificate</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <FileText className="h-4 w-4" />
-                  <span>Vehicle Registration & Title</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <FileText className="h-4 w-4" />
-                  <span>Commercial Insurance Certificate</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <FileText className="h-4 w-4" />
-                  <span>Clean Driving Record (MVR)</span>
-                </div>
-              </div>
-              <p className="text-sm text-blue-700 mt-4">
-                * You'll be able to upload these documents after submitting your initial application
-              </p>
-            </div>
-
+            <h3 className="text-lg font-semibold mb-4">Terms and Agreements</h3>
+            
             <div className="space-y-4">
               <div className="flex items-start space-x-3">
                 <Checkbox
-                  id="agreedToTerms"
+                  id="terms"
                   checked={formData.agreedToTerms}
-                  onCheckedChange={(checked) => handleInputChange("agreedToTerms", !!checked)}
+                  onCheckedChange={(checked) => handleInputChange("agreedToTerms", checked as boolean)}
                 />
-                <Label htmlFor="agreedToTerms" className="text-sm leading-relaxed">
-                  I agree to the <span className="text-primary underline cursor-pointer">Terms of Service</span> and 
-                  <span className="text-primary underline cursor-pointer"> Privacy Policy</span>. I understand that 
-                  all information provided is subject to verification and that false information may result in 
-                  disqualification.
-                </Label>
+                <div className="grid gap-1.5 leading-none">
+                  <Label htmlFor="terms" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    I agree to the Terms of Service and Privacy Policy *
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    You agree to our terms of service and privacy policy.
+                  </p>
+                </div>
               </div>
-
+              
               <div className="flex items-start space-x-3">
                 <Checkbox
-                  id="agreedToBackground"
+                  id="background"
                   checked={formData.agreedToBackground}
-                  onCheckedChange={(checked) => handleInputChange("agreedToBackground", !!checked)}
+                  onCheckedChange={(checked) => handleInputChange("agreedToBackground", checked as boolean)}
                 />
-                <Label htmlFor="agreedToBackground" className="text-sm leading-relaxed">
-                  I authorize ACHIEVEMOR to conduct background checks, drug screening, and verification of 
-                  employment history as required by DOT regulations and company policy.
-                </Label>
+                <div className="grid gap-1.5 leading-none">
+                  <Label htmlFor="background" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    I authorize background check verification *
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    You authorize us to conduct background checks as required for contractor verification.
+                  </p>
+                </div>
               </div>
-            </div>
-
-            <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-              <h4 className="font-semibold text-green-900 mb-2">Next Steps After Submission</h4>
-              <ol className="list-decimal list-inside space-y-2 text-green-800 text-sm">
-                <li>Application review within 24 hours</li>
-                <li>Phone interview scheduling</li>
-                <li>Document upload and verification</li>
-                <li>Background check and drug screening</li>
-                <li>Vehicle inspection (if applicable)</li>
-                <li>Onboarding and first load assignment</li>
-              </ol>
             </div>
           </div>
         );
@@ -372,119 +526,93 @@ export default function RegisterContractorPage() {
     }
   };
 
+  const canProceed = () => {
+    switch (currentStep) {
+      case 1:
+        return formData.firstName && formData.lastName && formData.email && formData.phone;
+      case 2:
+        return subscriptionComplete;
+      case 3:
+        return vehicleData.vehicleType && vehicleData.category;
+      case 4:
+        return locationData.zipCode && locationData.state;
+      case 5:
+        return Object.keys(availabilityData.schedule).length > 0;
+      case 6:
+        return formData.cdlClass && formData.yearsExperience;
+      case 7:
+        return formData.agreedToTerms && formData.agreedToBackground;
+      default:
+        return true;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <UniversalNav />
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-3">
-              <Button variant="ghost" size="sm" asChild>
-                <Link href="/">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back to Home
-                </Link>
-              </Button>
-            </div>
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <Truck className="text-white h-4 w-4" />
-              </div>
-              <span className="text-lg font-bold text-gray-900">ACHIEVEMOR</span>
-            </div>
+      
+      <main className="container mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <Link href="/" className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-4">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Home
+            </Link>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Join as Driver</h1>
+            <p className="text-gray-600">Complete your registration to start earning with Choose 2 ACHIEVEMOR</p>
           </div>
-        </div>
-      </header>
 
-      {/* Main Content */}
-      <main className="max-w-4xl mx-auto px-4 py-8">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6 leading-tight">
-            Join as an Independent Contractor
-          </h1>
-          <p className="text-lg md:text-xl text-gray-600 leading-relaxed max-w-3xl mx-auto">
-            Start your journey with ACHIEVEMOR's verified driver network and access premium freight opportunities
-          </p>
-        </div>
-
-        {/* Progress Indicator */}
-        <div className="mb-8">
-          <div className="flex items-center justify-center space-x-8">
-            {[1, 2, 3].map((step) => (
-              <div key={step} className="flex items-center">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold ${
-                  currentStep >= step ? 'bg-primary text-white' : 'bg-gray-200 text-gray-600'
-                }`}>
-                  {step}
-                </div>
-                <span className={`ml-2 text-sm ${currentStep >= step ? 'text-primary' : 'text-gray-500'}`}>
-                  {step === 1 ? 'Personal Info' : step === 2 ? 'Professional Details' : 'Review & Submit'}
-                </span>
-                {step < 3 && <div className="w-16 h-0.5 bg-gray-300 ml-4" />}
-              </div>
-            ))}
+          {/* Progress Bar */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
+              <span>Step {currentStep} of {totalSteps}</span>
+              <span>{Math.round((currentStep / totalSteps) * 100)}% Complete</span>
+            </div>
+            <Progress value={(currentStep / totalSteps) * 100} className="h-2" />
           </div>
-        </div>
 
-        {/* Form Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Shield className="h-5 w-5 mr-2 text-primary" />
-              {currentStep === 1 ? 'Personal Information' : 
-               currentStep === 2 ? 'Professional Qualifications' : 
-               'Review & Agreement'}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-8">
-            {renderStepContent()}
-
-            {/* Navigation Buttons */}
-            <div className="flex justify-between mt-8 pt-6 border-t border-gray-200">
-              <Button
-                variant="outline"
-                onClick={() => setCurrentStep(Math.max(1, currentStep - 1))}
-                disabled={currentStep === 1}
-              >
-                Previous
-              </Button>
+          {/* Main Form */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Truck className="w-5 h-5 mr-2" />
+                {getStepTitle()}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {renderStepContent()}
               
-              {currentStep < 3 ? (
+              {/* Navigation Buttons */}
+              <div className="flex justify-between mt-8 pt-6 border-t">
                 <Button
-                  onClick={() => setCurrentStep(currentStep + 1)}
-                  className="bg-primary hover:bg-primary/90"
-                  disabled={
-                    (currentStep === 1 && (!formData.firstName || !formData.lastName || !formData.email || !formData.phone)) ||
-                    (currentStep === 2 && (!formData.cdlClass || !formData.yearsExperience || !formData.vehicleType))
-                  }
+                  type="button"
+                  variant="outline"
+                  onClick={handleBack}
+                  disabled={currentStep === 1}
                 >
-                  Next Step
+                  Previous
                 </Button>
-              ) : (
-                <Button
-                  onClick={handleSubmit}
-                  disabled={isSubmitting || !formData.agreedToTerms || !formData.agreedToBackground}
-                  className="bg-primary hover:bg-primary/90"
-                >
-                  {isSubmitting ? 'Submitting...' : 'Submit Application'}
-                </Button>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Contact Support */}
-        <div className="text-center mt-8">
-          <p className="text-gray-600">
-            Need help with your application? 
-            <a href="tel:912-742-9459" className="text-primary hover:underline ml-1">
-              Call (912) 742-9459
-            </a> or 
-            <a href="mailto:delivered@byachievemor.com" className="text-primary hover:underline ml-1">
-              email us
-            </a>
-          </p>
+                
+                {currentStep === totalSteps ? (
+                  <Button
+                    onClick={handleSubmit}
+                    disabled={!canProceed() || isSubmitting}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    {isSubmitting ? "Submitting..." : "Complete Registration"}
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={handleNext}
+                    disabled={!canProceed()}
+                  >
+                    Next
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </main>
     </div>
