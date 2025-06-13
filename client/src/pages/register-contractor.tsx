@@ -86,7 +86,9 @@ function SubscriptionForm({ onComplete }: { onComplete: () => void }) {
 }
 
 export default function RegisterContractorPage() {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState(() => {
+    const saved = localStorage.getItem('contractor-registration-form');
+    return saved ? JSON.parse(saved) : {
     firstName: "",
     lastName: "",
     email: "",
@@ -101,32 +103,41 @@ export default function RegisterContractorPage() {
     specialEndorsements: [] as string[],
     agreedToTerms: false,
     agreedToBackground: false
-  });
+  }});
 
-  const [vehicleData, setVehicleData] = useState({
+  const [vehicleData, setVehicleData] = useState(() => {
+    const saved = localStorage.getItem('contractor-registration-vehicle');
+    return saved ? JSON.parse(saved) : {
     vehicleType: "",
     category: "",
     subType: "",
     capacity: "",
     specialFeatures: [] as string[]
-  });
+  }});
 
-  const [locationData, setLocationData] = useState({
+  const [locationData, setLocationData] = useState(() => {
+    const saved = localStorage.getItem('contractor-registration-location');
+    return saved ? JSON.parse(saved) : {
     zipCode: "",
     city: "",
     state: "",
     serviceRadius: 25,
     maxDistance: 100,
     serviceTypes: [] as string[]
-  });
+  }});
 
-  const [availabilityData, setAvailabilityData] = useState({
+  const [availabilityData, setAvailabilityData] = useState(() => {
+    const saved = localStorage.getItem('contractor-registration-availability');
+    return saved ? JSON.parse(saved) : {
     schedule: {} as Record<string, { available: boolean; startTime: string; endTime: string }>,
     trustRating: 0,
     weeklyCommitment: 0
-  });
+  }});
 
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(() => {
+    const savedStep = localStorage.getItem('contractor-registration-step');
+    return savedStep ? parseInt(savedStep) : 1;
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [subscriptionComplete, setSubscriptionComplete] = useState(false);
   const [clientSecret, setClientSecret] = useState("");
@@ -352,13 +363,6 @@ export default function RegisterContractorPage() {
                   <h3 className="font-semibold text-green-900">Professional - $15.99/month</h3>
                   <input type="radio" name="plan" value="professional" className="text-green-600" />
                 </div>
-                <ul className="text-sm text-green-800 space-y-1 mb-3">
-                  <li>• Priority job matching</li>
-                  <li>• Enhanced profile visibility</li>
-                  <li>• Advanced analytics</li>
-                  <li>• Priority customer support</li>
-                  <li>• Route optimization tools</li>
-                </ul>
               </div>
 
               {/* Premium Plan */}
@@ -367,13 +371,6 @@ export default function RegisterContractorPage() {
                   <h3 className="font-semibold text-purple-900">Premium - $29.99/month</h3>
                   <input type="radio" name="plan" value="premium" className="text-purple-600" />
                 </div>
-                <ul className="text-sm text-purple-800 space-y-1 mb-3">
-                  <li>• All Professional features</li>
-                  <li>• Dedicated account manager</li>
-                  <li>• Advanced training resources</li>
-                  <li>• Insurance discounts</li>
-                  <li>• Exclusive high-paying opportunities</li>
-                </ul>
               </div>
 
               {/* Complete Later Option */}

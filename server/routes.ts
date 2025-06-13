@@ -597,6 +597,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const contractorData = {
         firstName: firstName || '',
         lastName: lastName || '',
+        email: '',
         phone: phone || '',
         city: city || '',
         state: state || '',

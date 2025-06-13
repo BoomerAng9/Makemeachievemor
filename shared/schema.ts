@@ -50,7 +50,7 @@ export const contractors = pgTable("contractors", {
   // Personal Information
   firstName: text("first_name").notNull(),
   lastName: text("last_name").notNull(),
-  email: text("email"),
+  email: text("email").default(''),
   phone: text("phone").notNull(),
   dateOfBirth: text("date_of_birth"),
   // Address
