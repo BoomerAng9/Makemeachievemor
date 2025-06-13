@@ -165,7 +165,7 @@ export default function DashboardPage() {
 
           <TabsContent value="location">
             <EnhancedLocationSettings 
-              onLocationSelect={setLocationData}
+              onLocationUpdate={setLocationData}
               initialData={locationData}
               isOptional={true}
             />
