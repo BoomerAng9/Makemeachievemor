@@ -166,9 +166,6 @@ export default function RegisterContractorPage() {
   };
 
   const handleNext = async () => {
-    if (currentStep === 2 && !subscriptionComplete) {
-      await initializeSubscription();
-    }
     setCurrentStep(prev => Math.min(prev + 1, totalSteps));
   };
 
@@ -325,25 +322,36 @@ export default function RegisterContractorPage() {
             <div className="text-center">
               <CreditCard className="w-16 h-16 text-blue-600 mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">Choose Your Plan</h3>
-              <p className="text-gray-600">Subscribe to access premium contractor features</p>
+              <p className="text-gray-600">Subscribe to access contractor features</p>
             </div>
             
-            {clientSecret && !subscriptionComplete ? (
-              <Elements stripe={stripePromise} options={{ clientSecret }}>
-                <SubscriptionForm onComplete={() => setSubscriptionComplete(true)} />
-              </Elements>
-            ) : subscriptionComplete ? (
-              <div className="text-center py-8">
-                <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-green-700">Subscription Active!</h3>
-                <p className="text-gray-600">You now have access to all premium features.</p>
+            <div className="bg-blue-50 p-6 rounded-lg">
+              <h3 className="font-semibold text-blue-900 mb-2">Buy the office coffee - $3.48/month</h3>
+              <ul className="text-sm text-blue-800 space-y-2 mb-4">
+                <li>• Access to job opportunities</li>
+                <li>• Basic contractor profile</li>
+                <li>• Standard support</li>
+                <li>• Essential platform features</li>
+              </ul>
+              
+              <div className="flex items-center space-x-3 mb-4">
+                <Checkbox
+                  id="agreeSubscription"
+                  checked={subscriptionComplete}
+                  onCheckedChange={(checked) => setSubscriptionComplete(checked as boolean)}
+                />
+                <Label htmlFor="agreeSubscription" className="text-sm">
+                  I agree to the monthly subscription of $3.48 (billed monthly, cancel anytime)
+                </Label>
               </div>
-            ) : (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                <p className="text-gray-600">Setting up your subscription...</p>
-              </div>
-            )}
+              
+              {subscriptionComplete && (
+                <div className="flex items-center space-x-2 text-green-700">
+                  <CheckCircle className="w-5 h-5" />
+                  <span className="text-sm font-medium">Ready to proceed! Payment will be collected after registration.</span>
+                </div>
+              )}
+            </div>
           </div>
         );
 
