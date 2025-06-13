@@ -372,11 +372,15 @@ export function Header() {
                   {/* Mobile Auth Section */}
                   {!isAuthenticated && (
                     <div className="pt-4 border-t">
-                      <Link href="/api/login" onClick={() => setMobileMenuOpen(false)}>
-                        <Button className="w-full">
-                          Sign In
-                        </Button>
-                      </Link>
+                      <Button 
+                        className="w-full"
+                        onClick={() => {
+                          setMobileMenuOpen(false);
+                          window.location.href = '/api/login';
+                        }}
+                      >
+                        Sign In
+                      </Button>
                     </div>
                   )}
                 </div>

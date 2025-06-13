@@ -65,12 +65,12 @@ function SubscriptionForm({ onComplete }: { onComplete: () => void }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="bg-blue-50 p-4 rounded-lg">
-        <h3 className="font-semibold text-blue-900 mb-2">Choose 2 ACHIEVEMOR Pro - $29.99/month</h3>
+        <h3 className="font-semibold text-blue-900 mb-2">Buy the office coffee - $3.48/month</h3>
         <ul className="text-sm text-blue-800 space-y-1">
-          <li>• Access to premium job opportunities</li>
-          <li>• Advanced matching algorithms</li>
-          <li>• Priority customer support</li>
-          <li>• Enhanced profile features</li>
+          <li>• Access to job opportunities</li>
+          <li>• Basic contractor profile</li>
+          <li>• Standard support</li>
+          <li>• Essential platform features</li>
         </ul>
       </div>
       
@@ -94,9 +94,7 @@ export default function RegisterContractorPage() {
     email: "",
     phone: "",
     dateOfBirth: "",
-    street: "",
     city: "",
-    state: "",
     zipCode: "",
     dotNumber: "",
     mcNumber: "",
@@ -153,9 +151,10 @@ export default function RegisterContractorPage() {
 
   const initializeSubscription = async () => {
     try {
-      const response = await fetch('/api/create-subscription', {
+      const response = await fetch('/api/create-payment-intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount: 3.48 })
       });
       const data = await response.json();
       setClientSecret(data.clientSecret);
@@ -297,17 +296,8 @@ export default function RegisterContractorPage() {
             </div>
             
             <div>
-              <h3 className="text-lg font-semibold mb-4">Address</h3>
+              <h3 className="text-lg font-semibold mb-4">Location</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="md:col-span-2">
-                  <Label htmlFor="street">Street Address *</Label>
-                  <Input
-                    id="street"
-                    value={formData.street}
-                    onChange={(e) => handleInputChange("street", e.target.value)}
-                    required
-                  />
-                </div>
                 <div>
                   <Label htmlFor="city">City *</Label>
                   <Input
@@ -316,22 +306,6 @@ export default function RegisterContractorPage() {
                     onChange={(e) => handleInputChange("city", e.target.value)}
                     required
                   />
-                </div>
-                <div>
-                  <Label htmlFor="state">State *</Label>
-                  <Select value={formData.state} onValueChange={(value) => handleInputChange("state", value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select state" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="GA">Georgia</SelectItem>
-                      <SelectItem value="FL">Florida</SelectItem>
-                      <SelectItem value="SC">South Carolina</SelectItem>
-                      <SelectItem value="NC">North Carolina</SelectItem>
-                      <SelectItem value="TN">Tennessee</SelectItem>
-                      <SelectItem value="AL">Alabama</SelectItem>
-                    </SelectContent>
-                  </Select>
                 </div>
                 <div>
                   <Label htmlFor="zipCode">ZIP Code *</Label>
@@ -380,7 +354,7 @@ export default function RegisterContractorPage() {
           <div className="space-y-6">
             <h3 className="text-lg font-semibold">Vehicle Information</h3>
             <EnhancedVehicleSelection 
-              onVehicleSelect={setVehicleData}
+              onVehicleSelect={(vehicle) => setVehicleData(prev => ({ ...prev, ...vehicle }))}
               initialData={vehicleData}
               isOptional={false}
             />
@@ -529,13 +503,13 @@ export default function RegisterContractorPage() {
   const canProceed = () => {
     switch (currentStep) {
       case 1:
-        return formData.firstName && formData.lastName && formData.email && formData.phone;
+        return formData.firstName && formData.lastName && formData.email && formData.phone && formData.city && formData.zipCode;
       case 2:
         return subscriptionComplete;
       case 3:
-        return vehicleData.vehicleType && vehicleData.category;
+        return vehicleData.vehicleType;
       case 4:
-        return locationData.zipCode && locationData.state;
+        return locationData.zipCode;
       case 5:
         return Object.keys(availabilityData.schedule).length > 0;
       case 6:
