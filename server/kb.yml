@@ -1,0 +1,112 @@
+# CHOOSE 2 ACHIEVEMOR Knowledge Base
+- id: intro-01
+  category: Welcome
+  q: What is CHOOSE 2 ACHIEVEMOR?
+  a: >
+     CHOOSE 2 ACHIEVEMOR links local contractors—drivers, caregivers, courier
+     teams—to companies that need fast, on-call help. Think of it as an
+     instant dispatch network for freight, passenger trips, and in-home
+     support services.
+
+- id: account-01
+  category: Accounts
+  q: Who can sign up?
+  a: >
+     • Solo drivers with cars, vans, cargo or Sprinter vans, box trucks  
+     • CDL holders with tractors or straight trucks  
+     • Small fleets and companies that want to onboard their own drivers  
+     • Short-term caregivers who travel to clients' homes  
+
+- id: account-02
+  category: Accounts
+  q: What do I need to register?
+  a: >
+     Just your **state + ZIP** or **city + ZIP**, a working email, and a
+     mobile phone. You'll upload your licence, insurance, and any medical or
+     care certificates later during verification.
+
+- id: billing-01
+  category: Pricing
+  q: How much does it cost?
+  a: >
+     • **Buy-Us-a-Coffee** tier – $3.48 one-time to explore and post up to  
+       three jobs a month.  
+     • **Standard** – $29.99 / mo for growing carriers (up to three active  
+       loads).  
+     • **Professional** – $59.99 / mo for mid-sized fleets (ten active  
+       loads + analytics).  
+     • **Owner-Operator Hub** – $99.99 / mo for firms that need white-label  
+       portals and sub-accounts.  
+
+- id: jobs-01
+  category: Jobs & Loads
+  q: How do jobs move through the system?
+  a: >
+     **Open ➜ Requested ➜ Assigned ➜ Picked Up ➜ Delivered ➜ Paid**.  
+     Drivers tap buttons to move a load forward; admins verify docs; the
+     system pushes email/SMS alerts at each step.
+
+- id: checklist-01
+  category: Getting Authority
+  q: Do you have a quick authority setup checklist?
+  a: >
+     Yes. Type **"show authority checklist"** and the bot will surface the
+     interactive list covering USDOT, MC, insurance, fuel tax, plates, and
+     compliance items.
+
+- id: learning-01
+  category: Training
+  q: Where can I learn trucking basics?
+  a: >
+     Check the **Freight Academy** module for cost-per-mile calculators,
+     carrier packet templates, and broker negotiation tips—free with any
+     paid plan.
+
+- id: support-01
+  category: Support
+  q: How do I get live help?
+  a: >
+     Message our team in the in-app chat, call us at **(920) 347-8919**, or
+     email **info@choose2achievemor.us**. Office hours 7 a.m.–5 p.m. CT,
+     Monday-Friday.
+
+# Additional Q&A pairs for comprehensive coverage
+- id: authority-01
+  category: Getting Authority
+  q: What is DOT authority and why do I need it?
+  a: >
+     DOT authority (USDOT number) is required for commercial vehicles over 10,001 lbs
+     in interstate commerce. It proves you're legally authorized to operate and helps
+     track safety performance through the CSA scoring system.
+
+- id: authority-02
+  category: Getting Authority
+  q: How long does it take to get MC authority?
+  a: >
+     Typically 21-30 days after filing your OP-1 application with FMCSA. You'll need
+     insurance on file, BOC-3 process agents, and proper business registration before
+     starting operations.
+
+- id: insurance-01
+  category: Insurance
+  q: What insurance do I need as an owner-operator?
+  a: >
+     • Public liability: $750K minimum (up to $5M for hazmat)
+     • Cargo insurance: Varies by load type
+     • Physical damage: Covers your truck
+     • Workers comp: Required in most states for employees
+
+- id: ifta-01
+  category: Taxes & Permits
+  q: What is IFTA and do I need it?
+  a: >
+     International Fuel Tax Agreement. Required if you operate commercial vehicles
+     over 26,000 lbs or have 3+ axles across state lines. You'll file quarterly
+     reports and get fuel tax decals.
+
+- id: eld-01
+  category: Compliance
+  q: Do I need an ELD?
+  a: >
+     Yes, if you're required to keep Records of Duty Status (RODS). Most commercial
+     drivers need ELDs to track Hours of Service compliance automatically.
