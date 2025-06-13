@@ -3,7 +3,7 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { useDeviceType } from "@/hooks/use-mobile";
 import { NetworkStatusBanner } from "@/components/NetworkStatusIndicator";
@@ -27,11 +27,6 @@ import RegisterPage from "@/pages/register-page";
 import AccountSettingsPage from "@/pages/account-settings";
 
 function Router() {
-  // Move the useAuth hook inside the AuthProvider by creating an inner component
-  return <RouterInner />;
-}
-
-function RouterInner() {
   const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
@@ -87,23 +82,21 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <AuthProvider>
-          <div className="min-h-screen bg-background text-foreground">
-            {/* Network Status Banner */}
-            <NetworkStatusBanner />
-            
-            {/* Main App Content */}
-            <div className={isMobile ? "pb-20" : ""}>
-              <Router />
-            </div>
-            
-            {/* Mobile Bottom Navigation */}
-            <MobileBottomNav />
-            
-            {/* Toast Notifications */}
-            <Toaster />
+        <div className="min-h-screen bg-background text-foreground">
+          {/* Network Status Banner */}
+          <NetworkStatusBanner />
+          
+          {/* Main App Content */}
+          <div className={isMobile ? "pb-20" : ""}>
+            <Router />
           </div>
-        </AuthProvider>
+          
+          {/* Mobile Bottom Navigation */}
+          <MobileBottomNav />
+          
+          {/* Toast Notifications */}
+          <Toaster />
+        </div>
       </TooltipProvider>
     </QueryClientProvider>
   );
