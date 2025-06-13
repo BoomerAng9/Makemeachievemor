@@ -50,15 +50,15 @@ export const contractors = pgTable("contractors", {
   // Personal Information
   firstName: text("first_name").notNull(),
   lastName: text("last_name").notNull(),
-  email: text("email").notNull().unique(),
+  email: text("email"),
   phone: text("phone").notNull(),
-  dateOfBirth: text("date_of_birth").notNull(),
+  dateOfBirth: text("date_of_birth"),
   // Address
-  street: text("street").notNull(),
+  street: text("street"),
   city: text("city").notNull(),
   state: text("state").notNull(),
   zipCode: text("zip_code").notNull(),
-  country: text("country").notNull().default("USA"),
+  country: text("country").default("USA"),
   // Verification status
   verificationStatus: text("verification_status").notNull().default("pending"), // pending, verified, rejected
   onboardingStep: integer("onboarding_step").notNull().default(1),

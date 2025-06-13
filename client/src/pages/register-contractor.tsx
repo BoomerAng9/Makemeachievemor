@@ -189,7 +189,7 @@ export default function RegisterContractorPage() {
         firstName: formData.firstName || '',
         lastName: formData.lastName || '',
         phone: formData.phone || '',
-        dateOfBirth: formData.dateOfBirth || '',
+
         city: locationData.city || formData.city || '',
         zipCode: locationData.zipCode || formData.zipCode || '',
         state: locationData.state || '',
@@ -292,16 +292,7 @@ export default function RegisterContractorPage() {
                     required
                   />
                 </div>
-                <div>
-                  <Label htmlFor="dateOfBirth">Date of Birth *</Label>
-                  <Input
-                    id="dateOfBirth"
-                    type="date"
-                    value={formData.dateOfBirth}
-                    onChange={(e) => handleInputChange("dateOfBirth", e.target.value)}
-                    required
-                  />
-                </div>
+
               </div>
             </div>
             
@@ -659,6 +650,28 @@ export default function RegisterContractorPage() {
                   </div>
                 ))}
               </div>
+            </div>
+
+            <div className="bg-gray-50 p-4 rounded-lg border">
+              <div className="flex items-center space-x-3">
+                <Checkbox
+                  id="completeLater"
+                  checked={false}
+                  onCheckedChange={() => {
+                    toast({
+                      title: "Complete Later",
+                      description: "You can complete your professional information from your dashboard after registration."
+                    });
+                    handleNext();
+                  }}
+                />
+                <Label htmlFor="completeLater" className="text-sm font-medium">
+                  Complete professional information later
+                </Label>
+              </div>
+              <p className="text-xs text-gray-600 mt-1 ml-6">
+                Skip this step and complete your registration. You can add DOT numbers, CDL information, and endorsements from your dashboard.
+              </p>
             </div>
           </div>
         );
