@@ -4,6 +4,7 @@ import {
   documents, 
   documentShares,
   driverLocations,
+  driverAvailability,
   opportunities, 
   messages, 
   jobAssignments,
@@ -24,6 +25,12 @@ import {
   type InsertVehicle,
   type Document,
   type InsertDocument,
+  type DocumentShare,
+  type InsertDocumentShare,
+  type DriverLocation,
+  type InsertDriverLocation,
+  type DriverAvailability,
+  type InsertDriverAvailability,
   type Opportunity,
   type InsertOpportunity,
   type Message,
@@ -504,6 +511,35 @@ export class DatabaseStorage implements IStorage {
   async getDriverLocation(userId: string): Promise<DriverLocation | undefined> {
     const [location] = await db.select().from(driverLocations).where(eq(driverLocations.userId, userId));
     return location;
+  }
+
+  // Driver availability operations
+  async upsertDriverAvailability(data: InsertDriverAvailability): Promise<DriverAvailability> {
+    const existing = await db.select().from(driverAvailability).where(eq(driverAvailability.userId, data.userId));
+    
+    if (existing.length > 0) {
+      const [availability] = await db.update(driverAvailability)
+        .set({ ...data, updatedAt: new Date() })
+        .where(eq(driverAvailability.userId, data.userId))
+        .returning();
+      return availability;
+    } else {
+      const [availability] = await db.insert(driverAvailability).values(data).returning();
+      return availability;
+    }
+  }
+
+  async getDriverAvailability(userId: string): Promise<DriverAvailability | undefined> {
+    const [availability] = await db.select().from(driverAvailability).where(eq(driverAvailability.userId, userId));
+    return availability;
+  }
+
+  async updateTrustRating(userId: string, metrics: Partial<InsertDriverAvailability>): Promise<DriverAvailability | undefined> {
+    const [availability] = await db.update(driverAvailability)
+      .set({ ...metrics, lastRatingUpdate: new Date(), updatedAt: new Date() })
+      .where(eq(driverAvailability.userId, userId))
+      .returning();
+    return availability;
   }
 
   async getNearbyDrivers(latitude: number, longitude: number, radiusMiles: number): Promise<DriverLocation[]> {
