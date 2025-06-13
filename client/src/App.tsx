@@ -63,7 +63,8 @@ function Router() {
       {/* Protected routes */}
       {isAuthenticated ? (
         <>
-          <Route path="/" component={DashboardPage} />
+          <Route path="/" component={HomePage} />
+          <Route path="/dashboard" component={DashboardPage} />
           <Route path="/dashboard/:contractorId" component={DashboardPage} />
           <Route path="/glovebox" component={GloveboxPage} />
           <Route path="/driver-location" component={DriverLocationPage} />

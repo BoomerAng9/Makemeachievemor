@@ -3,6 +3,7 @@ import { PersonalInfoStep } from "./PersonalInfoStep";
 import { IdentityVerificationStep } from "./IdentityVerificationStep";
 import { VehicleInfoStep } from "./VehicleInfoStep";
 import { ComplianceStep } from "./ComplianceStep";
+import { SubscriptionStep } from "./SubscriptionStep";
 import { EnhancedVehicleSelection } from "@/components/EnhancedVehicleSelection";
 import { EnhancedLocationSettings } from "@/components/EnhancedLocationSettings";
 import { AvailabilityScheduler } from "@/components/AvailabilityScheduler";
@@ -18,15 +19,17 @@ export function OnboardingWizard() {
   const [vehicleData, setVehicleData] = useState<any>({});
   const [locationData, setLocationData] = useState<any>({});
   const [availabilityData, setAvailabilityData] = useState<any>({});
+  const [subscriptionData, setSubscriptionData] = useState<any>({});
   const [, setLocation] = useLocation();
   
-  const totalSteps = 7;
+  const totalSteps = 8;
   const steps = [
     "Personal Info",
-    "Identity",
-    "Vehicle Selection",
+    "Subscription",
+    "Vehicle Selection", 
     "Location Setup",
     "Availability",
+    "Identity",
     "Compliance",
     "Complete"
   ];
@@ -36,14 +39,16 @@ export function OnboardingWizard() {
       case 1:
         return contractorData.firstName && contractorData.lastName && contractorData.email && contractorData.phone;
       case 2:
-        return true; // Identity verification can be completed later
+        return subscriptionData.status; // Subscription required
       case 3:
-        return true; // Vehicle selection can be completed later
+        return vehicleData.vehicleType; // Vehicle selection required
       case 4:
-        return true; // Location setup can be completed later
+        return locationData.zipCode; // Location setup required
       case 5:
-        return true; // Availability can be completed later
+        return availabilityData.schedule; // Availability setup required
       case 6:
+        return true; // Identity verification can be completed later
+      case 7:
         return contractorData.dotNumber; // DOT number is required
       default:
         return true;
@@ -106,33 +111,38 @@ export function OnboardingWizard() {
           />
         )}
         {currentStep === 2 && (
-          <IdentityVerificationStep 
-            contractorId={1} // Mock ID for now
-            onComplete={handleStepComplete}
+          <SubscriptionStep 
+            onComplete={(data) => setSubscriptionData(data)}
           />
         )}
         {currentStep === 3 && (
           <EnhancedVehicleSelection 
-            onUpdate={(data) => setVehicleData(data)}
+            onVehicleSelect={(data) => setVehicleData(data)}
             initialData={vehicleData}
-            isRequired={false}
+            isOptional={false}
           />
         )}
         {currentStep === 4 && (
           <EnhancedLocationSettings 
-            onUpdate={(data) => setLocationData(data)}
+            onLocationUpdate={(data) => setLocationData(data)}
             initialData={locationData}
-            isRequired={false}
+            isOptional={false}
           />
         )}
         {currentStep === 5 && (
           <AvailabilityScheduler 
             onAvailabilityUpdate={(data) => setAvailabilityData(data)}
             initialData={availabilityData}
-            isRequired={false}
+            isRequired={true}
           />
         )}
         {currentStep === 6 && (
+          <IdentityVerificationStep 
+            contractorId={1} // Mock ID for now
+            onComplete={handleStepComplete}
+          />
+        )}
+        {currentStep === 7 && (
           <ComplianceStep 
             data={contractorData}
             onComplete={handleStepComplete}
