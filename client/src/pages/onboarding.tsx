@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { OnboardingWizard } from "@/components/onboarding/OnboardingWizard";
+import { Header } from "@/components/Header";
 
 import { Truck, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,7 +8,7 @@ import { Button } from "@/components/ui/button";
 export default function OnboardingPage() {
   return (
     <div className="min-h-screen bg-gray-50">
-      <UniversalNav />
+      <Header />
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
