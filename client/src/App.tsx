@@ -20,7 +20,7 @@ import AdminDashboard from "@/pages/admin/AdminDashboard";
 import MasterSetup from "@/pages/admin/MasterSetup";
 import AdminAccess from "@/pages/AdminAccess";
 import SitemapPage from "@/pages/sitemap";
-import RegisterContractorPage from "@/pages/register-contractor";
+import RegisterContractorPage from "@/pages/register-contractor-simple";
 import RegisterCompanyPage from "@/pages/register-company";
 import LoginPage from "@/pages/login-page";
 import RegisterPage from "@/pages/register-page";

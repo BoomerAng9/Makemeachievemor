@@ -108,12 +108,13 @@ export default function RegisterContractorPage() {
   const [vehicleData, setVehicleData] = useState(() => {
     const saved = localStorage.getItem('contractor-registration-vehicle');
     return saved ? JSON.parse(saved) : {
-    vehicleType: "",
-    category: "",
-    subType: "",
-    capacity: "",
-    specialFeatures: [] as string[]
-  }});
+      vehicleType: "",
+      category: "",
+      subType: "",
+      capacity: "",
+      specialFeatures: [] as string[]
+    };
+  });
 
   const [locationData, setLocationData] = useState(() => {
     const saved = localStorage.getItem('contractor-registration-location');
@@ -124,15 +125,17 @@ export default function RegisterContractorPage() {
     serviceRadius: 25,
     maxDistance: 100,
     serviceTypes: [] as string[]
-  }});
+    };
+  });
 
   const [availabilityData, setAvailabilityData] = useState(() => {
     const saved = localStorage.getItem('contractor-registration-availability');
     return saved ? JSON.parse(saved) : {
-    schedule: {} as Record<string, { available: boolean; startTime: string; endTime: string }>,
-    trustRating: 0,
-    weeklyCommitment: 0
-  }});
+      schedule: {} as Record<string, { available: boolean; startTime: string; endTime: string }>,
+      trustRating: 0,
+      weeklyCommitment: 0
+    };
+  });
 
   const [currentStep, setCurrentStep] = useState(() => {
     const savedStep = localStorage.getItem('contractor-registration-step');
