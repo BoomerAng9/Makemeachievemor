@@ -472,13 +472,6 @@ export default function RegisterCompanyPage() {
                   <h3 className="font-semibold text-green-900">Business Professional - $25.99/month</h3>
                   <input type="radio" name="businessPlan" value="professional" className="text-green-600" />
                 </div>
-                <ul className="text-sm text-green-800 space-y-1 mb-3">
-                  <li>• Enhanced contractor matching</li>
-                  <li>• Advanced job posting features</li>
-                  <li>• Performance analytics</li>
-                  <li>• Priority customer support</li>
-                  <li>• Multiple job management</li>
-                </ul>
               </div>
 
               {/* Premium Plan */}
@@ -487,13 +480,6 @@ export default function RegisterCompanyPage() {
                   <h3 className="font-semibold text-purple-900">Enterprise - $49.99/month</h3>
                   <input type="radio" name="businessPlan" value="enterprise" className="text-purple-600" />
                 </div>
-                <ul className="text-sm text-purple-800 space-y-1 mb-3">
-                  <li>• All Professional features</li>
-                  <li>• Dedicated account manager</li>
-                  <li>• Custom integrations</li>
-                  <li>• Volume discounts</li>
-                  <li>• Advanced reporting & analytics</li>
-                </ul>
               </div>
 
               {/* Complete Later Option */}
