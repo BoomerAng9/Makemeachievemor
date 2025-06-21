@@ -333,10 +333,14 @@ export default function LandingPage() {
       </section>
 
       {/* Features Section */}
-      <section className="max-w-7xl mx-auto px-4 py-16">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Platform Features</h2>
-          <p className="text-xl text-gray-600">Comprehensive logistics management powered by AI</p>
+      <section className="max-w-7xl mx-auto px-4 py-20">
+        <div className="text-center mb-16 animate-fade-in">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            Platform <span className="gradient-text">Features</span>
+          </h2>
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            Comprehensive logistics management powered by AI and built for the future of transportation
+          </p>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
