@@ -71,7 +71,7 @@ function Router() {
       {/* Public routes - accessible to all users */}
       <Route path="/landing" component={LandingPage} />
       
-      {/* Main routes - accessible for testing */}
+      {/* Main application routes */}
       <Route path="/dashboard" component={TestDashboard} />
       <Route path="/dashboard/:contractorId" component={TestDashboard} />
       <Route path="/profile" component={ContractorProfilePage} />
@@ -87,9 +87,10 @@ function Router() {
       <Route path="/admin" component={AdminAccess} />
       <Route path="/settings" component={TestDashboard} />
       
-      {/* Root route - show landing page */}
+      {/* Root route */}
       <Route path="/" component={LandingPage} />
       
+      {/* Fallback route */}
       <Route component={LandingPage} />
     </Switch>
   );
