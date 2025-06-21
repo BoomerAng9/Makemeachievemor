@@ -4,6 +4,7 @@ import { Header } from "@/components/Header";
 import { EnhancedVehicleSelection } from "@/components/EnhancedVehicleSelection";
 import { EnhancedLocationSettings } from "@/components/EnhancedLocationSettings";
 import { AvailabilityScheduler } from "@/components/AvailabilityScheduler";
+import PivotDropdown from "@/components/PivotDropdown";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,7 +15,8 @@ import {
   Calendar, 
   Car,
   Shield,
-  Settings
+  Settings,
+  TrendingUp
 } from "lucide-react";
 
 interface VehicleData {
