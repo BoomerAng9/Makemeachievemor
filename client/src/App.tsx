@@ -14,6 +14,7 @@ import AboutPage from "@/pages/about";
 import OnboardingPage from "@/pages/onboarding";
 import DashboardPage from "@/pages/dashboard-page";
 import TestDashboard from "@/pages/test-dashboard";
+import ContractorProfilePage from "@/pages/contractor-profile";
 import DriverChecklistPage from "@/pages/driver-checklist";
 import GloveboxPage from "@/pages/glovebox";
 import DriverLocationPage from "@/pages/driver-location";
@@ -70,14 +71,13 @@ function Router() {
       {/* Public routes - accessible to all users */}
       <Route path="/landing" component={LandingPage} />
       
-      {/* Root route - always show landing page */}
-      <Route path="/" component={LandingPage} />
-      
-      {/* Protected routes - always available for testing */}
+      {/* Main routes - accessible for testing */}
       <Route path="/dashboard" component={TestDashboard} />
-      <Route path="/dashboard/:contractorId" component={DashboardPage} />
+      <Route path="/dashboard/:contractorId" component={TestDashboard} />
+      <Route path="/profile" component={ContractorProfilePage} />
+      <Route path="/profile/:contractorId" component={ContractorProfilePage} />
+      <Route path="/contractor-profile" component={ContractorProfilePage} />
       <Route path="/glovebox" component={GloveboxPage} />
-      <Route path="/contractor-profile" component={TestDashboard} />
       <Route path="/load-board" component={TestDashboard} />
       <Route path="/choose-two" component={TestDashboard} />
       <Route path="/job-matching" component={TestDashboard} />
@@ -86,6 +86,9 @@ function Router() {
       <Route path="/admin/panel" component={NewAdminDashboard} />
       <Route path="/admin" component={AdminAccess} />
       <Route path="/settings" component={TestDashboard} />
+      
+      {/* Root route - show landing page */}
+      <Route path="/" component={LandingPage} />
       
       <Route component={LandingPage} />
     </Switch>
