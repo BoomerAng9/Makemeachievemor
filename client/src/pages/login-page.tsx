@@ -28,10 +28,20 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const response = await apiRequest('/api/auth/login', {
+      const response = await fetch('/api/auth/login', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
         body: JSON.stringify({ email, password })
       });
+
+      if (!response.ok) {
+        throw new Error(`Login failed: ${response.status}`);
+      }
+
+      const data = await response.json();
 
       toast({
         title: "Login Successful",
@@ -39,12 +49,13 @@ export default function LoginPage() {
         variant: "default"
       });
 
+      // Force page reload to update auth state
       window.location.href = '/dashboard';
     } catch (error) {
       console.error('Login error:', error);
       toast({
         title: "Login Failed",
-        description: "Please try again",
+        description: "Please check your email and try again",
         variant: "destructive"
       });
     } finally {
