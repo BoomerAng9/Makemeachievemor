@@ -72,7 +72,7 @@ export function DemoLogin() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              required
+              placeholder="Any password"
             />
           </div>
           
@@ -85,7 +85,7 @@ export function DemoLogin() {
           </Button>
           
           <div className="text-center text-sm text-gray-600">
-            <p>Enter any email to get started</p>
+            <p>Enter any email to get started (password optional)</p>
           </div>
         </form>
       </CardContent>

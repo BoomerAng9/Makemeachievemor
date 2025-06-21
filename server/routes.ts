@@ -22,7 +22,7 @@ import {
 import { z } from "zod";
 import { generateChatbotResponse } from "./chatbot";
 import { knowledgeBaseService } from "./knowledgeBaseService";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { setupAuth, isAuthenticated } from "./simpleAuth";
 import { zeroTrustMiddleware, enhancedAuth, trackComplianceEvent } from "./zeroTrustSecurity";
 import { performHealthCheck } from "./healthCheck";
 import { db } from "./db";
