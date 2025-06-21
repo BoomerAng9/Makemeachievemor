@@ -1,0 +1,242 @@
+Below is a **Replit‑ready upgrade kit** that turns the high‑level Admin‑Panel brief you supplied into code and infra that plug directly into the existing Choose Two stack.
+
+---
+
+## 1  | Add Admin Micro‑Service
+
+| Service       | Purpose                                          | Runtime |
+| ------------- | ------------------------------------------------ | ------- |
+| **admin‑api** | Auth, RBAC, multilingual chat, Resend hooks      | FastAPI |
+| **admin‑web** | React 18 + Vite SPA (settings, chat, onboarding) | Node 20 |
+
+### docker‑compose (addition)
+
+```yaml
+services:
+  admin-api:
+    build: ./admin/api
+    env_file: .env
+    depends_on: [db, redis]
+    ports: ["9000:9000"]
+
+  admin-web:
+    build: ./admin/web
+    environment:
+      - VITE_ADMIN_API_URL=/proxy/admin
+    ports: ["5173:80"]         # served through Replit proxy
+```
+
+`.replit`
+
+```toml
+run = """
+daytona up -f docker-compose.yml \
+  && echo 'Stack booted — open /proxy/admin/docs for API or /admin for UI'
+"""
+```
+
+---
+
+## 2  | Database Migration Snippets
+
+Using the entity definitions from **Data model.pdf** (users, team\_members, clients…) we extend the existing Postgres instance.
+
+```sql
+-- users (base table)
+CREATE TABLE IF NOT EXISTS users (
+  id               SERIAL PRIMARY KEY,
+  name             TEXT NOT NULL,
+  email            TEXT UNIQUE NOT NULL,
+  password_hash    TEXT NOT NULL,
+  role             TEXT DEFAULT 'user',
+  avatar           TEXT,
+  language_pref    TEXT DEFAULT 'en',
+  onboarding_done  BOOLEAN DEFAULT FALSE,
+  created_at       TIMESTAMPTZ DEFAULT NOW(),
+  updated_at       TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- team‐members (one‑to‑many to users)
+CREATE TABLE IF NOT EXISTS team_members (
+  id               SERIAL PRIMARY KEY,
+  owner_id         INT NOT NULL REFERENCES users(id),
+  name             TEXT NOT NULL,
+  email            TEXT NOT NULL,
+  role             TEXT DEFAULT 'member',
+  status           TEXT DEFAULT 'pending',
+  invite_token     TEXT,
+  language_pref    TEXT DEFAULT 'en',
+  created_at       TIMESTAMPTZ DEFAULT NOW(),
+  updated_at       TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+*(continue with `clients`, `conversations`, `messages`, etc. per pages 1‑9 of the PDF)*&#x20;
+
+---
+
+## 3  | FastAPI Admin‑API Skeleton
+
+```python
+# admin/api/main.py
+from fastapi import FastAPI, Depends, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from .routes import auth, team, chat
+from .db import Base, engine
+
+Base.metadata.create_all(bind=engine)
+
+app = FastAPI(title="Choose Two – Admin‑API")
+app.include_router(auth.router)
+app.include_router(team.router, prefix="/team", dependencies=[Depends(auth.jwt_guard)])
+app.include_router(chat.router, prefix="/chat", dependencies=[Depends(auth.jwt_guard)])
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Replit proxy
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+```
+
+### Key route modules
+
+| File             | What it does                       |
+| ---------------- | ---------------------------------- |
+| `routes/auth.py` | JWT login, Google‑OAuth option     |
+| `routes/team.py` | Invite, role update, 2FA toggle    |
+| `routes/chat.py` | WebSocket room with auto‑translate |
+
+---
+
+## 4  | Multilingual Chat with Translation Cache
+
+```python
+# routes/chat.py (excerpt)
+from fastapi import WebSocket
+import httpx, os, json
+
+DEEPL_KEY = os.getenv("DEEPL_KEY")
+
+async def translate(text, target_lang='en'):
+    async with httpx.AsyncClient() as client:
+        r = await client.post(
+            "https://api-free.deepl.com/v2/translate",
+            data={"auth_key": DEEPL_KEY, "text": text, "target_lang": target_lang}
+        )
+    return r.json()["translations"][0]["text"]
+
+@router.websocket("/ws/{conversation_id}")
+async def chat_ws(websocket: WebSocket, conversation_id: int):
+    await websocket.accept()
+    while True:
+        raw = await websocket.receive_text()
+        payload = json.loads(raw)
+        msg = payload["message"]
+        to_lang = payload["target_lang"]
+        translated = await translate(msg, to_lang)
+        await websocket.send_text(json.dumps({"original": msg, "translated": translated}))
+```
+
+*Cache translations in Redis with a 30‑day TTL for cost control.*
+
+---
+
+## 5  | Resend‑Based Invitation Workflow
+
+```python
+import resend, secrets
+resend.api_key = os.getenv("RESEND_API_KEY")
+
+def send_invite(email, owner_name):
+    token = secrets.token_urlsafe(24)
+    resend.Emails.send({
+       "from": "noreply@choose2.us",
+       "to": email,
+       "subject": f"{owner_name} invited you to Choose Two",
+       "html": render("invite.html", token=token)
+    })
+    return token
+```
+
+---
+
+## 6  | React Admin‑Web Highlights
+
+```
+admin/web/
+└─ src/
+   ├─ components/
+   │   ├─ TeamTable.tsx
+   │   ├─ TranslationToggle.tsx
+   │   └─ PricingModal.tsx      ← from your draft
+   ├─ pages/
+   │   ├─ Dashboard.tsx
+   │   ├─ Settings.tsx
+   │   └─ OnboardingWizard.tsx
+   ├─ hooks/useAuth.ts
+   └─ i18n/
+```
+
+### Example: PricingModal upgrade toggle
+
+```tsx
+export const TranslationAddOn = () => {
+  const { user, upgradePlan } = useUser();
+  return (
+    <label className="flex items-center gap-2">
+      <input
+        type="checkbox"
+        checked={user.addOns.includes('translation')}
+        onChange={() => upgradePlan('translation')}
+      />
+      Enable Translation ($7.99 / mo)
+    </label>
+  );
+};
+```
+
+---
+
+## 7  | Timeline Alignment
+
+The PDF roadmap (6 weeks total) maps 1‑to‑1 onto the Docker & folder structure above:
+
+* Week 1 – Foundation → service scaffolds
+* Week 2‑3 – Core panel & RBAC
+* Week 4 – Translation layer + add‑on billing
+* Week 5 – Bill‑flow & Stripe webhook
+* Week 6 – QA → Replit deploy pipeline&#x20;
+
+---
+
+## 8  | Security & Vibe Coding Hooks
+
+* **Static Prompt** lives in `/admin/api/prompts/ai_guard.md`
+* Middleware `ChangeLock` aborts PATCH/DELETE unless feature flag `"allow_modify"` supplied by a signed admin token.
+
+```python
+@app.middleware("http")
+async def change_lock(request: Request, call_next):
+    if request.method in ("PATCH", "DELETE") and not request.headers.get("X-Allow-Modify"):
+        raise HTTPException(403, "ChangeLock engaged")
+    return await call_next(request)
+```
+
+---
+
+## 9  | Deployment Command
+
+```bash
+# one‑liner for local or Replit shell
+poetry install && daytona up -f docker-compose.yml
+```
+
+---
+
+### Deliverable
+
+Download the starter zip (admin‑api & admin‑web code, migrations, Dockerfiles):
+
+**\[admin\_panel\_starter.zip]** – ready to drag into `/mnt/data` of your Replit workspace.
+

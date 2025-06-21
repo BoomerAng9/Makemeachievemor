@@ -19,6 +19,7 @@ import DriverLocationPage from "@/pages/driver-location";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import MasterSetup from "@/pages/admin/MasterSetup";
 import AdminAccess from "@/pages/AdminAccess";
+import NewAdminDashboard from "@/components/admin/AdminDashboard";
 import SitemapPage from "@/pages/sitemap";
 import RegisterContractorPage from "@/pages/register-contractor-simple";
 import RegisterCompanyPage from "@/pages/register-company";
