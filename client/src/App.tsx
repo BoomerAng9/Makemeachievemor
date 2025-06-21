@@ -79,7 +79,7 @@ function Router() {
       <Route path="/glovebox" component={GloveboxPage} />
       <Route path="/contractor-profile" component={TestDashboard} />
       <Route path="/load-board" component={TestDashboard} />
-      <Route path="/choose-two" component={ChooseTwoPage} />
+      <Route path="/choose-two" component={TestDashboard} />
       <Route path="/job-matching" component={TestDashboard} />
       <Route path="/driver-location" component={DriverLocationPage} />
       <Route path="/admin/dashboard" component={AdminDashboard} />
