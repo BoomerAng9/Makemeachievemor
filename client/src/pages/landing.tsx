@@ -180,12 +180,12 @@ export default function LandingPage() {
       {/* T-Chart Section - Split for Contractors and Companies */}
       <section className="bg-gray-50 py-16">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="text-center mb-12">
+          <div className="text-center mb-12 animate-fade-in">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Choose Your Path to Success
+              Choose Your Path to <span className="gradient-text">Success</span>
             </h2>
-            <p className="text-xl text-gray-600 text-center">
-              Join our network as a driver or partner with us as a company
+            <p className="text-xl text-gray-600 text-center max-w-3xl mx-auto">
+              Join our elite network as a driver or partner with us as a company for premium logistics solutions
             </p>
           </div>
 
@@ -247,8 +247,9 @@ export default function LandingPage() {
                 <div className="mt-8 pt-6 border-t border-gray-200">
                   <Button 
                     size="lg" 
+                    variant="premium"
                     asChild
-                    className="w-full bg-primary hover:bg-primary/90"
+                    className="w-full"
                   >
                     <Link href="/register/contractor">Join as Driver</Link>
                   </Button>
