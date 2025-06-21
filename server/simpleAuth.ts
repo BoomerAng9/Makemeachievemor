@@ -17,11 +17,11 @@ export function getSession() {
   return session({
     secret: process.env.SESSION_SECRET || 'achievemor-session-secret-dev',
     store: sessionStore,
-    resave: false,
-    saveUninitialized: false,
+    resave: true,
+    saveUninitialized: true,
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: false, // Allow non-HTTPS for development
       maxAge: sessionTtl,
       sameSite: 'lax'
     },
@@ -111,12 +111,19 @@ export async function setupAuth(app: Express) {
         updatedAt: new Date()
       };
       
-      // Set session
+      // Set session and save it
       req.session.user = user;
       req.session.isAuthenticated = true;
       
-      console.log('Login successful for:', email);
-      res.json({ user, message: "Login successful" });
+      req.session.save((err) => {
+        if (err) {
+          console.error('Session save error:', err);
+          return res.status(500).json({ message: "Session save failed" });
+        }
+        
+        console.log('Login successful for:', email, 'Session ID:', req.session.id);
+        res.json({ user, message: "Login successful" });
+      });
     } catch (error) {
       console.error('Login error:', error);
       res.status(500).json({ message: "Login failed" });

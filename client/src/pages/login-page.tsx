@@ -49,8 +49,10 @@ export default function LoginPage() {
         variant: "default"
       });
 
-      // Force page reload to update auth state
-      window.location.href = '/dashboard';
+      // Small delay to let session propagate, then redirect
+      setTimeout(() => {
+        setLocation('/dashboard');
+      }, 500);
     } catch (error) {
       console.error('Login error:', error);
       toast({
