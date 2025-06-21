@@ -66,7 +66,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Apply Zero Trust security middleware to all routes
   app.use(zeroTrustMiddleware);
   
-  // Setup Replit authentication
+  // Setup working authentication
   await setupAuth(app);
   
   // Basic health check
@@ -74,17 +74,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
   });
 
-  // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      res.json(user);
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      res.status(500).json({ message: "Failed to fetch user" });
-    }
-  });
+  // Auth routes are handled by simpleAuth.ts
 
   // ============================================================================
   // CONTRACTOR AVAILABILITY ROUTES
