@@ -7,7 +7,7 @@ export function useAuth() {
     refetchOnWindowFocus: false,
     refetchOnMount: true,
     refetchInterval: false,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 0, // Always fresh
     queryFn: async () => {
       const response = await fetch('/api/auth/user', {
         credentials: 'include',

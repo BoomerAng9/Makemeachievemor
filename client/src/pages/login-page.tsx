@@ -49,10 +49,8 @@ export default function LoginPage() {
         variant: "default"
       });
 
-      // Small delay to let session propagate, then redirect
-      setTimeout(() => {
-        setLocation('/dashboard');
-      }, 500);
+      // Force page reload to ensure session is recognized
+      window.location.href = '/dashboard';
     } catch (error) {
       console.error('Login error:', error);
       toast({
