@@ -185,22 +185,29 @@ Please review these documents within 48 hours for verification.
 
   private async sendEmail(emailData: EmailNotificationData): Promise<boolean> {
     try {
-      if (!this.mailService) {
-        console.log('SendGrid not configured. Email notification logged:', emailData.subject);
-        console.log('To:', emailData.to);
-        console.log('Content:', emailData.text);
-        return false;
+      if (!this.isConfigured || !this.resend) {
+        console.log('📧 EMAIL NOTIFICATION (No provider configured):');
+        console.log(`To: ${emailData.to}`);
+        console.log(`Subject: ${emailData.subject}`);
+        console.log(`Content: ${emailData.text}`);
+        console.log('---');
+        return true; // Don't break application flow
       }
 
-      await this.mailService.send({
-        to: emailData.to,
+      const { data, error } = await this.resend.emails.send({
         from: this.fromEmail,
+        to: [emailData.to],
         subject: emailData.subject,
         text: emailData.text,
         html: emailData.html,
       });
 
-      console.log('Email sent successfully:', emailData.subject);
+      if (error) {
+        console.error('Resend API error:', error);
+        return false;
+      }
+
+      console.log(`Email sent successfully via Resend: ${data?.id}`);
       return true;
     } catch (error) {
       console.error('Failed to send email:', error);
