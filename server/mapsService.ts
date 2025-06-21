@@ -197,8 +197,6 @@ export class MapsService {
     const zipMatch = stateZip?.match(/\b\d{5}(-\d{4})?\b/);
     return zipMatch?.[0] || null;
   }
-}
-
   private fallbackGeocode(address: string): { lat: number; lng: number; formattedAddress: string } | null {
     // Basic fallback for common US cities when Maps API is not available
     const cityCoordinates: Record<string, { lat: number; lng: number }> = {
