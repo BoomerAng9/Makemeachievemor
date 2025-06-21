@@ -27,6 +27,7 @@ import LoginPage from "@/pages/login-page";
 import RegisterPage from "@/pages/register-page";
 import AccountSettingsPage from "@/pages/account-settings";
 import AuthorityChecklistPage from "@/pages/authority-checklist";
+import ContractorProfilePage from "@/pages/contractor-profile";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -77,6 +78,8 @@ function Router() {
         <>
           <Route path="/dashboard" component={DashboardPage} />
           <Route path="/dashboard/:contractorId" component={DashboardPage} />
+          <Route path="/profile" component={ContractorProfilePage} />
+          <Route path="/profile/:contractorId" component={ContractorProfilePage} />
           <Route path="/glovebox" component={GloveboxPage} />
           <Route path="/driver-location" component={DriverLocationPage} />
           <Route path="/admin" component={AdminDashboard} />
