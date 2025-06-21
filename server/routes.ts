@@ -28,11 +28,11 @@ import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
 
 if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
+  console.warn('STRIPE_SECRET_KEY not configured - payment features will be disabled');
 }
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+const stripe = process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: "2023-10-16",
-});
+}) : null;
 
 // Subscription pricing configuration
 const SUBSCRIPTION_PRICES = {

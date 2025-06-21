@@ -35,13 +35,18 @@ export class MapsService {
   private baseUrl = "https://maps.googleapis.com/maps/api";
 
   constructor() {
-    this.apiKey = process.env.GOOGLE_MAPS_API_KEY!;
+    this.apiKey = process.env.GOOGLE_MAPS_API_KEY || '';
     if (!this.apiKey) {
-      throw new Error("GOOGLE_MAPS_API_KEY environment variable is required");
+      console.warn("GOOGLE_MAPS_API_KEY not configured - location features will be limited");
     }
   }
 
   async geocodeAddress(address: string): Promise<{ lat: number; lng: number; formattedAddress: string } | null> {
+    if (!this.apiKey) {
+      console.warn('Google Maps API key not configured - using fallback geocoding');
+      return this.fallbackGeocode(address);
+    }
+
     try {
       const url = `${this.baseUrl}/geocode/json?address=${encodeURIComponent(address)}&key=${this.apiKey}`;
       const response = await fetch(url);
@@ -191,6 +196,45 @@ export class MapsService {
     const stateZip = parts[parts.length - 2]?.trim();
     const zipMatch = stateZip?.match(/\b\d{5}(-\d{4})?\b/);
     return zipMatch?.[0] || null;
+  }
+}
+
+  private fallbackGeocode(address: string): { lat: number; lng: number; formattedAddress: string } | null {
+    // Basic fallback for common US cities when Maps API is not available
+    const cityCoordinates: Record<string, { lat: number; lng: number }> = {
+      'new york, ny': { lat: 40.7128, lng: -74.0060 },
+      'los angeles, ca': { lat: 34.0522, lng: -118.2437 },
+      'chicago, il': { lat: 41.8781, lng: -87.6298 },
+      'houston, tx': { lat: 29.7604, lng: -95.3698 },
+      'phoenix, az': { lat: 33.4484, lng: -112.0740 },
+      'philadelphia, pa': { lat: 39.9526, lng: -75.1652 },
+      'san antonio, tx': { lat: 29.4241, lng: -98.4936 },
+      'san diego, ca': { lat: 32.7157, lng: -117.1611 },
+      'dallas, tx': { lat: 32.7767, lng: -96.7970 },
+      'san jose, ca': { lat: 37.3382, lng: -121.8863 },
+      'atlanta, ga': { lat: 33.7490, lng: -84.3880 },
+      'miami, fl': { lat: 25.7617, lng: -80.1918 }
+    };
+
+    const normalizedAddress = address.toLowerCase().trim();
+    
+    for (const [city, coords] of Object.entries(cityCoordinates)) {
+      if (normalizedAddress.includes(city) || city.includes(normalizedAddress)) {
+        return {
+          lat: coords.lat,
+          lng: coords.lng,
+          formattedAddress: address
+        };
+      }
+    }
+
+    // Default to center of US if no match
+    console.warn(`No fallback coordinates found for: ${address}`);
+    return {
+      lat: 39.8283, // Geographic center of US
+      lng: -98.5795,
+      formattedAddress: address
+    };
   }
 }
 

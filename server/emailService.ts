@@ -1,4 +1,4 @@
-import { MailService } from '@sendgrid/mail';
+import { Resend } from 'resend';
 
 interface EmailNotificationData {
   to: string;
@@ -8,8 +8,8 @@ interface EmailNotificationData {
 }
 
 class EmailService {
-  private mailService: MailService | null = null;
-  private fromEmail = 'noreply@achievemor.io';
+  private resend: Resend | null = null;
+  private fromEmail = 'ACHIEVEMOR <noreply@achievemor.io>';
   private isConfigured = false;
 
   constructor() {
@@ -17,32 +17,25 @@ class EmailService {
   }
 
   private initializeEmailProvider() {
-    // Priority 1: SendGrid
-    if (process.env.SENDGRID_API_KEY) {
+    // Priority 1: Resend (Modern, developer-friendly)
+    if (process.env.RESEND_API_KEY) {
       try {
-        this.mailService = new MailService();
-        this.mailService.setApiKey(process.env.SENDGRID_API_KEY);
+        this.resend = new Resend(process.env.RESEND_API_KEY);
         this.isConfigured = true;
-        console.log('Email service initialized with SendGrid');
+        console.log('Email service initialized with Resend');
         return;
       } catch (error) {
-        console.warn('Failed to initialize SendGrid:', error);
+        console.warn('Failed to initialize Resend:', error);
       }
     }
 
-    // Priority 2: Nodemailer with SMTP (Gmail, Outlook, etc.)
-    if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
-      console.log('Email service could use SMTP (not implemented yet)');
-      // TODO: Add nodemailer SMTP support
-    }
-
-    // Priority 3: AWS SES
-    if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY && process.env.AWS_REGION) {
-      console.log('Email service could use AWS SES (not implemented yet)');
-      // TODO: Add AWS SES support
+    // Fallback for legacy SendGrid users
+    if (process.env.SENDGRID_API_KEY) {
+      console.warn('SendGrid detected but Resend is preferred. Consider migrating to Resend for better developer experience.');
     }
 
     console.warn('No email service configured. Email notifications will be logged instead.');
+    console.log('To enable emails, set RESEND_API_KEY in your environment variables');
   }
 
   async sendRegistrationNotification(user: any): Promise<boolean> {
