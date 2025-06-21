@@ -4,46 +4,55 @@
 
 @layer base {
   :root {
-    /* Apple Retina-style color system */
+    /* Premium Apple-inspired color system */
     --background: hsl(0, 0%, 100%);
     --foreground: hsl(210, 11%, 15%);
-    --muted: hsl(210, 40%, 96%);
+    --muted: hsl(210, 40%, 98%);
     --muted-foreground: hsl(215, 13%, 65%);
     --popover: hsl(0, 0%, 100%);
     --popover-foreground: hsl(210, 11%, 15%);
     --card: hsl(0, 0%, 100%);
     --card-foreground: hsl(210, 11%, 15%);
-    --border: hsl(214, 32%, 91%);
-    --input: hsl(214, 32%, 91%);
+    --border: hsl(214, 32%, 94%);
+    --input: hsl(214, 32%, 96%);
     
-    /* Primary brand - Deep blue */
+    /* Primary brand - ACHIEVEMOR Blue */
     --primary: hsl(221, 83%, 53%);
     --primary-foreground: hsl(0, 0%, 100%);
+    --primary-gradient: linear-gradient(135deg, hsl(221, 83%, 53%) 0%, hsl(221, 83%, 45%) 100%);
     
-    /* Secondary - Light gray */
-    --secondary: hsl(210, 40%, 96%);
+    /* Secondary - Sophisticated gray */
+    --secondary: hsl(210, 40%, 98%);
     --secondary-foreground: hsl(210, 11%, 15%);
     
-    /* Accent - Orange gradient */
+    /* Accent - ACHIEVEMOR Orange */
     --accent: hsl(25, 95%, 53%);
     --accent-foreground: hsl(0, 0%, 100%);
+    --accent-gradient: linear-gradient(135deg, hsl(25, 95%, 53%) 0%, hsl(25, 95%, 45%) 100%);
     
     --destructive: hsl(0, 84%, 60%);
     --destructive-foreground: hsl(0, 0%, 100%);
     --success: hsl(142, 76%, 36%);
     --warning: hsl(38, 92%, 50%);
     --ring: hsl(221, 83%, 53%);
-    --radius: 0.75rem;
+    --radius: 0.875rem;
     
-    /* ACHIEVEMOR ecosystem colors */
-    --deploy-gradient: linear-gradient(135deg, #FF6B35 0%, #F7931E 50%, #FFD700 100%);
-    --nurd-purple: hsl(271, 81%, 56%);
-    --stargate-blue: hsl(221, 83%, 53%);
-    --boost-green: hsl(142, 76%, 36%);
+    /* ACHIEVEMOR brand gradients */
+    --hero-gradient: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 50%, #1E40AF 100%);
+    --deploy-gradient: linear-gradient(135deg, #FF6B35 0%, #F97316 50%, #EA580C 100%);
+    --success-gradient: linear-gradient(135deg, #10B981 0%, #059669 100%);
     
-    /* Glass morphism */
-    --glass-bg: rgba(255, 255, 255, 0.8);
-    --glass-border: rgba(255, 255, 255, 0.2);
+    /* Glass morphism and effects */
+    --glass-bg: rgba(255, 255, 255, 0.85);
+    --glass-border: rgba(255, 255, 255, 0.3);
+    --glass-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+    --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    --hover-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    
+    /* Animation variables */
+    --transition-fast: 0.15s ease-out;
+    --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bouncy: 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
   }
 
   .dark {

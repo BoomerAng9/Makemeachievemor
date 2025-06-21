@@ -137,38 +137,41 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 py-16">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="text-left">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-                Choose 2 ACHIEVEMOR
-                <span className="block text-primary">Owner Operator Platform</span>
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight animate-fade-in">
+                Choose 2 <span className="gradient-text">ACHIEVEMOR</span>
+                <span className="block text-primary mt-2">Owner Operator Platform</span>
               </h1>
-              <p className="text-lg md:text-xl text-gray-600 mb-8 leading-relaxed max-w-2xl">
-                Comprehensive onboarding platform for owner operator independent contractors. 
-                Streamlined compliance verification, verified job opportunities, and professional business growth services.
+              <p className="text-lg md:text-xl text-gray-600 mb-8 leading-relaxed max-w-2xl animate-slide-up">
+                The premium onboarding platform for owner operator independent contractors. 
+                Streamlined compliance verification, verified job opportunities, and AI-powered business growth services.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex flex-col sm:flex-row gap-4 animate-scale-in">
                 <Button 
-                  size="lg" 
+                  size="xl" 
+                  variant="premium"
                   asChild
-                  className="bg-primary hover:bg-primary/90 text-lg px-8 py-3"
+                  className="shadow-xl"
                 >
-                  <Link href="/register/contractor">Join as Driver</Link>
+                  <Link href="/register/contractor">Start Your Journey</Link>
                 </Button>
                 <Button 
-                  size="lg" 
+                  size="xl" 
                   variant="outline" 
-                  className="text-lg px-8 py-3"
-                  onClick={() => window.location.href = 'tel:912-742-9459'}
+                  onClick={() => setLocation('/driver-checklist')}
                 >
-                  Call (912) 742-9459
+                  Authority Checklist
                 </Button>
               </div>
             </div>
-            <div className="flex justify-center">
-              <img 
-                src={deployVanImage} 
-                alt="ACHIEVEMOR AI-Powered Logistics Solutions" 
-                className="max-w-full h-auto rounded-lg shadow-lg"
-              />
+            <div className="flex justify-center animate-fade-in">
+              <div className="relative">
+                <img 
+                  src={deployVanImage} 
+                  alt="ACHIEVEMOR AI-Powered Logistics Solutions" 
+                  className="max-w-full h-auto rounded-2xl shadow-2xl premium-card border-0"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-primary/10 to-transparent rounded-2xl"></div>
+              </div>
             </div>
           </div>
         </div>
@@ -188,14 +191,14 @@ export default function LandingPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Owner Operators Side */}
-            <Card className="glass shadow-retina-lg border-2 border-primary/20 hover:border-primary/40 hover:shadow-retina-xl transition-retina group">
-              <CardHeader className="bg-primary text-white rounded-t-lg">
+            <Card className="premium-card glass-card animate-slide-up group overflow-hidden">
+              <CardHeader className="bg-gradient-to-r from-primary to-primary/90 text-white">
                 <div className="flex items-center justify-center space-x-3">
-                  <Truck className="h-8 w-8" />
-                  <CardTitle className="text-2xl">Owner Operators</CardTitle>
+                  <Truck className="h-8 w-8 animate-pulse" />
+                  <CardTitle className="text-2xl font-bold">Owner Operators</CardTitle>
                 </div>
-                <p className="text-center text-primary-foreground/90">
-                  Join our network of independent contractors
+                <p className="text-center text-primary-foreground/90 font-medium">
+                  Join our elite network of independent contractors
                 </p>
               </CardHeader>
               <CardContent className="p-8">
