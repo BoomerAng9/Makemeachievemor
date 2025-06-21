@@ -1,0 +1,150 @@
+Below is a **focused upgrade plan** that folds the new **“Choose Two”** back‑haul concept into the starter stack you just downloaded. All changes are incremental; you can copy‑paste code blocks straight into the existing project.
+
+---
+
+## 1  | Brand & Naming Conventions
+
+| Element           | Correct Wording                               |
+| ----------------- | --------------------------------------------- |
+| Load board name   | **Choose Two** (references two linked trips)  |
+| Platform umbrella | **CHOOSE 2 ACHIEVEMOR**                       |
+| Messaging hook    | “One load out, one load home—never haul dry.” |
+
+---
+
+## 2  | Database Add‑Ons
+
+### a. `jobs` table – **link back‑haul**
+
+```sql
+ALTER TABLE jobs
+ADD COLUMN paired_job_id INT REFERENCES jobs(id);
+```
+
+* `paired_job_id` is `NULL` for single loads.
+* When two loads are matched (outbound + return), each record stores the other’s ID.
+
+### b. New helper table (optional)
+
+```sql
+CREATE TABLE job_pairs (
+  id            SERIAL PRIMARY KEY,
+  outbound_id   INT UNIQUE REFERENCES jobs(id),
+  return_id     INT UNIQUE REFERENCES jobs(id),
+  score         NUMERIC,            -- match quality
+  created_at    TIMESTAMP DEFAULT NOW()
+);
+```
+
+If you prefer explicit pairs (helpful for analytics), use this table and drop `paired_job_id`.
+
+---
+
+## 3  | Matching Algorithm Outline
+
+```python
+def find_backhaul(session, outbound: models.Job, radius_km=100):
+    # 1. Candidate return loads that start near outbound drop
+    candidates = (
+        session.query(models.Job)
+        .filter(models.Job.status == "open")
+        .filter(models.Job.pickup_lat.between(outbound.drop_lat - 0.9, outbound.drop_lat + 0.9))
+        .filter(models.Job.pickup_lon.between(outbound.drop_lon - 0.9, outbound.drop_lon + 0.9))
+        .filter(models.Job.earliest_start >= outbound.latest_start)        # after first delivery
+        .all()
+    )
+    # 2. Score by deadhead distance + pay
+    best = min(candidates, key=lambda j: geo_distance(outbound.drop_lat, outbound.drop_lon,
+                                                      j.pickup_lat, j.pickup_lon) / (j.pay_amount+1))
+    return best
+```
+
+*Replace the simple bounding‑box with PostGIS `<->` distance for production.*
+
+---
+
+## 4  | API Extensions (FastAPI)
+
+```python
+from typing import Optional
+
+@app.post("/api/jobs/{job_id}/pair", response_model=schemas.Job)
+def pair_backhaul(job_id: int, db: Session = Depends(get_db)):
+    outbound = db.get(models.Job, job_id)
+    if not outbound:
+        raise HTTPException(404, "Job not found")
+
+    backhaul = match.find_backhaul(db, outbound)
+    if not backhaul:
+        raise HTTPException(404, "No back‑haul found")
+
+    outbound.paired_job_id = backhaul.id
+    backhaul.paired_job_id = outbound.id
+    db.commit()
+    return outbound
+```
+
+---
+
+## 5  | Carrier Dashboard UI
+
+* **Badge**: “Choose 2 Match Found” (green) when `paired_job_id` not null.
+* **Toggle**: *“Show loads with back‑haul only”* → filter `paired_job_id` IS NOT NULL.
+* **Route Preview**: Mini‑map with outbound & return markers for distance transparency.
+
+---
+
+## 6  | Celery Workflow
+
+1. **`ingest_uship`** pulls loads as before.
+2. New periodic task **`build_backhauls`**:
+
+```python
+@celery_app.task
+def build_backhauls():
+    db = SessionLocal()
+    open_outbounds = db.query(models.Job).filter(models.Job.paired_job_id == None).all()
+    for job in open_outbounds:
+        pair = match.find_backhaul(db, job)
+        if pair:
+            job.paired_job_id = pair.id
+            pair.paired_job_id = job.id
+    db.commit()
+    db.close()
+```
+
+Schedule every 15 minutes via Celery Beat or N8N cron.
+
+---
+
+## 7  | Daytona & Deployment Adjustments
+
+* **Worker service** already in `docker-compose.yml`. Add environment variable
+  `CELERY_BEAT=true` and change the command:
+
+```yaml
+worker:
+  command: |
+    sh -c "
+      celery -A backend.app.workers.tasks worker --loglevel=INFO &
+      celery -A backend.app.workers.tasks beat --loglevel=INFO
+    "
+```
+
+Daytona automatically rebuilds and restarts.
+
+---
+
+## 8  | Next Steps Checklist
+
+1. **Run** the `ALTER TABLE` statement or recreate DB with new schema.
+2. **Add** `match.py` helper with `find_backhaul`.
+3. **Wire** `/api/jobs/{id}/pair` endpoint.
+4. **Update** React Redux slice → include `paired_job_id`.
+5. **Deploy** updated stack: `daytona up -f docker-compose.yml`.
+6. **Verify**: Ingester runs → choose `/api/jobs?paired=true` returns pairs.
+
+---
+
+You now have a true **Choose 2** load‑board: every carrier sees an outbound job plus the system‑recommended return, reducing deadhead and boosting earnings.
+

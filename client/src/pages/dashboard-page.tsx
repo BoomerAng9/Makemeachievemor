@@ -5,6 +5,7 @@ import { EnhancedVehicleSelection } from "@/components/EnhancedVehicleSelection"
 import { EnhancedLocationSettings } from "@/components/EnhancedLocationSettings";
 import { AvailabilityScheduler } from "@/components/AvailabilityScheduler";
 import PivotDropdown from "@/components/PivotDropdown";
+import ChooseTwoJobBoard from "@/components/ChooseTwoJobBoard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -60,8 +61,9 @@ export default function DashboardPage() {
         </div>
 
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="choose-two">Choose 2</TabsTrigger>
             <TabsTrigger value="vehicles">Vehicles</TabsTrigger>
             <TabsTrigger value="location">Location</TabsTrigger>
             <TabsTrigger value="availability">Availability</TabsTrigger>
