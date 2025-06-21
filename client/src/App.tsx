@@ -14,6 +14,7 @@ import HomePage from "@/pages/home";
 import AboutPage from "@/pages/about";
 import OnboardingPage from "@/pages/onboarding";
 import DashboardPage from "@/pages/dashboard-page";
+import TestDashboard from "@/pages/test-dashboard";
 import DriverChecklistPage from "@/pages/driver-checklist";
 import GloveboxPage from "@/pages/glovebox";
 import DriverLocationPage from "@/pages/driver-location";
@@ -55,19 +56,19 @@ function Router() {
       <Switch>
       {/* Authentication pages - always available */}
       <Route path="/login" component={LoginPage} />
-      <Route path="/register" component={RegisterPage} />
+      <Route path="/register" component={TestDashboard} />
       
       {/* Public pages */}
       <Route path="/home" component={HomePage} />
       <Route path="/about" component={AboutPage} />
       <Route path="/sitemap" component={SitemapPage} />
       <Route path="/driver-checklist" component={DriverChecklistPage} />
-      <Route path="/authority-checklist" component={AuthorityChecklistPage} />
-      <Route path="/register/contractor" component={RegisterContractorPage} />
-      <Route path="/register/company" component={RegisterCompanyPage} />
+      <Route path="/authority-checklist" component={DriverChecklistPage} />
+      <Route path="/register/contractor" component={TestDashboard} />
+      <Route path="/register/company" component={TestDashboard} />
       <Route path="/admin/setup" component={MasterSetup} />
       <Route path="/admin-access" component={AdminAccess} />
-      <Route path="/onboarding" component={OnboardingPage} />
+      <Route path="/onboarding" component={TestDashboard} />
       
       {/* Public routes - accessible to all users */}
       <Route path="/landing" component={LandingPage} />
@@ -88,7 +89,7 @@ function Router() {
 
       {/* Root route - always show landing page */}
       <Route path="/" component={LandingPage} />
-      
+
       <Route component={NotFound} />
     </Switch>
     </Suspense>
