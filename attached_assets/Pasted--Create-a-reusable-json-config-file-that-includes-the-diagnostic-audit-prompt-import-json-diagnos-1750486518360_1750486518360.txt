@@ -1,0 +1,60 @@
+# Create a reusable .json config file that includes the diagnostic audit prompt
+import json
+
+diagnostic_prompt = {
+    "system_instruction": "DO NOT MODIFY CODE",
+    "description": "Standard Diagnostic & Audit Protocol for Logistics Platform (Replit)",
+    "trigger_mode": "manual or session_start",
+    "prompt_steps": [
+        {
+            "step": "Database Check",
+            "tasks": [
+                "Validate core tables: pivots, pivot_metrics, categories, user_interactions",
+                "Log inconsistencies, missing fields, abnormal row counts"
+            ]
+        },
+        {
+            "step": "Code Consistency Audit",
+            "tasks": [
+                "Review implemented modules: service matching, tracking, payment integration",
+                "Confirm alignment with last 10 commits or tasks"
+            ]
+        },
+        {
+            "step": "Deviation Scan",
+            "tasks": [
+                "Compare current logic with latest user instructions",
+                "Log out-of-scope behaviors"
+            ]
+        },
+        {
+            "step": "No Change Protocol",
+            "tasks": [
+                "Do not write, modify, delete, or refactor any files",
+                "Do not optimize or 'fix' without instruction"
+            ]
+        },
+        {
+            "step": "Feedback Output",
+            "format": [
+                "✅ [Area Checked] — [Confirmation or brief note]",
+                "⚠️ [Area Flagged] — [Issue] | [Cause] | [Suggested review item only]"
+            ]
+        },
+        {
+            "step": "Memory Protocol",
+            "tasks": [
+                "Log 'Change Lock Engaged' into persistent memory or internal note system",
+                "Verify lock at end of audit cycle"
+            ]
+        }
+    ],
+    "final_reminder": "All future suggestions must be tagged as 'Review Only' unless instructed otherwise"
+}
+
+# Save as a .json config file
+file_path = "/mnt/data/diagnostic_audit_prompt.json"
+with open(file_path, "w") as f:
+    json.dump(diagnostic_prompt, f, indent=2)
+
+file_path
