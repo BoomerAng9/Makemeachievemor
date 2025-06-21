@@ -10,12 +10,39 @@ interface EmailNotificationData {
 class EmailService {
   private mailService: MailService | null = null;
   private fromEmail = 'noreply@achievemor.io';
+  private isConfigured = false;
 
   constructor() {
+    this.initializeEmailProvider();
+  }
+
+  private initializeEmailProvider() {
+    // Priority 1: SendGrid
     if (process.env.SENDGRID_API_KEY) {
-      this.mailService = new MailService();
-      this.mailService.setApiKey(process.env.SENDGRID_API_KEY);
+      try {
+        this.mailService = new MailService();
+        this.mailService.setApiKey(process.env.SENDGRID_API_KEY);
+        this.isConfigured = true;
+        console.log('Email service initialized with SendGrid');
+        return;
+      } catch (error) {
+        console.warn('Failed to initialize SendGrid:', error);
+      }
     }
+
+    // Priority 2: Nodemailer with SMTP (Gmail, Outlook, etc.)
+    if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+      console.log('Email service could use SMTP (not implemented yet)');
+      // TODO: Add nodemailer SMTP support
+    }
+
+    // Priority 3: AWS SES
+    if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY && process.env.AWS_REGION) {
+      console.log('Email service could use AWS SES (not implemented yet)');
+      // TODO: Add AWS SES support
+    }
+
+    console.warn('No email service configured. Email notifications will be logged instead.');
   }
 
   async sendRegistrationNotification(user: any): Promise<boolean> {

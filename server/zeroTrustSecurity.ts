@@ -152,17 +152,35 @@ export async function zeroTrustMiddleware(
         })
         .where(eq(deviceTrust.id, deviceRecord.id));
     } else {
-      // New device - create record
-      await db.insert(deviceTrust).values({
-        deviceId,
-        deviceFingerprint,
-        deviceType: detectDeviceType(userAgent),
-        browser: detectBrowser(userAgent),
-        operatingSystem: detectOS(userAgent),
-        trustLevel: 'unknown',
-        isActive: true,
-        accessCount: 1
-      });
+      // New device - create record with upsert to handle conflicts
+      try {
+        await db.insert(deviceTrust).values({
+          deviceId,
+          deviceFingerprint,
+          deviceType: detectDeviceType(userAgent),
+          browser: detectBrowser(userAgent),
+          operatingSystem: detectOS(userAgent),
+          trustLevel: 'unknown',
+          isActive: true,
+          accessCount: 1
+        });
+      } catch (error: any) {
+        // If duplicate device_id, update existing record instead
+        if (error.code === '23505' && error.constraint === 'device_trust_device_id_key') {
+          await db
+            .update(deviceTrust)
+            .set({ 
+              lastSeen: new Date(),
+              accessCount: 1,
+              deviceType: detectDeviceType(userAgent),
+              browser: detectBrowser(userAgent),
+              operatingSystem: detectOS(userAgent)
+            })
+            .where(eq(deviceTrust.deviceId, deviceId));
+        } else {
+          throw error;
+        }
+      }
     }
     
     // High risk - require additional verification
