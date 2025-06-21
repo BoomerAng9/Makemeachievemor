@@ -1,0 +1,218 @@
+Below is a **feature build‑out kit** that fits directly into the existing **Choose Two** stack (FastAPI + Celery + PostgreSQL + React/Redux). Each section gives just enough code and schema to drop straight into the project with minimal re‑plumbing.
+
+---
+
+## 1  | Interactive Job‑Matching Algorithm
+
+### a. Core Scoring Formula (Python)
+
+```python
+def score_job(job, carrier):
+    """
+    job  : models.Job ORM row
+    carrier : dict of carrier prefs & history
+    """
+    # Distance penalty (km) → smaller is better
+    dist_weight = 0.35
+    dist_km = geo_distance(carrier["home_lat"], carrier["home_lon"],
+                           job.pickup_lat, job.pickup_lon)
+
+    # Pay reward
+    pay_weight = 0.40
+    pay_score = float(job.pay_amount)
+
+    # Category alignment (carrier's preferred vehicle)
+    cat_weight = 0.15
+    cat_score = 1 if job.sub_category in carrier["vehicles"] else 0
+
+    # Achievemor loyalty bonus (gamified level)
+    level_weight = 0.10
+    lvl_score = carrier["level"] / 10      # normalised 0‑1
+
+    raw = (
+        pay_weight * pay_score -
+        dist_weight * dist_km +
+        cat_weight * cat_score +
+        level_weight * lvl_score
+    )
+    return raw
+```
+
+### b. Match Endpoint
+
+```python
+@app.get("/api/match")
+def match_jobs(limit: int = 10, db: Session = Depends(get_db),
+               carrier_id: int = Depends(current_carrier_id)):
+    carrier = crud.get_carrier_profile(db, carrier_id)
+    jobs = crud.get_jobs(db, limit=200)  # shortlist
+    ranked = sorted(jobs, key=lambda j: -score_job(j, carrier))
+    return ranked[:limit]
+```
+
+*Hook this to the React dashboard; call `/api/match` every time filters or geo‑position changes.*
+
+---
+
+## 2  | Gamified Achievement System
+
+### a. Schema
+
+```sql
+CREATE TABLE achievements (
+  id            SERIAL PRIMARY KEY,
+  code          TEXT UNIQUE,      -- e.g. 'TEN_LOADS'
+  label         TEXT,
+  description   TEXT,
+  points        INT
+);
+
+CREATE TABLE carrier_achievements (
+  carrier_id    INT REFERENCES carriers(id),
+  achievement_id INT REFERENCES achievements(id),
+  attained_at   TIMESTAMP DEFAULT NOW(),
+  PRIMARY KEY (carrier_id, achievement_id)
+);
+```
+
+### b. Trigger Logic (Celery Task)
+
+```python
+ACHIEVEMENTS = {
+    "TEN_LOADS": {"points": 50, "check": lambda count: count >= 10},
+    "BACKHAUL_MASTER": {"points": 100, "check": lambda bh: bh >= 5},
+}
+
+@celery_app.task
+def evaluate_achievements(carrier_id):
+    db = SessionLocal()
+    stats = crud.get_carrier_stats(db, carrier_id)
+    for code, meta in ACHIEVEMENTS.items():
+        if meta["check"](stats.get(code)) and not crud.has_achievement(db, carrier_id, code):
+            crud.grant_achievement(db, carrier_id, code)
+            notify_push(carrier_id, f"You earned '{code}' badge!")
+    db.close()
+```
+
+*Fire this task after every job completion event.*
+
+### c. Frontend Badge Strip
+
+```jsx
+<BadgeStrip>
+  {achievements.map(a => <Badge key={a.code} title={a.label} points={a.points} />)}
+</BadgeStrip>
+```
+
+---
+
+## 3  | Real‑Time Alerting for High‑Priority Loads
+
+| Channel  | Tool                                  | Setup                              |
+| -------- | ------------------------------------- | ---------------------------------- |
+| Web push | **FastAPI WebSocket** + Redis pub/sub | `/ws/alerts` endpoint              |
+| Email    | Resend                                | Template `high_priority_load.html` |
+| SMS      | Twilio                                | Verify & opt‑in tracking           |
+
+### Quick Pub/Sub Example
+
+```python
+# producer in Celery task
+r.publish("alerts", json.dumps({"job_id": job.id, "priority": "high"}))
+
+# FastAPI WS endpoint
+@app.websocket("/ws/alerts")
+async def alerts_ws(websocket: WebSocket):
+    await websocket.accept()
+    pubsub = redis_client.pubsub()
+    pubsub.subscribe("alerts")
+    for msg in pubsub.listen():
+        if msg["type"] == "message":
+            await websocket.send_text(msg["data"].decode())
+```
+
+---
+
+## 4  | Integrated Earnings & Planning Dashboard
+
+### a. Aggregated Metrics Query
+
+```sql
+SELECT
+  SUM(pay_amount) AS year_to_date,
+  SUM(pay_amount) FILTER (WHERE created_at >= CURRENT_DATE - INTERVAL '30 days') AS last_30,
+  AVG(pay_amount) AS avg_per_load,
+  COUNT(*) AS total_loads
+FROM jobs
+WHERE carrier_id = :cid AND status = 'completed';
+```
+
+### b. Projection (Python)
+
+```python
+def project_monthly(year_to_date, total_loads, months=12):
+    return (year_to_date / max(1, months_elapsed())) * 12
+```
+
+### c. React Widget
+
+```jsx
+<EarningsCard
+  ytd={data.year_to_date}
+  projection={data.projection}
+  backhaul_saved={data.backhaul_savings}
+/>
+```
+
+---
+
+## 5  | One‑Click Application / Proposal Generator
+
+### a. Endpoint
+
+```python
+@app.post("/api/jobs/{id}/apply")
+def apply_job(id: int, carrier_id: int = Depends(current_carrier_id),
+              db: Session = Depends(get_db)):
+    proposal = f"Carrier #{carrier_id} proposes ${suggest_rate(id, carrier_id)}"
+    pdf_bytes = pdfkit.from_string(render_template("proposal.html", ...), False)
+    crud.save_application(db, carrier_id, id, proposal, pdf_bytes)
+    send_to_company(id, proposal, pdf_bytes)   # via Resend
+    return {"status": "submitted"}
+```
+
+### b. Front‑End Button
+
+```jsx
+<Button onClick={() => applyJob(job.id)}>Apply & Send Proposal</Button>
+```
+
+*The button flips to a loading spinner, then success state once API returns 200.*
+
+---
+
+## 6  | Deployment To‑Dos
+
+1. **Add** WebSocket container (`alerts`) or enable in `api` service with `--reload` off.
+2. **Update** `docker-compose.yml` → mount `pdfkit` wkhtmltopdf binary.
+3. **Create** Celery Beat schedule entries:
+
+   * `evaluate_achievements` every hour
+   * `ingest_uship` every 15 min
+   * `build_backhauls` every 15 min
+4. **Run** Alembic or manual `ALTER TABLE` scripts above.
+5. **Push** React updates; add Redux slice for `achievements` and `alerts`.
+
+---
+
+You now have:
+
+* A **personalised ranking engine** (distance + pay + loyalty score)
+* A **badge‑based growth tracker** that feeds motivation loops
+* **Push + email + SMS** for urgent loads
+* A **finance widget** helping carriers plan ahead
+* **Instant application** flow that mails polished proposals to shippers
+
+Toggle these modules on or off with feature flags as you roll out.
+
+**Is that all? Would you like to get back on our main topic?**
