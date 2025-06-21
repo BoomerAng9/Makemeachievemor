@@ -137,55 +137,54 @@ export default function LandingPage() {
         <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2260%22%20height%3D%2260%22%20viewBox%3D%220%200%2060%2060%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cg%20fill%3D%22none%22%20fill-rule%3D%22evenodd%22%3E%3Cg%20fill%3D%22%233B82F6%22%20fill-opacity%3D%220.03%22%3E%3Ccircle%20cx%3D%2230%22%20cy%3D%2230%22%20r%3D%221%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-40"></div>
         
         <div className="relative max-w-7xl mx-auto px-4 py-12 lg:py-20 w-full">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
-            <div className="text-left space-y-8">
-              <div className="space-y-6">
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight animate-fade-in">
-                  Choose 2 <span className="gradient-text">ACHIEVEMOR</span>
-                  <span className="block text-primary mt-2">Owner Operator Platform</span>
-                </h1>
-                <p className="text-lg md:text-xl text-gray-600 leading-relaxed max-w-2xl animate-slide-up">
-                  The premium onboarding platform for owner operator independent contractors. 
-                  Streamlined compliance verification, verified job opportunities, and AI-powered business growth services.
-                </p>
-              </div>
+          <div className="text-center space-y-8">
+            <div className="space-y-6">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight animate-fade-in mx-auto max-w-4xl">
+                Choose 2 <span className="gradient-text">ACHIEVEMOR</span>
+                <span className="block text-primary mt-2">Owner Operator Platform</span>
+              </h1>
+              <p className="text-lg md:text-xl text-gray-600 leading-relaxed max-w-3xl mx-auto animate-slide-up">
+                The premium onboarding platform for owner operator independent contractors. 
+                Streamlined compliance verification, verified job opportunities, and AI-powered business growth services.
+              </p>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-6 justify-center animate-scale-in">
+              <Button 
+                size="xl" 
+                variant="premium"
+                asChild
+                className="shadow-xl text-lg px-8 py-4"
+              >
+                <Link href="/register/contractor">Start Your Journey</Link>
+              </Button>
+              <Button 
+                size="xl" 
+                variant="outline" 
+                onClick={() => setLocation('/driver-checklist')}
+                className="text-lg px-8 py-4"
+              >
+                Authority Checklist
+              </Button>
+            </div>
               
-              <div className="flex flex-col sm:flex-row gap-4 animate-scale-in">
-                <Button 
-                  size="xl" 
-                  variant="premium"
-                  asChild
-                  className="shadow-xl"
-                >
-                  <Link href="/register/contractor">Start Your Journey</Link>
-                </Button>
-                <Button 
-                  size="xl" 
-                  variant="outline" 
-                  onClick={() => setLocation('/driver-checklist')}
-                >
-                  Authority Checklist
-                </Button>
+            <div className="flex items-center justify-center flex-wrap gap-6 text-sm text-gray-600 animate-fade-in">
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span>Live Platform</span>
               </div>
-              
-              <div className="flex items-center space-x-6 text-sm text-gray-600 animate-fade-in">
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                  <span>Live Platform</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                  <span>AI-Powered</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
-                  <span>DOT Compliant</span>
-                </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                <span>AI-Powered</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
+                <span>DOT Compliant</span>
               </div>
             </div>
             
-            <div className="flex justify-center lg:justify-end animate-fade-in">
-              <div className="relative w-full max-w-lg">
+            <div className="flex justify-center animate-fade-in mt-12">
+              <div className="relative w-full max-w-2xl">
                 <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 to-accent/20 rounded-3xl blur-xl opacity-60"></div>
                 <img 
                   src={deployVanImage} 
