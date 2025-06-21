@@ -70,6 +70,10 @@ export default function DashboardPage() {
             <TabsTrigger value="documents">Documents</TabsTrigger>
           </TabsList>
 
+          <TabsContent value="choose-two" className="space-y-6">
+            <ChooseTwoJobBoard />
+          </TabsContent>
+
           <TabsContent value="overview">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
               <Card>
