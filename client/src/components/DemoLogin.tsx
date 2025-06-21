@@ -8,8 +8,8 @@ import { apiRequest } from '@/lib/queryClient';
 import { useLocation } from 'wouter';
 
 export function DemoLogin() {
-  const [email, setEmail] = useState('demo@achievemor.com');
-  const [password, setPassword] = useState('demo123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const [, setLocation] = useLocation();
@@ -19,23 +19,24 @@ export function DemoLogin() {
     setLoading(true);
 
     try {
-      const response = await apiRequest('/api/auth/demo-login', {
+      const response = await apiRequest('/api/auth/login', {
         method: 'POST',
         body: JSON.stringify({ email, password })
       });
 
       toast({
-        title: "Demo Login Successful",
+        title: "Login Successful",
         description: "Welcome to ACHIEVEMOR platform",
         variant: "default"
       });
 
-      setLocation('/dashboard');
+      // Force a page reload to update auth state
+      window.location.href = '/dashboard';
     } catch (error) {
-      console.error('Demo login error:', error);
+      console.error('Login error:', error);
       toast({
         title: "Login Failed",
-        description: "Please check your credentials and try again",
+        description: "Please try again",
         variant: "destructive"
       });
     } finally {
@@ -46,9 +47,9 @@ export function DemoLogin() {
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
-        <CardTitle>Demo Access</CardTitle>
+        <CardTitle>Sign In</CardTitle>
         <CardDescription>
-          Experience the ACHIEVEMOR platform with demo credentials
+          Access your ACHIEVEMOR account
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -80,16 +81,11 @@ export function DemoLogin() {
             className="w-full btn-primary"
             disabled={loading}
           >
-            {loading ? 'Logging in...' : 'Demo Login'}
+            {loading ? 'Signing in...' : 'Sign In'}
           </Button>
           
           <div className="text-center text-sm text-gray-600">
-            <p>Demo credentials are pre-filled</p>
-            <p className="mt-2">
-              <a href="/api/login" className="text-primary hover:underline">
-                Use Replit OAuth instead
-              </a>
-            </p>
+            <p>Enter any email to get started</p>
           </div>
         </form>
       </CardContent>
