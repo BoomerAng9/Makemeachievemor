@@ -17,8 +17,9 @@ export function getSession() {
   return session({
     secret: process.env.SESSION_SECRET || 'achievemor-session-secret-dev',
     store: sessionStore,
-    resave: true,
-    saveUninitialized: true,
+    resave: false,
+    saveUninitialized: false,
+    rolling: true, // Reset expiry on each request
     cookie: {
       httpOnly: true,
       secure: false, // Allow non-HTTPS for development

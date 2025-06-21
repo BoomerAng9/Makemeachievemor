@@ -15,6 +15,7 @@ import OnboardingPage from "@/pages/onboarding";
 import DashboardPage from "@/pages/dashboard-page";
 import TestDashboard from "@/pages/test-dashboard";
 import ContractorProfilePage from "@/pages/contractor-profile";
+import UserSettingsPage from "@/pages/user-settings";
 import DriverChecklistPage from "@/pages/driver-checklist";
 import GloveboxPage from "@/pages/glovebox";
 import DriverLocationPage from "@/pages/driver-location";
@@ -85,7 +86,7 @@ function Router() {
       <Route path="/admin/dashboard" component={AdminDashboard} />
       <Route path="/admin/panel" component={NewAdminDashboard} />
       <Route path="/admin" component={AdminAccess} />
-      <Route path="/settings" component={TestDashboard} />
+      <Route path="/settings" component={UserSettingsPage} />
       
       {/* Root route */}
       <Route path="/" component={LandingPage} />
